@@ -1,0 +1,19 @@
+<h1>Menu for Table <%= @table.number %></h1>
+
+<%= form_with model: [@table, @order], url: table_orders_path(@table), method: :post do |f| %>
+  <% @categories.each do |category| %>
+    <h2><%= category.name %></h2>
+    <ul>
+      <% category.menu_items.each do |item| %>
+        <% if item.available %>
+          <li>
+            <%= item.name %> - $<%= item.price %>
+            <%= number_field_tag "order[menu_items][#{item.id}]", 0, min: 0 %>
+          </li>
+        <% end %>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%= f.submit "Submit Order" %>
+<% end %>
