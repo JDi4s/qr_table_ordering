@@ -1,8 +1,8 @@
-<h1>Incoming Orders</h1>
+<h1>All Orders</h1>
 
 <table border="1" cellspacing="0" cellpadding="5">
   <tr>
-    <th>Order ID</th>
+    <th>ID</th>
     <th>Table</th>
     <th>Status</th>
     <th>Items</th>
@@ -23,4 +23,12 @@
       </td>
       <td>
         <% if order.pending? %>
-          <%= button_to "Accept", staff_order_path(order, status_
+          <%= button_to "Accept", staff_order_path(order, status: "accepted"), method: :patch, form: { data: { turbo: true } } %>
+          <%= button_to "Deny", staff_order_path(order, status: "denied"), method: :patch, form: { data: { turbo: true } } %>
+        <% else %>
+          <em>No actions</em>
+        <% end %>
+      </td>
+    </tr>
+  <% end %>
+</table>

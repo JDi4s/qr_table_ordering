@@ -1,2 +1,20 @@
-<h1>Orders#show</h1>
-<p>Find me in app/views/orders/show.html.erb</p>
+<h1>Your Order - Table <%= @order.table.number %></h1>
+
+<%= turbo_frame_tag dom_id(@order) do %>
+  <p>Status: <strong><%= @order.status.capitalize %></strong></p>
+
+  <h2>Items:</h2>
+  <ul>
+    <% @order.order_items.each do |oi| %>
+      <li><%= oi.menu_item.name %> x <%= oi.quantity %></li>
+    <% end %>
+  </ul>
+
+  <% if @order.status == "pending" %>
+    <p>Your order is being processed. Please wait.</p>
+  <% elsif @order.status == "accepted" %>
+    <p>✅ Your order has been accepted!</p>
+  <% elsif @order.status == "denied" %>
+    <p>❌ Your order was denied. Please contact staff.</p>
+  <% end %>
+<% end %>
