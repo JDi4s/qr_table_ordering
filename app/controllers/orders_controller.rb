@@ -2,21 +2,22 @@ class OrdersController < ApplicationController
   before_action :set_table
 
   def new
-    @menu_items = MenuItem.all
     @order = @table.orders.new
+    @categories = Category.includes(:menu_items).all
   end
 
   def create
     @order = @table.orders.new(order_params)
     if @order.save
-      redirect_to table_order_path(@table, @order), notice: "Order submitted!"
+      redirect_to table_order_path(@table.qr_token, @order), notice: "Order submitted successfully"
     else
-      render :new
+      @categories = Category.includes(:menu_items).all
+      render :new, status: :unprocessable_entity
     end
   end
 
   def show
-    @order = @table.orders.find(params[:id])
+    @order = Order.includes(order_items: :menu_item).find(params[:id])
   end
 
   private

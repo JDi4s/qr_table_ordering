@@ -1,0 +1,18 @@
+<h1>Categories</h1>
+
+<p>
+  <%= link_to "New Category", new_staff_category_path %> |
+  <%= link_to "Menu Items", staff_menu_items_path %> |
+  <%= link_to "Orders", staff_orders_path %> |
+  <%= link_to "Tables & QR Codes", staff_tables_path %>
+</p>
+
+<ul>
+  <% @categories.each do |c| %>
+    <li>
+      <%= link_to c.name, staff_category_path(c) %>
+      (<%= link_to "Edit", edit_staff_category_path(c) %>)
+      <%= button_to "Delete", staff_category_path(c), method: :delete, data: { turbo_confirm: "Delete category?" } %>
+    </li>
+  <% end %>
+</ul>

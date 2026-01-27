@@ -1,20 +1,9 @@
-<h1>Your Order - Table <%= @order.table.number %></h1>
+<h1>Order <%= @order.id %> Status: <%= @order.status.capitalize %></h1>
 
-<%= turbo_frame_tag dom_id(@order) do %>
-  <p>Status: <strong><%= @order.status.capitalize %></strong></p>
-
-  <h2>Items:</h2>
-  <ul>
-    <% @order.order_items.each do |oi| %>
-      <li><%= oi.menu_item.name %> x <%= oi.quantity %></li>
-    <% end %>
-  </ul>
-
-  <% if @order.status == "pending" %>
-    <p>Your order is being processed. Please wait.</p>
-  <% elsif @order.status == "accepted" %>
-    <p>✅ Your order has been accepted!</p>
-  <% elsif @order.status == "denied" %>
-    <p>❌ Your order was denied. Please contact staff.</p>
+<ul>
+  <% @order.order_items.includes(:menu_item).each do |oi| %>
+    <li><%= oi.menu_item.name %> x <%= oi.quantity %></li>
   <% end %>
-<% end %>
+</ul>
+
+<%= link_to "Back to Menu", new_table_order_path(@table) %>

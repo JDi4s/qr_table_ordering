@@ -1,0 +1,24 @@
+<h1>New Menu Item</h1>
+
+<%= form_with model: [:staff, @menu_item] do |f| %>
+  <div>
+    <%= f.label :name %><br />
+    <%= f.text_field :name %>
+  </div>
+
+  <div>
+    <%= f.label :category_id, "Category" %><br />
+    <%= f.collection_select :category_id, Category.order(:name), :id, :name, prompt: "Choose..." %>
+  </div>
+
+  <div>
+    <%= f.label :price %><br />
+    <%= f.number_field :price, step: 0.01 %>
+  </div>
+
+  <div>
+    <%= f.submit "Create" %>
+  </div>
+<% end %>
+
+<p><%= link_to "Back", staff_menu_items_path %></p>

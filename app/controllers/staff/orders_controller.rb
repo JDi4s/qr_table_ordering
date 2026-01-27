@@ -12,10 +12,13 @@ class Staff::OrdersController < ApplicationController
   def update
     @order = Order.find(params[:id])
     if params[:status].in?(%w[accepted denied])
-      @order.update(status: params[:status])
-      respond_to do |format|
-        format.html { redirect_to staff_orders_path, notice: "Order updated" }
-        format.turbo_stream
+      if @order.update(status: params[:status])
+        respond_to do |format|
+          format.html { redirect_to staff_orders_path, notice: "Order updated" }
+          format.turbo_stream
+        end
+      else
+        redirect_to staff_orders_path, alert: "Failed to update order"
       end
     else
       redirect_to staff_orders_path, alert: "Invalid status"
@@ -25,9 +28,7 @@ class Staff::OrdersController < ApplicationController
   private
 
   def require_login
-    unless current_user&.staff?
-      redirect_to login_path, alert: "Please log in as staff"
-    end
+    redirect_to login_path, alert: "Please log in as staff" unless current_user&.staff?
   end
 
   def current_user

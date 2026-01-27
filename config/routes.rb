@@ -11,14 +11,25 @@ Rails.application.routes.draw do
 
   # Staff namespace
   namespace :staff do
-    get 'tables/index'
-    resources :orders, only: [:index, :show, :update] # staff dashboard
-    resources :tables, only: [:index] # list of tables + QR codes
+    get 'categories/index'
+    get 'categories/show'
+    get 'categories/new'
+    get 'categories/edit'
+    get 'menu_items/index'
+    get 'menu_items/show'
+    get 'menu_items/new'
+    get 'menu_items/edit'
+    resources :orders, only: [:index, :show, :update]
+    resources :tables, only: [:index] do
+      member do
+        get :qr_code
+      end
+    end
   end
 
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Root redirects to staff dashboard (optional)
+  # Root redirects to staff dashboard
   root "staff/orders#index"
 end

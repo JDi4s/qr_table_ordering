@@ -1,12 +1,16 @@
 <h1>Menu for Table <%= @table.number %></h1>
 
 <%= form_with(model: [@table, @order], local: true) do |f| %>
-  <% @menu_items.each do |item| %>
-    <div>
-      <%= check_box_tag "order[order_items_attributes][][menu_item_id]", item.id %>
-      <%= item.name %> ($<%= item.price %>)
-      <%= number_field_tag "order[order_items_attributes][][quantity]", 1, min: 1 %>
-    </div>
+  <% @categories.each do |category| %>
+    <h2><%= category.name %></h2>
+    <% category.menu_items.each_with_index do |item, index| %>
+      <div style="margin-bottom: 10px;">
+        <%= check_box_tag "order[order_items_attributes][#{index}][menu_item_id]", item.id %>
+        <%= item.name %> ($<%= item.price %>)
+        <%= number_field_tag "order[order_items_attributes][#{index}][quantity]", 1, min: 1, style: "width: 50px;" %>
+      </div>
+    <% end %>
   <% end %>
-  <%= f.submit "Submit Order" %>
+
+  <%= f.submit "Submit Order", style: "padding: 5px 10px; font-size: 16px;" %>
 <% end %>
