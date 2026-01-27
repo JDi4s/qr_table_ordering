@@ -1,2 +1,26 @@
-<h1>Staff::Orders#index</h1>
-<p>Find me in app/views/staff/orders/index.html.erb</p>
+<h1>Incoming Orders</h1>
+
+<table border="1" cellspacing="0" cellpadding="5">
+  <tr>
+    <th>Order ID</th>
+    <th>Table</th>
+    <th>Status</th>
+    <th>Items</th>
+    <th>Actions</th>
+  </tr>
+
+  <% @orders.each do |order| %>
+    <tr>
+      <td><%= order.id %></td>
+      <td><%= order.table.number %></td>
+      <td><%= order.status.capitalize %></td>
+      <td>
+        <ul>
+          <% order.order_items.each do |oi| %>
+            <li><%= oi.menu_item.name %> x <%= oi.quantity %></li>
+          <% end %>
+        </ul>
+      </td>
+      <td>
+        <% if order.pending? %>
+          <%= button_to "Accept", staff_order_path(order, status_

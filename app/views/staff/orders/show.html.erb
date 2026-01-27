@@ -1,2 +1,18 @@
-<h1>Staff::Orders#show</h1>
-<p>Find me in app/views/staff/orders/show.html.erb</p>
+<h1>Order <%= @order.id %> - Table <%= @order.table.number %></h1>
+<p>Status: <%= @order.status.capitalize %></p>
+
+<h2>Items:</h2>
+<ul>
+  <% @order.order_items.each do |oi| %>
+    <li><%= oi.menu_item.name %> x <%= oi.quantity %></li>
+  <% end %>
+</ul>
+
+<% if @order.pending? %>
+  <%= button_to "Accept", staff_order_path(@order, status: "accepted"), method: :patch %>
+  <%= button_to "Deny", staff_order_path(@order, status: "denied"), method: :patch %>
+<% else %>
+  <p>No actions available.</p>
+<% end %>
+
+<%= link_to "Back to all orders", staff_orders_path %>
