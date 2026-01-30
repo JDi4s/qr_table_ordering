@@ -1,8 +1,0 @@
-<h1>All Tables QR Codes</h1>
-
-<% @tables.each do |table| %>
-  <h2>Table <%= table.number %></h2>
-  <%= raw table.qr_code %>
-  <p>QR token: <%= table.qr_token %></p>
-  <hr>
-<% end %>
