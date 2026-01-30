@@ -1,19 +1,17 @@
 class Staff::CategoriesController < ApplicationController
   layout "staff"
   before_action :require_login
-  before_action :set_category, only: [:show, :edit, :update, :destroy, :toggle_availability]
+  before_action :set_category, only: [:edit, :update, :destroy, :toggle_availability]
 
-  def index
-    @categories = Category.order(:name)
+  def new
+    @category = Category.new
   end
-
-  def show; end
-  def new; @category = Category.new; end
 
   def create
     @category = Category.new(category_params)
     if @category.save
-      redirect_to staff_category_path(@category)
+      broadcast_menu!
+      redirect_to staff_menu_path, notice: "Category created"
     else
       render :new, status: :unprocessable_entity
     end
@@ -23,7 +21,8 @@ class Staff::CategoriesController < ApplicationController
 
   def update
     if @category.update(category_params)
-      redirect_to staff_category_path(@category)
+      broadcast_menu!
+      redirect_to staff_menu_path, notice: "Category updated"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -31,12 +30,22 @@ class Staff::CategoriesController < ApplicationController
 
   def destroy
     @category.destroy
-    redirect_to staff_categories_path
+    broadcast_menu!
+    redirect_to staff_menu_path, notice: "Category deleted"
   end
 
+  # OFF => all items OFF
+  # ON  => all items ON (still can toggle items individually afterwards)
   def toggle_availability
-    @category.update!(available: !@category.available)
-    redirect_to staff_categories_path, notice: "Availability updated"
+    new_value = !@category.available
+
+    Category.transaction do
+      @category.update!(available: new_value)
+      @category.menu_items.update_all(available: new_value) # no callbacks
+    end
+
+    broadcast_menu!
+    redirect_to staff_menu_path, notice: "Availability updated"
   end
 
   private
@@ -51,5 +60,14 @@ class Staff::CategoriesController < ApplicationController
 
   def require_login
     redirect_to login_path unless current_user&.staff?
+  end
+
+  def broadcast_menu!
+    Turbo::StreamsChannel.broadcast_update_to(
+      "menu",
+      target: "customer_menu",
+      partial: "orders/menu",
+      locals: { categories: Category.includes(:menu_items).order(:name) }
+    )
   end
 end

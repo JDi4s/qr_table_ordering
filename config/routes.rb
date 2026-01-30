@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   mount ActionCable.server => "/cable"
 
+  # Auth
   get "login",  to: "sessions#new"
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
@@ -14,12 +15,12 @@ Rails.application.routes.draw do
 
   # Staff
   namespace :staff do
-    # ONE combined menu page
+    # ✅ Combined menu hub
     get "menu", to: "menu#index", as: :menu
 
     resources :orders, only: [:index, :show, :update] do
       collection do
-        get  :history
+        get :history
         delete :clear_history
       end
     end
@@ -28,12 +29,11 @@ Rails.application.routes.draw do
       member { get :qr_code }
     end
 
-    # Keep these for edit/new pages
-    resources :categories do
+    resources :categories, except: [:index, :show] do
       member { patch :toggle_availability }
     end
 
-    resources :menu_items do
+    resources :menu_items, except: [:index, :show] do
       member { patch :toggle_availability }
     end
 

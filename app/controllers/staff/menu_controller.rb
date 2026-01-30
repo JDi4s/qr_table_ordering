@@ -4,8 +4,6 @@ class Staff::MenuController < ApplicationController
 
   def index
     @categories = Category.includes(:menu_items).order(:name)
-    @menu_item = MenuItem.new
-    @category  = Category.new
   end
 
   private

@@ -4,25 +4,29 @@ class OrdersController < ApplicationController
 
   def new
     @order = @table.orders.new
-    @categories = Category.available.includes(:menu_items)
-                          .map { |c| [c, c.menu_items.available] }
+    @categories = Category.includes(:menu_items).order(:name)
   end
 
   def create
-    raw_items = params.dig(:order, :order_items_attributes) || {}
     note = params.dig(:order, :note).to_s.strip
 
-    items = raw_items.values.map do |h|
-      menu_item_id = h[:menu_item_id].presence
-      qty = h[:quantity].to_i
-      next if menu_item_id.blank? || qty <= 0
-      { menu_item_id: menu_item_id.to_i, quantity: qty }
+    raw = params.dig(:order, :items)
+    raw_hash =
+      if raw.is_a?(ActionController::Parameters)
+        raw.to_unsafe_h
+      else
+        raw || {}
+      end
+
+    items = raw_hash.map do |menu_item_id, qty|
+      q = qty.to_i
+      next if q <= 0
+      [menu_item_id.to_i, q]
     end.compact
 
     if items.empty?
       @order = @table.orders.new(note: note)
-      @categories = Category.available.includes(:menu_items)
-                            .map { |c| [c, c.menu_items.available] }
+      @categories = Category.includes(:menu_items).order(:name)
       flash.now[:alert] = "Select at least one item"
       render :new, status: :unprocessable_entity
       return
@@ -30,24 +34,23 @@ class OrdersController < ApplicationController
 
     @order = @table.orders.new(note: note, customer_token: session[:customer_token])
 
-    menu_index = MenuItem.includes(:category).where(id: items.map { _1[:menu_item_id] }).index_by(&:id)
+    menu_index = MenuItem.includes(:category).where(id: items.map(&:first)).index_by(&:id)
 
-    items.each do |item|
-      mi = menu_index[item[:menu_item_id]]
+    items.each do |menu_item_id, qty|
+      mi = menu_index[menu_item_id]
       next unless mi
       next unless mi.available && mi.category.available
 
       @order.order_items.build(
         menu_item: mi,
-        quantity: item[:quantity],
+        quantity: qty,
         unit_price: mi.price,
         status: "pending"
       )
     end
 
     if @order.order_items.empty?
-      @categories = Category.available.includes(:menu_items)
-                            .map { |c| [c, c.menu_items.available] }
+      @categories = Category.includes(:menu_items).order(:name)
       flash.now[:alert] = "Those items are not available right now"
       render :new, status: :unprocessable_entity
       return
@@ -56,14 +59,12 @@ class OrdersController < ApplicationController
     if @order.save
       redirect_to my_table_orders_path(@table.qr_token), notice: "Order submitted"
     else
-      @categories = Category.available.includes(:menu_items)
-                            .map { |c| [c, c.menu_items.available] }
+      @categories = Category.includes(:menu_items).order(:name)
       render :new, status: :unprocessable_entity
     end
   end
 
   def my
-    # ONLY show orders created by this customer session for this table
     @orders = @table.orders
                    .includes(order_items: :menu_item)
                    .where(customer_token: session[:customer_token])

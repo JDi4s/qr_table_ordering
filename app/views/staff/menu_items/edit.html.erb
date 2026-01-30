@@ -1,24 +1,30 @@
 <h1>Edit Menu Item</h1>
 
-<%= form_with model: [:staff, @menu_item] do |f| %>
-  <div>
-    <%= f.label :name %><br />
+<%= form_with model: [:staff, @menu_item], local: true do |f| %>
+  <p>
+    <%= f.label :name %><br>
     <%= f.text_field :name %>
-  </div>
+  </p>
 
-  <div>
-    <%= f.label :category_id, "Category" %><br />
-    <%= f.collection_select :category_id, Category.order(:name), :id, :name, prompt: "Choose..." %>
-  </div>
-
-  <div>
-    <%= f.label :price %><br />
+  <p>
+    <%= f.label :price %><br>
     <%= f.number_field :price, step: 0.01 %>
-  </div>
+  </p>
 
-  <div>
-    <%= f.submit "Update" %>
-  </div>
+  <p>
+    <%= f.label :category_id, "Category" %><br>
+    <%= f.collection_select :category_id, Category.order(:name), :id, :name %>
+  </p>
+
+  <p>
+    <%= f.submit "Save" %>
+    <%= link_to "Back", staff_menu_path %>
+  </p>
 <% end %>
 
-<p><%= link_to "Back", staff_menu_items_path %></p>
+<hr>
+
+<%= button_to "Delete Item",
+      staff_menu_item_path(@menu_item),
+      method: :delete,
+      data: { turbo_confirm: "Delete this menu item?" } %>

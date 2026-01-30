@@ -1,0 +1,113 @@
+==== routes ====
+Rails.application.routes.draw do
+  mount ActionCable.server => "/cable"
+
+  # Auth
+  get "login",  to: "sessions#new"
+  post "login", to: "sessions#create"
+  delete "logout", to: "sessions#destroy"
+
+  # Customer (QR access)
+  resources :tables, only: [] do
+    resources :orders, only: [:new, :create] do
+      collection { get :my }
+    end
+  end
+
+  # Staff
+  namespace :staff do
+    # ✅ Combined menu hub
+    get "menu", to: "menu#index", as: :menu
+
+    resources :orders, only: [:index, :show, :update] do
+      collection do
+        get :history
+        delete :clear_history
+      end
+    end
+
+    resources :tables, only: [:index] do
+      member { get :qr_code }
+    end
+
+    resources :categories, except: [:index, :show] do
+      member { patch :toggle_availability }
+    end
+
+    resources :menu_items, except: [:index, :show] do
+      member { patch :toggle_availability }
+    end
+
+    resources :order_items, only: [:update]
+    resource :settings, only: [:edit, :update]
+  end
+
+  get "up" => "rails/health#show", as: :rails_health_check
+  root "sessions#new"
+end
+
+==== models ====
+total 40
+drwxr-xr-x  3 joao25 joao25 4096 Jan 27 19:07 .
+drwxr-xr-x 11 joao25 joao25 4096 Jan 27 18:52 ..
+-rw-r--r--  1 joao25 joao25   74 Jan 27 18:52 application_record.rb
+-rw-r--r--  1 joao25 joao25  481 Jan 30 18:09 category.rb
+drwxr-xr-x  2 joao25 joao25 4096 Jan 27 18:52 concerns
+-rw-r--r--  1 joao25 joao25  609 Jan 30 18:09 menu_item.rb
+-rw-r--r--  1 joao25 joao25  830 Jan 30 15:45 order_item.rb
+-rw-r--r--  1 joao25 joao25 1774 Jan 30 15:45 order.rb
+-rw-r--r--  1 joao25 joao25  710 Jan 27 21:23 table.rb
+-rw-r--r--  1 joao25 joao25  159 Jan 27 19:08 user.rb
+
+==== controllers ====
+app/controllers/application_controller.rb
+app/controllers/tables_controller.rb
+app/controllers/orders_controller.rb
+app/controllers/sessions_controller.rb
+app/controllers/concerns/.keep
+app/controllers/staff/settings_controller.rb
+app/controllers/staff/tables_controller.rb
+app/controllers/staff/orders_controller.rb
+app/controllers/staff/categories_controller.rb
+app/controllers/staff/order_items_controller.rb
+app/controllers/staff/menu_items_controller.rb
+app/controllers/staff/menu_controller.rb
+
+==== views ====
+app/views/orders/_my_order_card.html.erb
+app/views/orders/my.html.erb
+app/views/orders/_menu.html.erb
+app/views/orders/new.html.erb
+app/views/layouts/mailer.html.erb
+app/views/layouts/application.html.erb
+app/views/layouts/mailer.text.erb
+app/views/layouts/staff.html.erb
+app/views/staff/shared/_nav.html.erb
+app/views/staff/order_items/update.turbo_stream.erb
+app/views/staff/menu/index.html.erb
+app/views/staff/orders/index.html.erb
+app/views/staff/orders/_order_row.html.erb
+app/views/staff/orders/show.html.erb
+app/views/staff/orders/update.turbo_stream.erb
+app/views/staff/orders/history.html.erb
+app/views/staff/orders/_pending_row.html.erb
+app/views/staff/settings/edit.html.erb
+app/views/staff/tables/index.html.erb
+app/views/staff/menu_items/edit.html.erb
+app/views/staff/menu_items/new.html.erb
+app/views/staff/categories/edit.html.erb
+app/views/staff/categories/new.html.erb
+app/views/tables/index.html.erb
+app/views/sessions/destroy.html.erb
+app/views/sessions/create.html.erb
+app/views/sessions/new.html.erb
+
+==== javascript ====
+app/javascript/controllers/menu_controller.js
+app/javascript/controllers/index.js
+app/javascript/controllers/staff_orders_controller.js
+app/javascript/controllers/application.js
+app/javascript/controllers/hello_controller.js
+app/javascript/channels/index.js
+app/javascript/channels/consumer.js
+app/javascript/application.js

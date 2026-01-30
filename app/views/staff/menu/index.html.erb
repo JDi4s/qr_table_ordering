@@ -10,20 +10,18 @@
     <summary style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px;">
       <div>
         <strong><%= cat.name %></strong>
-        <span style="margin-left:8px;">(<%= cat.available ? "ON" : "OFF" %>)</span>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center;">
         <%= form_with url: toggle_availability_staff_category_path(cat), method: :patch, data: { turbo: true } do %>
+        <%= link_to "Edit", edit_staff_category_path(cat) %>
           <label style="cursor:pointer;">
-            <input type="checkbox"
-                   <%= "checked" if cat.available %>
-                   onchange="this.form.requestSubmit()">
-            Category ON/OFF
+            <input type="checkbox" <%= "checked" if cat.available %> onchange="this.form.requestSubmit()">
+
           </label>
         <% end %>
 
-        <%= link_to "Edit", edit_staff_category_path(cat) %>
+        <span style="margin-left:8px;">(<%= cat.available ? "ON" : "OFF" %>)</span>
       </div>
     </summary>
 
@@ -46,9 +44,7 @@
                 <td>
                   <%= form_with url: toggle_availability_staff_menu_item_path(item), method: :patch, data: { turbo: true } do %>
                     <label style="cursor:pointer;">
-                      <input type="checkbox"
-                             <%= "checked" if item.available %>
-                             onchange="this.form.requestSubmit()">
+                      <input type="checkbox" <%= "checked" if item.available %> onchange="this.form.requestSubmit()">
                       <%= item.available ? "ON" : "OFF" %>
                     </label>
                   <% end %>

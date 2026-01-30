@@ -40,7 +40,7 @@ class Staff::OrdersController < ApplicationController
   end
 
   def clear_history
-    Order.where(status: %w[served denied]).delete_all
+    Order.where(status: %w[served denied]).find_each(&:destroy)
     redirect_to history_staff_orders_path, notice: "History cleared"
   end
 
