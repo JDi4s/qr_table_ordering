@@ -1,8 +1,8 @@
-<!-- app/views/layouts/application.html.erb  (FULL FILE — replace) -->
+<!-- app/views/layouts/staff.html.erb  (FULL FILE — replace) -->
 <!DOCTYPE html>
 <html>
   <head>
-    <title>QrTableOrdering</title>
+    <title>Staff Area</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <%= csrf_meta_tags %>
@@ -13,7 +13,8 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body data-staff-sound-enabled="<%= current_user&.staff_sound_enabled ? "1" : "0" %>">
+    <%= render "staff/shared/nav" %>
     <%= yield %>
   </body>
 </html>

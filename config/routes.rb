@@ -1,35 +1,46 @@
 Rails.application.routes.draw do
-  # Staff login/logout
-  get 'login', to: 'sessions#new'
-  post 'login', to: 'sessions#create'
-  delete 'logout', to: 'sessions#destroy'
+  mount ActionCable.server => "/cable"
 
-  # Customers access menu/orders via table QR code
+  get "login",  to: "sessions#new"
+  post "login", to: "sessions#create"
+  delete "logout", to: "sessions#destroy"
+
+  # Customer (QR access)
   resources :tables, only: [] do
-    resources :orders, only: [:new, :create, :show]
-  end
-
-  # Staff namespace
-  namespace :staff do
-    get 'categories/index'
-    get 'categories/show'
-    get 'categories/new'
-    get 'categories/edit'
-    get 'menu_items/index'
-    get 'menu_items/show'
-    get 'menu_items/new'
-    get 'menu_items/edit'
-    resources :orders, only: [:index, :show, :update]
-    resources :tables, only: [:index] do
-      member do
-        get :qr_code
-      end
+    resources :orders, only: [:new, :create] do
+      collection { get :my }
     end
   end
 
-  # Health check
-  get "up" => "rails/health#show", as: :rails_health_check
+  # Staff
+  namespace :staff do
+    # ONE combined menu page
+    get "menu", to: "menu#index", as: :menu
 
-  # Root redirects to staff dashboard
-  root "staff/orders#index"
+    resources :orders, only: [:index, :show, :update] do
+      collection do
+        get  :history
+        delete :clear_history
+      end
+    end
+
+    resources :tables, only: [:index] do
+      member { get :qr_code }
+    end
+
+    # Keep these for edit/new pages
+    resources :categories do
+      member { patch :toggle_availability }
+    end
+
+    resources :menu_items do
+      member { patch :toggle_availability }
+    end
+
+    resources :order_items, only: [:update]
+    resource :settings, only: [:edit, :update]
+  end
+
+  get "up" => "rails/health#show", as: :rails_health_check
+  root "sessions#new"
 end

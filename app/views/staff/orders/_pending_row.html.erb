@@ -1,0 +1,10 @@
+<!-- app/views/staff/orders/_pending_row.html.erb  (FULL FILE — replace) -->
+<tr id="<%= dom_id(order) %>">
+  <td><%= order.created_at.strftime("%H:%M:%S") %></td>
+  <td><%= link_to "##{order.id}", staff_order_path(order) %></td>
+  <td><%= order.table.number %></td>
+  <td><%= order.total %></td>
+  <td>
+    <%= link_to "Open", staff_order_path(order) %>
+  </td>
+</tr>

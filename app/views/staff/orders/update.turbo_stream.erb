@@ -1,0 +1,9 @@
+<%# This runs when Staff::OrdersController#update responds with turbo_stream %>
+
+<% if @order.pending? %>
+  <%= turbo_stream.replace dom_id(@order) do %>
+    <%= render partial: "staff/orders/order_row", locals: { order: @order } %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.remove dom_id(@order) %>
+<% end %>

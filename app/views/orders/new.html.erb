@@ -1,16 +1,42 @@
 <h1>Menu for Table <%= @table.number %></h1>
 
-<%= form_with(model: [@table, @order], local: true) do |f| %>
-  <% @categories.each do |category| %>
+<p>
+  <%= link_to "My Orders", my_table_orders_path(@table.qr_token) %>
+</p>
+
+<%= form_with url: table_orders_path(@table.qr_token), method: :post, local: true do |f| %>
+  <p>
+    <label><strong>Notes (optional)</strong></label><br>
+    <%= f.text_area :note, rows: 2, style: "width:100%; max-width:520px;" %>
+  </p>
+
+  <% index = 0 %>
+
+  <% @categories.each do |category, items| %>
+    <% next if items.empty? %>
+
     <h2><%= category.name %></h2>
-    <% category.menu_items.each_with_index do |item, index| %>
+
+    <% items.each do |item| %>
       <div style="margin-bottom: 10px;">
-        <%= check_box_tag "order[order_items_attributes][#{index}][menu_item_id]", item.id %>
-        <%= item.name %> ($<%= item.price %>)
-        <%= number_field_tag "order[order_items_attributes][#{index}][quantity]", 1, min: 1, style: "width: 50px;" %>
+        <strong><%= item.name %></strong> ($<%= item.price %>)
+
+        <input type="hidden"
+               name="order[order_items_attributes][<%= index %>][menu_item_id]"
+               value="<%= item.id %>">
+
+        <input type="number"
+               name="order[order_items_attributes][<%= index %>][quantity]"
+               value="0"
+               min="0"
+               style="width: 60px; margin-left: 10px;">
       </div>
+
+      <% index += 1 %>
     <% end %>
   <% end %>
 
-  <%= f.submit "Submit Order", style: "padding: 5px 10px; font-size: 16px;" %>
+  <button type="submit" style="padding: 8px 12px; font-size: 16px;">
+    Submit Order
+  </button>
 <% end %>

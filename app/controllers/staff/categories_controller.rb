@@ -1,21 +1,19 @@
 class Staff::CategoriesController < ApplicationController
+  layout "staff"
   before_action :require_login
-  before_action :set_category, only: [:show, :edit, :update, :destroy]
+  before_action :set_category, only: [:show, :edit, :update, :destroy, :toggle_availability]
 
   def index
     @categories = Category.order(:name)
   end
 
   def show; end
-
-  def new
-    @category = Category.new
-  end
+  def new; @category = Category.new; end
 
   def create
     @category = Category.new(category_params)
     if @category.save
-      redirect_to staff_category_path(@category), notice: "Category created"
+      redirect_to staff_category_path(@category)
     else
       render :new, status: :unprocessable_entity
     end
@@ -25,7 +23,7 @@ class Staff::CategoriesController < ApplicationController
 
   def update
     if @category.update(category_params)
-      redirect_to staff_category_path(@category), notice: "Category updated"
+      redirect_to staff_category_path(@category)
     else
       render :edit, status: :unprocessable_entity
     end
@@ -33,7 +31,12 @@ class Staff::CategoriesController < ApplicationController
 
   def destroy
     @category.destroy
-    redirect_to staff_categories_path, notice: "Category deleted"
+    redirect_to staff_categories_path
+  end
+
+  def toggle_availability
+    @category.update!(available: !@category.available)
+    redirect_to staff_categories_path, notice: "Availability updated"
   end
 
   private
@@ -43,14 +46,10 @@ class Staff::CategoriesController < ApplicationController
   end
 
   def category_params
-    params.require(:category).permit(:name)
+    params.require(:category).permit(:name, :available)
   end
 
   def require_login
-    redirect_to login_path, alert: "Please log in as staff" unless current_user&.staff?
-  end
-
-  def current_user
-    @current_user ||= User.find(session[:user_id]) if session[:user_id]
+    redirect_to login_path unless current_user&.staff?
   end
 end

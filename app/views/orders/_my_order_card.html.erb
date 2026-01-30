@@ -1,0 +1,29 @@
+<div id="<%= dom_id(order) %>">
+  <hr>
+  <h2>
+    Order #<%= order.id %> — <strong><%= order.status %></strong>
+    <% if order.respond_to?(:total) %>
+      — Total: <strong><%= order.total %></strong>
+    <% end %>
+  </h2>
+
+  <% if order.note.present? %>
+    <p><strong>Note:</strong> <%= order.note %></p>
+  <% end %>
+
+  <% if order.denied? && order.denial_reason.present? %>
+    <p><strong>Order denied reason:</strong> <%= order.denial_reason %></p>
+  <% end %>
+
+  <ul>
+    <% order.order_items.each do |oi| %>
+      <li>
+        <%= oi.menu_item.name %> x <%= oi.quantity %>
+        — <strong><%= oi.status %></strong>
+        <% if oi.denied? && oi.denial_reason.present? %>
+          (Reason: <%= oi.denial_reason %>)
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</div>

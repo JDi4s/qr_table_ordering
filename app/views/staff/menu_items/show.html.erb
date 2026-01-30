@@ -1,9 +1,0 @@
-<h1><%= @menu_item.name %></h1>
-
-<p>Category: <%= @menu_item.category&.name %></p>
-<p>Price: <%= @menu_item.price %></p>
-
-<p>
-  <%= link_to "Edit", edit_staff_menu_item_path(@menu_item) %> |
-  <%= link_to "Back", staff_menu_items_path %>
-</p>

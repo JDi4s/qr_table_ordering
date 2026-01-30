@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_27_190748) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_30_161009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -18,6 +18,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_27_190748) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "available"
   end
 
   create_table "menu_items", force: :cascade do |t|
@@ -36,8 +37,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_27_190748) do
     t.integer "quantity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status", default: "pending", null: false
+    t.decimal "unit_price", precision: 10, scale: 2, default: "0.0", null: false
+    t.string "denial_reason"
     t.index ["menu_item_id"], name: "index_order_items_on_menu_item_id"
     t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["status"], name: "index_order_items_on_status"
   end
 
   create_table "orders", force: :cascade do |t|
@@ -45,6 +50,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_27_190748) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "total", precision: 10, scale: 2, default: "0.0", null: false
+    t.text "note"
+    t.string "denial_reason"
+    t.datetime "served_at"
+    t.string "customer_token"
     t.index ["table_id"], name: "index_orders_on_table_id"
   end
 
@@ -53,6 +63,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_27_190748) do
     t.string "qr_token", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["number"], name: "index_tables_on_number", unique: true
     t.index ["qr_token"], name: "index_tables_on_qr_token", unique: true
   end
 
@@ -63,6 +74,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_27_190748) do
     t.string "role"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "staff_sound_enabled"
   end
 
   add_foreign_key "menu_items", "categories"

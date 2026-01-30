@@ -1,0 +1,14 @@
+<tr id="<%= dom_id(order) %>">
+  <td><%= order.created_at.strftime("%H:%M:%S") %></td>
+  <td><%= order.id %></td>
+  <td><%= order.table.number %></td>
+  <td><%= order.respond_to?(:total) ? order.total : "-" %></td>
+  <td>
+    <ul>
+      <% order.order_items.each do |oi| %>
+        <li><%= oi.menu_item.name %> x <%= oi.quantity %> (<%= oi.status %>)</li>
+      <% end %>
+    </ul>
+  </td>
+  <td><%= link_to "Open", staff_order_path(order) %></td>
+</tr>

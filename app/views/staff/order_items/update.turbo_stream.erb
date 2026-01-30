@@ -1,0 +1,11 @@
+<%# This runs when Staff::OrderItemsController#update responds with turbo_stream %>
+
+<%= turbo_stream.replace dom_id(@order_item) do %>
+  <tr id="<%= dom_id(@order_item) %>">
+    <td><%= @order_item.menu_item.name %></td>
+    <td><%= @order_item.quantity %></td>
+    <td><%= @order_item.status %></td>
+    <td><%= @order_item.denial_reason %></td>
+    <td><em>Updated</em></td>
+  </tr>
+<% end %>

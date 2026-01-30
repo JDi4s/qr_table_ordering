@@ -1,0 +1,10 @@
+<nav>
+  <%= link_to "Orders", staff_orders_path %> |
+  <%= link_to "History", history_staff_orders_path %> |
+  <%= link_to "Tables & QR Codes", staff_tables_path %> |
+  <%= link_to "Menu", staff_menu_path %> |
+  <%= link_to "Settings", edit_staff_settings_path %> |
+  <%= button_to "Logout", logout_path, method: :delete, form: { data: { turbo: false } } %>
+</nav>
+
+<hr>

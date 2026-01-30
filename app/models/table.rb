@@ -1,6 +1,9 @@
 class Table < ApplicationRecord
   has_many :orders, dependent: :destroy
   before_create :generate_qr_token
+  validates :number, presence: true, uniqueness: true
+  validates :qr_token, uniqueness: true
+
 
   # Use QR token in URLs instead of numeric ID
   def to_param
@@ -12,11 +15,11 @@ class Table < ApplicationRecord
     url = Rails.application.routes.url_helpers.new_table_order_url(self.qr_token, host: "localhost:3000")
     qrcode = RQRCode::QRCode.new(url)
     qrcode.as_svg(
-      offset: 0,
-      color: '000',
-      shape_rendering: 'crispEdges',
-      module_size: 6,
-      standalone: true
+    offset: 0,
+    color: '000',
+    shape_rendering: 'crispEdges',
+    module_size: 6,
+    standalone: true
     )
   end
 

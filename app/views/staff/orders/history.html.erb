@@ -1,0 +1,30 @@
+<h1>History (Served + Denied)</h1>
+<p><%= link_to "Back to Live Queue", staff_orders_path %></p>
+
+<%= button_to "Clear History", clear_history_staff_orders_path,
+      method: :delete,
+      data: { turbo_confirm: "Delete ALL served/denied orders from history?" } %>
+
+<table border="1" cellspacing="0" cellpadding="6">
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>ID</th>
+      <th>Table</th>
+      <th>Status</th>
+      <th>Reason</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @orders.each do |o| %>
+      <tr>
+        <td><%= o.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+        <td><%= o.id %></td>
+        <td><%= o.table.number %></td>
+        <td><%= o.status %></td>
+        <td><%= o.denial_reason %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

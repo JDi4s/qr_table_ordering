@@ -1,0 +1,66 @@
+<h1>Menu</h1>
+
+<p style="display:flex; gap:10px; flex-wrap:wrap;">
+  <%= link_to "New Category", new_staff_category_path %>
+  <%= link_to "New Item", new_staff_menu_item_path %>
+</p>
+
+<% @categories.each do |cat| %>
+  <details style="margin: 12px 0; border:1px solid #ddd; padding:10px; border-radius:8px;">
+    <summary style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div>
+        <strong><%= cat.name %></strong>
+        <span style="margin-left:8px;">(<%= cat.available ? "ON" : "OFF" %>)</span>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <%= form_with url: toggle_availability_staff_category_path(cat), method: :patch, data: { turbo: true } do %>
+          <label style="cursor:pointer;">
+            <input type="checkbox"
+                   <%= "checked" if cat.available %>
+                   onchange="this.form.requestSubmit()">
+            Category ON/OFF
+          </label>
+        <% end %>
+
+        <%= link_to "Edit", edit_staff_category_path(cat) %>
+      </div>
+    </summary>
+
+    <div style="margin-top:10px;">
+      <% if cat.menu_items.any? %>
+        <table border="1" cellspacing="0" cellpadding="6" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Price</th>
+              <th>Available</th>
+              <th>Edit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cat.menu_items.order(:name).each do |item| %>
+              <tr>
+                <td><%= item.name %></td>
+                <td><%= item.price %></td>
+                <td>
+                  <%= form_with url: toggle_availability_staff_menu_item_path(item), method: :patch, data: { turbo: true } do %>
+                    <label style="cursor:pointer;">
+                      <input type="checkbox"
+                             <%= "checked" if item.available %>
+                             onchange="this.form.requestSubmit()">
+                      <%= item.available ? "ON" : "OFF" %>
+                    </label>
+                  <% end %>
+                </td>
+                <td><%= link_to "Edit", edit_staff_menu_item_path(item) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p><em>No items yet.</em></p>
+      <% end %>
+    </div>
+  </details>
+<% end %>

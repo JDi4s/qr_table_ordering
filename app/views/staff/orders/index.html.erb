@@ -1,38 +1,23 @@
-<h1>All Orders</h1>
+<%= turbo_stream_from "staff_orders" %>
 
-<table border="1" cellspacing="0" cellpadding="5">
-  <tr>
-    <th>ID</th>
-    <th>Table</th>
-    <th>Status</th>
-    <th>Items</th>
-    <th>Actions</th>
-  </tr>
+<h1>Live Queue (Pending)</h1>
+<p><%= link_to "History", history_staff_orders_path %></p>
 
-  <% @orders.each do |order| %>
+<table border="1" cellspacing="0" cellpadding="6">
+  <thead>
     <tr>
-      <td><%= order.id %></td>
-      <td><%= order.table.number %></td>
-      <td><%= order.status.capitalize %></td>
-      <td>
-        <ul>
-          <% order.order_items.each do |oi| %>
-            <li><%= oi.menu_item.name %> x <%= oi.quantity %></li>
-          <% end %>
-        </ul>
-      </td>
-      <td>
-        <% if order.pending? %>
-          <%= button_to "Accept", staff_order_path(order, status: "accepted"), method: :patch, form: { data: { turbo: true } } %>
-          <%= button_to "Deny", staff_order_path(order, status: "denied"), method: :patch, form: { data: { turbo: true } } %>
-        <% else %>
-          <em>No actions</em>
-        <% end %>
-      </td>
+      <th>Time</th>
+      <th>ID</th>
+      <th>Table</th>
+      <th>Total</th>
+      <th>Items</th>
+      <th>Open</th>
     </tr>
-  <% end %>
-</table>
+  </thead>
 
-<p>
-  <%= link_to "View All Tables & QR Codes", staff_tables_path, class: "button" %>
-</p>
+  <tbody id="pending_orders">
+    <% @orders.each do |order| %>
+      <%= render partial: "staff/orders/order_row", locals: { order: order } %>
+    <% end %>
+  </tbody>
+</table>

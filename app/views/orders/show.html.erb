@@ -1,9 +1,0 @@
-<h1>Order <%= @order.id %> Status: <%= @order.status.capitalize %></h1>
-
-<ul>
-  <% @order.order_items.includes(:menu_item).each do |oi| %>
-    <li><%= oi.menu_item.name %> x <%= oi.quantity %></li>
-  <% end %>
-</ul>
-
-<%= link_to "Back to Menu", new_table_order_path(@table) %>
