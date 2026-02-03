@@ -1,29 +1,41 @@
-<h1>History (Served + Denied)</h1>
-<p><%= link_to "Back to Live Queue", staff_orders_path %></p>
+<h1>History</h1>
 
-<%= button_to "Clear History", clear_history_staff_orders_path,
-      method: :delete,
-      data: { turbo_confirm: "Delete ALL served/denied orders from history?" } %>
+<p>
+  <%= link_to "← Back to Live Queue", staff_orders_path %>
+</p>
 
-<table border="1" cellspacing="0" cellpadding="6">
+<%= button_to "Clear history", clear_history_staff_orders_path, method: :delete,
+      form: { data: { turbo: false } },
+      style: "margin-bottom: 12px;" %>
+
+<table border="1" cellspacing="0" cellpadding="6" style="width:100%;">
   <thead>
     <tr>
       <th>Time</th>
       <th>ID</th>
       <th>Table</th>
       <th>Status</th>
+      <th>Served at</th>
       <th>Reason</th>
+      <th>Items</th>
     </tr>
   </thead>
-
   <tbody>
-    <% @orders.each do |o| %>
+    <% @orders.each do |order| %>
       <tr>
-        <td><%= o.created_at.strftime("%Y-%m-%d %H:%M") %></td>
-        <td><%= o.id %></td>
-        <td><%= o.table.number %></td>
-        <td><%= o.status %></td>
-        <td><%= o.denial_reason %></td>
+        <td><%= order.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+        <td>#<%= order.id %></td>
+        <td><%= order.table.number %></td>
+        <td><%= order.status %></td>
+        <td><%= order.served_at %></td>
+        <td><%= order.denial_reason %></td>
+        <td>
+          <ul>
+            <% order.order_items.each do |oi| %>
+              <li><%= oi.menu_item.name %> x <%= oi.quantity %> (<%= oi.status %>)</li>
+            <% end %>
+          </ul>
+        </td>
       </tr>
     <% end %>
   </tbody>

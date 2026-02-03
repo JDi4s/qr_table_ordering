@@ -3,14 +3,7 @@
   <td>#<%= order.id %></td>
   <td><%= order.table.number %></td>
   <td><strong><%= order.status %></strong></td>
-
-  <td>
-    <% if order.respond_to?(:total) && order.total.present? %>
-      <%= order.total %>
-    <% else %>
-      -
-    <% end %>
-  </td>
+  <td><%= order.respond_to?(:total) ? order.total : "-" %></td>
 
   <td>
     <ul>
@@ -24,9 +17,6 @@
   </td>
 
   <td>
-    <%= button_to "Open",
-          staff_order_path(order),
-          method: :get,
-          form: { data: { turbo: true } } %>
+    <%= link_to "Open", staff_order_path(order) %>
   </td>
 </tr>

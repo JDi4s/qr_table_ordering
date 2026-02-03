@@ -1,37 +1,43 @@
-<h1>Order <%= @order.id %> (Table <%= @order.table.number %>)</h1>
+<h1>Order #<%= @order.id %> — Table <%= @order.table.number %></h1>
 <p>Status: <strong><%= @order.status %></strong></p>
-<p>Total: <strong><%= @order.respond_to?(:total) ? @order.total : "-" %></strong></p>
+
+<p>
+  <%= link_to "← Back to Live Queue", staff_orders_path %>
+</p>
 
 <hr>
 
 <h2>Whole Order Actions</h2>
-<div style="display:flex; gap:10px; flex-wrap:wrap;">
-  <%= button_to "Accept Order", staff_order_path(@order, status: "accepted"),
-        method: :patch, form: { data: { turbo: true } } %>
 
-  <%= button_to "Served", staff_order_path(@order, status: "served"),
-        method: :patch, form: { data: { turbo: true } } %>
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 16px;">
+  <%= button_to "Accept Order",
+        staff_order_path(@order, status: "accepted"),
+        method: :patch,
+        form: { data: { turbo: true } } %>
+
+  <%= button_to "Served",
+        staff_order_path(@order, status: "served"),
+        method: :patch,
+        form: { data: { turbo: true } } %>
+
+  <%= form_with url: staff_order_path(@order), method: :patch, data: { turbo: true } do %>
+    <%= hidden_field_tag :status, "denied" %>
+    <%= text_field_tag :denial_reason, "", placeholder: "Reason", style: "width: 240px;" %>
+    <%= submit_tag "Deny Order" %>
+  <% end %>
 </div>
-
-<%= form_with url: staff_order_path(@order), method: :patch, data: { turbo: true } do %>
-  <%= hidden_field_tag :status, "denied" %>
-  <p>
-    <label>Denial reason (whole order)</label><br>
-    <%= text_field_tag :denial_reason, "", style: "width: 320px;" %>
-  </p>
-  <%= submit_tag "Deny Order" %>
-<% end %>
 
 <hr>
 
 <h2>Items</h2>
-<table border="1" cellspacing="0" cellpadding="6">
+
+<table border="1" cellspacing="0" cellpadding="6" style="width:100%;">
   <thead>
     <tr>
       <th>Item</th>
       <th>Qty</th>
       <th>Status</th>
-      <th>Reason</th>
+      <th>Denial reason</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -43,10 +49,12 @@
         <td><%= oi.quantity %></td>
         <td><%= oi.status %></td>
         <td><%= oi.denial_reason %></td>
-        <td style="min-width:320px;">
+        <td style="min-width: 320px;">
           <% if oi.pending? %>
-            <%= button_to "Accept item", staff_order_item_path(oi, status: "accepted"),
-                  method: :patch, form: { data: { turbo: true } } %>
+            <%= button_to "Accept item",
+                  staff_order_item_path(oi, status: "accepted"),
+                  method: :patch,
+                  form: { data: { turbo: true } } %>
 
             <%= form_with url: staff_order_item_path(oi), method: :patch, data: { turbo: true } do %>
               <%= hidden_field_tag :status, "denied" %>
@@ -61,5 +69,3 @@
     <% end %>
   </tbody>
 </table>
-
-<p><%= link_to "Back to Live Queue", staff_orders_path %></p>

@@ -10,15 +10,16 @@ class OrderItem < ApplicationRecord
 
   after_create_commit :broadcast_parent
   after_update_commit :broadcast_parent
-  after_destroy_commit :broadcast_parent
 
   private
 
   def broadcast_parent
-    # recalcula total do pedido (unit_price/quantity)
     order.recalculate_total! if order.respond_to?(:recalculate_total!)
 
-    # ✅ Cliente: atualiza o "My Orders" card (sem refresh)
+    # IMPORTANT: manter o status do order consistente com os items
+    order.sync_status_from_items! if order.respond_to?(:sync_status_from_items!)
+
+    # customer card
     order.broadcast_replace_to(
       "table_#{order.table_id}_orders",
       target: dom_id(order),
@@ -26,7 +27,7 @@ class OrderItem < ApplicationRecord
       locals: { order: order }
     )
 
-    # ✅ Staff: atualiza a row do pedido na Live Queue (sem refresh)
+    # staff row
     order.broadcast_replace_to(
       "staff_orders",
       target: dom_id(order),

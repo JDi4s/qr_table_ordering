@@ -8,47 +8,76 @@ class Order < ApplicationRecord
   enum status: {
     pending: "pending",
     accepted: "accepted",
-    served: "served",
-    denied: "denied"
+    needs_customer_action: "needs_customer_action",
+    denied: "denied",
+    served: "served"
   }
 
   before_validation :set_default_status, on: :create
 
-  after_create_commit :broadcast_new_order
-  after_update_commit :broadcast_order_change
-
-  def recalculate_total!
-    new_total = order_items.where.not(status: "denied").sum("quantity * unit_price")
-    update_column(:total, new_total) if respond_to?(:total)
-  end
-
-  private
+  # IMPORTANT: broadcasts when the ORDER itself changes (staff accept/deny/served)
+  after_create_commit :broadcast_staff_create
+  after_update_commit :broadcast_customer_update
+  after_update_commit :broadcast_staff_update
 
   def set_default_status
     self.status ||= "pending"
   end
 
-  def broadcast_new_order
-    recalculate_total!
+  # If you already have totals:
+  # def recalculate_total!
+  #   update!(total: order_items.sum("unit_price * quantity"))
+  # end
 
-    broadcast_append_to(
+  def sync_status_from_items!
+    # If any item is denied -> needs_customer_action
+    if order_items.any?(&:denied?)
+      update!(status: "needs_customer_action")
+      return
+    end
+
+    # If all non-zero items are accepted -> accepted
+    if order_items.all? { |oi| oi.accepted? }
+      update!(status: "accepted")
+      return
+    end
+
+    update!(status: "pending")
+  end
+
+  private
+
+  # STAFF: show new pending orders instantly in the live queue
+  def broadcast_staff_create
+    return unless pending?
+
+    broadcast_prepend_to(
       "staff_orders",
       target: "pending_orders",
       partial: "staff/orders/order_row",
       locals: { order: self }
     )
-
-    broadcast_append_to(
-      "table_#{table_id}_orders",
-      target: "my_orders_list",
-      partial: "orders/my_order_card",
-      locals: { order: self }
-    )
   end
 
-  def broadcast_order_change
-    # Staff queue: pending stays, others disappear
-    if pending?
+  # CUSTOMER: update order card in My Orders instantly
+  def broadcast_customer_update
+    stream = "table_#{table_id}_orders"
+
+    if served? || denied?
+      broadcast_remove_to(stream, target: dom_id(self))
+    else
+      broadcast_replace_to(
+        stream,
+        target: dom_id(self),
+        partial: "orders/my_order_card",
+        locals: { order: self }
+      )
+    end
+  end
+
+  # STAFF: keep queues in sync without refresh
+  def broadcast_staff_update
+    if pending? || needs_customer_action?
       broadcast_replace_to(
         "staff_orders",
         target: dom_id(self),
@@ -57,18 +86,6 @@ class Order < ApplicationRecord
       )
     else
       broadcast_remove_to("staff_orders", target: dom_id(self))
-    end
-
-    # Customer active orders: served/denied disappear
-    if served? || denied?
-      broadcast_remove_to("table_#{table_id}_orders", target: dom_id(self))
-    else
-      broadcast_replace_to(
-        "table_#{table_id}_orders",
-        target: dom_id(self),
-        partial: "orders/my_order_card",
-        locals: { order: self }
-      )
     end
   end
 end

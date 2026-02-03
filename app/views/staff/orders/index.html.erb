@@ -1,14 +1,19 @@
+<h1>Staff — Live Queue</h1>
+
+<div style="margin-bottom: 12px;">
+  <%= link_to "History", history_staff_orders_path %>
+</div>
+
 <%= turbo_stream_from "staff_orders" %>
 
-<h1>Live Queue (Pending)</h1>
-<p><%= link_to "History", history_staff_orders_path %></p>
-
-<table border="1" cellspacing="0" cellpadding="6">
+<h2>Pending Orders</h2>
+<table border="1" cellspacing="0" cellpadding="6" style="width:100%; margin-bottom: 18px;">
   <thead>
     <tr>
       <th>Time</th>
       <th>ID</th>
       <th>Table</th>
+      <th>Status</th>
       <th>Total</th>
       <th>Items</th>
       <th>Open</th>
@@ -16,8 +21,29 @@
   </thead>
 
   <tbody id="pending_orders">
-    <% @orders.each do |order| %>
-      <%= render partial: "staff/orders/order_row", locals: { order: order } %>
+    <% @pending_orders.each do |order| %>
+      <%= render "order_row", order: order %>
+    <% end %>
+  </tbody>
+</table>
+
+<h2>Waiting Customer Action</h2>
+<table border="1" cellspacing="0" cellpadding="6" style="width:100%;">
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>ID</th>
+      <th>Table</th>
+      <th>Status</th>
+      <th>Total</th>
+      <th>Items</th>
+      <th>Open</th>
+    </tr>
+  </thead>
+
+  <tbody id="waiting_orders">
+    <% @waiting_orders.each do |order| %>
+      <%= render "order_row", order: order %>
     <% end %>
   </tbody>
 </table>

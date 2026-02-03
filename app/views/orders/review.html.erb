@@ -1,0 +1,50 @@
+<h1>Review Order (Table <%= @table.number %>)</h1>
+
+<p>
+  <%= link_to "← Back to Menu", new_table_order_path(@table.qr_token) %>
+</p>
+
+<% if @review_note.present? %>
+  <p><strong>Note:</strong> <%= @review_note %></p>
+<% end %>
+
+<table border="1" cellspacing="0" cellpadding="6">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Qty</th>
+      <th>Unit</th>
+      <th>Line</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% (@review_items || []).each do |it| %>
+      <tr>
+        <td><%= it[:name] %></td>
+        <td><%= it[:quantity] %></td>
+        <td><%= it[:unit_price] %></td>
+        <td><%= it[:line_total] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<p style="margin-top: 10px;">
+  <strong>Total:</strong> <%= @review_total %>
+</p>
+
+<hr>
+
+<%= form_with url: table_orders_path(@table.qr_token), method: :post, data: { turbo: false } do %>
+  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+  <%= hidden_field_tag "order[note]", @review_note %>
+
+  <% (@review_items || []).each do |it| %>
+    <%= hidden_field_tag "order[items][#{it[:menu_item_id]}]", it[:quantity] %>
+  <% end %>
+
+  <button type="submit" style="padding: 8px 14px; font-size: 16px;">
+    Place Order
+  </button>
+<% end %>

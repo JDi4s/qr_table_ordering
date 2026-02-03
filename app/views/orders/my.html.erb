@@ -1,15 +1,15 @@
-<%= turbo_stream_from "table_#{@table.id}_orders" %>
-
-<h1>My Active Orders (Table <%= @table.number %>)</h1>
+<h1>My Orders (Table <%= @table.number %>)</h1>
 
 <p><%= link_to "← Back to Menu", new_table_order_path(@table.qr_token) %></p>
 
-<div id="my_orders_list">
-  <% if @orders.any? %>
-    <% @orders.each do |o| %>
-      <%= render partial: "orders/my_order_card", locals: { order: o } %>
-    <% end %>
+<%= turbo_stream_from "table_#{@table.id}_orders" %>
+
+<div id="my_orders">
+  <% if @orders.empty? %>
+    <p>No active orders.</p>
   <% else %>
-    <p>No active orders right now.</p>
+    <% @orders.each do |order| %>
+      <%= render "my_order_card", order: order %>
+    <% end %>
   <% end %>
 </div>

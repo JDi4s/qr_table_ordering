@@ -1,18 +1,14 @@
-<div id="<%= dom_id(order) %>">
-  <hr>
-  <h2>
-    Order #<%= order.id %> — <strong><%= order.status %></strong>
-    <% if order.respond_to?(:total) %>
-      — Total: <strong><%= order.total %></strong>
-    <% end %>
-  </h2>
+<div id="<%= dom_id(order) %>" style="border:1px solid #ddd; padding:10px; margin:10px 0;">
+  <h3>Order #<%= order.id %></h3>
+
+  <p>Status: <strong><%= order.status %></strong></p>
+
+  <% if order.respond_to?(:total) && order.total.present? %>
+    <p>Total: <strong><%= order.total %></strong></p>
+  <% end %>
 
   <% if order.note.present? %>
     <p><strong>Note:</strong> <%= order.note %></p>
-  <% end %>
-
-  <% if order.denied? && order.denial_reason.present? %>
-    <p><strong>Order denied reason:</strong> <%= order.denial_reason %></p>
   <% end %>
 
   <ul>
@@ -21,7 +17,7 @@
         <%= oi.menu_item.name %> x <%= oi.quantity %>
         — <strong><%= oi.status %></strong>
         <% if oi.denied? && oi.denial_reason.present? %>
-          (Reason: <%= oi.denial_reason %>)
+          (<%= oi.denial_reason %>)
         <% end %>
       </li>
     <% end %>

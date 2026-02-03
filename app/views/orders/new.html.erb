@@ -1,23 +1,31 @@
-<%= turbo_stream_from "menu" %>
-
-<h1>Menu</h1>
+<h1>Menu for Table <%= @table.number %></h1>
 
 <p>
-  <%= link_to "My Orders", my_table_orders_path(@table.qr_token) %>
+  <% if @active_count.to_i > 0 %>
+    You have <strong><%= @active_count %></strong> active orders →
+    <%= link_to "View My Orders", my_table_orders_path(@table.qr_token) %>
+  <% else %>
+    <%= link_to "View My Orders", my_table_orders_path(@table.qr_token) %>
+  <% end %>
 </p>
 
-<%= form_with scope: :order, url: table_orders_path(@table.qr_token), method: :post, local: true do |f| %>
-  <p>
-    <label><strong>Notes (optional)</strong></label><br>
-    <%= f.text_area :note, rows: 2, style: "width:100%; max-width:520px;" %>
-  </p>
+<form action="<%= review_table_orders_path(@table.qr_token) %>" method="post" data-turbo="false">
+  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
 
-  <!-- ✅ single stable target for Turbo updates -->
   <div id="customer_menu">
-    <%= render partial: "orders/menu", locals: { categories: @categories } %>
+    <%= render "menu", categories: @categories %>
   </div>
 
-  <button type="submit" style="padding: 8px 12px; font-size: 16px;">
-    Submit Order
-  </button>
-<% end %>
+  <div style="margin-bottom: 14px;">
+    <label><strong>Notes for the kitchen (optional)</strong></label><br>
+    <textarea name="order[note]" rows="3"
+              style="width: 100%; max-width: 520px;"
+              placeholder="ex: sem tomate, alergia a ..."></textarea>
+  </div>
+
+  <div style="margin-top: 14px;">
+    <button type="submit" style="padding: 8px 14px; font-size: 16px;">
+      Review Order
+    </button>
+  </div>
+</form>

@@ -1,8 +1,12 @@
-<%# This runs when Staff::OrdersController#update responds with turbo_stream %>
+<%# Re-render a row if it still belongs to pending/waiting, otherwise remove %>
 
-<% if @order.pending? %>
+<% if @order.pending? || @order.needs_customer_action? %>
   <%= turbo_stream.replace dom_id(@order) do %>
-    <%= render partial: "staff/orders/order_row", locals: { order: @order } %>
+    <% if @order.pending? %>
+      <%= render "order_row", order: @order %>
+    <% else %>
+      <%= render "order_row_waiting", order: @order %>
+    <% end %>
   <% end %>
 <% else %>
   <%= turbo_stream.remove dom_id(@order) %>
