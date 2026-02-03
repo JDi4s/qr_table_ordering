@@ -6,7 +6,7 @@
 
 <div id="my_orders">
   <% if @orders.empty? %>
-    <p>No active orders.</p>
+    <p>No active orders yet.</p>
   <% else %>
     <% @orders.each do |order| %>
       <%= render "my_order_card", order: order %>

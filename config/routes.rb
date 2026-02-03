@@ -9,13 +9,13 @@ Rails.application.routes.draw do
   resources :tables, only: [] do
     resources :orders, only: [:new, :create] do
       collection do
-        get :my
+        get  :my
         post :review
       end
 
       member do
-        patch :accept_remaining
-        patch :cancel
+        post :accept_remaining
+        post :cancel
       end
     end
   end
@@ -29,11 +29,13 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :order_items, only: [:update]
+
     resources :tables, only: [:index] do
       member { get :qr_code }
     end
 
-    get "menu", to: "menu#index", as: :menu
+    get "/menu", to: "menu#index", as: :menu
 
     resources :menu_items do
       member { patch :toggle_availability }
@@ -43,7 +45,6 @@ Rails.application.routes.draw do
       member { patch :toggle_availability }
     end
 
-    resources :order_items, only: [:update]
     resource :settings, only: [:edit, :update]
   end
 

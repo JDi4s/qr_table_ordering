@@ -1,14 +1,14 @@
-<div id="<%= dom_id(order) %>" style="border:1px solid #ddd; padding:10px; margin:10px 0;">
-  <h3>Order #<%= order.id %></h3>
-
-  <p>Status: <strong><%= order.status %></strong></p>
-
-  <% if order.respond_to?(:total) && order.total.present? %>
-    <p>Total: <strong><%= order.total %></strong></p>
-  <% end %>
+<div id="<%= dom_id(order) %>" style="border:1px solid #ccc; padding:10px; margin-bottom:12px;">
+  <p>
+    <strong>Order #<%= order.id %></strong>
+    — Status: <strong><%= order.status %></strong>
+    <% if order.respond_to?(:total) && order.total.present? %>
+      — Total: <strong><%= order.total %></strong>
+    <% end %>
+  </p>
 
   <% if order.note.present? %>
-    <p><strong>Note:</strong> <%= order.note %></p>
+    <p><strong>Your note:</strong> <%= order.note %></p>
   <% end %>
 
   <ul>
@@ -17,9 +17,25 @@
         <%= oi.menu_item.name %> x <%= oi.quantity %>
         — <strong><%= oi.status %></strong>
         <% if oi.denied? && oi.denial_reason.present? %>
-          (<%= oi.denial_reason %>)
+          (Reason: <%= oi.denial_reason %>)
         <% end %>
       </li>
     <% end %>
   </ul>
+
+  <% if order.needs_customer_action? %>
+    <div style="margin-top:10px; padding:10px; border:1px solid #f3c; background:#fff6fb;">
+      <p><strong>Action needed:</strong> some items were denied. Choose what to do:</p>
+
+      <%= button_to "Accept remaining items",
+            accept_remaining_table_order_path(@table.qr_token, order),
+            method: :post,
+            form: { data: { turbo: true } } %>
+
+      <%= button_to "Cancel order",
+            cancel_table_order_path(@table.qr_token, order),
+            method: :post,
+            form: { data: { turbo: true } } %>
+    </div>
+  <% end %>
 </div>

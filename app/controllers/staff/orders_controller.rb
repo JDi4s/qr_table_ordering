@@ -2,9 +2,8 @@ class Staff::OrdersController < ApplicationController
   layout "staff"
   before_action :require_login
 
-  # LIVE = tudo o que ainda não foi concluído
-  # (fica aqui mesmo que esteja accepted)
   def index
+    # LIVE: everything not served/denied
     @orders = Order
       .includes(:table, order_items: :menu_item)
       .where.not(status: %w[served denied])
@@ -33,7 +32,7 @@ class Staff::OrdersController < ApplicationController
     end
 
     respond_to do |format|
-      format.html { redirect_to staff_orders_path, notice: notice }
+      format.html { redirect_to staff_order_path(@order), notice: notice }
       format.turbo_stream
     end
   end
@@ -54,27 +53,21 @@ class Staff::OrdersController < ApplicationController
 
   def accept_order!
     @order.transaction do
-      @order.order_items.each do |oi|
-        next unless oi.pending?
+      @order.order_items.where(status: "pending").each do |oi|
         oi.update!(status: "accepted", denial_reason: nil)
       end
-
-      @order.sync_status_from_items! if @order.respond_to?(:sync_status_from_items!)
-      @order.update!(status: "accepted") if @order.pending?
+      @order.update!(status: "accepted")
     end
   end
 
   def deny_order!
-    reason = params[:denial_reason].presence
+    reason = params[:denial_reason].presence || "Denied by staff"
 
     @order.transaction do
-      @order.order_items.each do |oi|
-        if oi.pending?
-          oi.update!(status: "denied", denial_reason: reason || "Denied by staff")
-        end
+      @order.order_items.where(status: "pending").each do |oi|
+        oi.update!(status: "denied", denial_reason: reason)
       end
-
-      @order.update!(status: "denied", denial_reason: reason || "Denied by staff")
+      @order.update!(status: "denied", denial_reason: reason)
     end
   end
 

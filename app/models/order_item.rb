@@ -15,8 +15,6 @@ class OrderItem < ApplicationRecord
 
   def broadcast_parent
     order.recalculate_total! if order.respond_to?(:recalculate_total!)
-
-    # IMPORTANT: manter o status do order consistente com os items
     order.sync_status_from_items! if order.respond_to?(:sync_status_from_items!)
 
     # customer card
@@ -27,7 +25,7 @@ class OrderItem < ApplicationRecord
       locals: { order: order }
     )
 
-    # staff row
+    # staff live
     order.broadcast_replace_to(
       "staff_orders",
       target: dom_id(order),
