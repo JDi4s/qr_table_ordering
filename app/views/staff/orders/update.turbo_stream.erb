@@ -1,13 +1,7 @@
-<%# Re-render a row if it still belongs to pending/waiting, otherwise remove %>
-
-<% if @order.pending? || @order.needs_customer_action? %>
-  <%= turbo_stream.replace dom_id(@order) do %>
-    <% if @order.pending? %>
-      <%= render "order_row", order: @order %>
-    <% else %>
-      <%= render "order_row_waiting", order: @order %>
-    <% end %>
-  <% end %>
-<% else %>
+<% if @order.served? || @order.denied? %>
   <%= turbo_stream.remove dom_id(@order) %>
+<% else %>
+  <%= turbo_stream.replace dom_id(@order) do %>
+    <%= render "order_row", order: @order %>
+  <% end %>
 <% end %>

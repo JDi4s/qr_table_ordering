@@ -2,15 +2,12 @@ class Staff::OrdersController < ApplicationController
   layout "staff"
   before_action :require_login
 
+  # LIVE = tudo o que ainda não foi concluído
+  # (fica aqui mesmo que esteja accepted)
   def index
-    @pending_orders = Order
+    @orders = Order
       .includes(:table, order_items: :menu_item)
-      .where(status: "pending")
-      .order(created_at: :asc)
-
-    @waiting_orders = Order
-      .includes(:table, order_items: :menu_item)
-      .where(status: "needs_customer_action")
+      .where.not(status: %w[served denied])
       .order(created_at: :asc)
   end
 
@@ -62,7 +59,8 @@ class Staff::OrdersController < ApplicationController
         oi.update!(status: "accepted", denial_reason: nil)
       end
 
-      @order.sync_status_from_items!
+      @order.sync_status_from_items! if @order.respond_to?(:sync_status_from_items!)
+      @order.update!(status: "accepted") if @order.pending?
     end
   end
 
