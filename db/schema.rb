@@ -5,8 +5,7 @@
 # This file is the source Rails uses to define its schema when running `bin/rails
 # db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
 # be faster and is potentially less error prone than running all of your
-# migrations from scratch. Old migrations may fail to apply correctly if those
-# migrations use external dependencies or application code.
+# migrations from scratch.
 
 ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
   enable_extension "plpgsql"
@@ -99,8 +98,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
     t.text "note"
     t.string "denial_reason"
     t.datetime "served_at"
-    t.string "customer_token"
-    t.string "submission_token"
+    t.datetime "updated_at", null: false
     t.index ["table_id", "customer_token", "submission_token"], name: "unique_customer_submission", unique: true
     t.index ["table_id"], name: "index_orders_on_table_id"
   end
@@ -109,10 +107,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
     t.bigint "table_id", null: false
     t.bigint "assigned_user_id"
     t.string "status", default: "pending", null: false
+    t.datetime "resolved_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["assigned_user_id"], name: "index_service_calls_on_assigned_user_id"
-    t.index ["table_id"], name: "index_tables_on_table_id"
+    t.index ["table_id"], name: "index_service_calls_on_table_id"
     t.index ["table_id"], name: "one_open_call_per_table", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'claimed'::character varying])::text[]))"
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'claimed'::character varying, 'resolved'::character varying]::text[])", name: "valid_service_call_status"
   end
