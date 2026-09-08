@@ -1,0 +1,41 @@
+<section class="panel category-panel category-level-<%= level %>">
+  <h2>
+    <%= category.name %>
+    <small><%= category.available? ? 'Disponível' : 'Indisponível' %></small>
+  </h2>
+
+  <div class="toolbar">
+    <%= button_to 'Alterar disponibilidade da categoria',
+      toggle_availability_staff_category_path(category),
+      method: :patch,
+      class: 'secondary' %>
+
+    <% if current_user.manager? %>
+      <%= link_to 'Editar categoria', edit_staff_category_path(category) %>
+    <% end %>
+  </div>
+
+  <% category.menu_items.order(:name).each do |item| %>
+    <div class="line">
+      <div>
+        <strong><%= item.name %></strong>
+        <p><%= euros(item.price) %> · <%= item.available? ? 'Disponível' : 'Indisponível' %></p>
+      </div>
+
+      <div>
+        <%= button_to 'Alterar disponibilidade',
+          toggle_availability_staff_menu_item_path(item),
+          method: :patch,
+          class: 'secondary' %>
+
+        <% if current_user.manager? %>
+          <%= link_to 'Editar', edit_staff_menu_item_path(item) %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <% category.children.order(:name).each do |child| %>
+    <%= render 'staff/menu/category', category: child, level: level + 1 %>
+  <% end %>
+</section>
