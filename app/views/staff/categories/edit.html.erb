@@ -1,5 +1,25 @@
-<h1>Categoria</h1><section class="panel"><%= render 'shared/errors', record: @category %>
-<%= form_with model: [:staff, @category] do |f| %>
-  <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true %>
-  <label><%= f.check_box :available %> Disponível</label><%= f.submit 'Guardar' %>
-<% end %></section><p><%= link_to 'Voltar', staff_menu_path %></p>
+<h1>Categoria</h1>
+
+<section class="panel">
+  <%= render 'shared/errors', record: @category %>
+
+  <%= form_with model: [:staff, @category] do |f| %>
+    <%= f.label :name, 'Nome' %>
+    <%= f.text_field :name, required: true %>
+
+    <%= f.label :parent_id, 'Categoria-pai (opcional)' %>
+    <%= f.select :parent_id,
+      options_for_select([['Categoria principal', '']] + category_options(@parent_categories), @category.parent_id),
+      {},
+      {} %>
+
+    <label>
+      <%= f.check_box :available %>
+      Disponível
+    </label>
+
+    <%= f.submit 'Guardar' %>
+  <% end %>
+</section>
+
+<p><%= link_to 'Voltar', staff_menu_path %></p>
