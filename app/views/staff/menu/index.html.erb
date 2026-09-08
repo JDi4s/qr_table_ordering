@@ -1,11 +1,12 @@
 <h1>Menu</h1>
-<% if current_user.manager? %><div class="toolbar"><%= link_to 'Criar categoria', new_staff_category_path, class: 'button' %><%= link_to 'Criar produto', new_staff_menu_item_path, class: 'button secondary' %></div><% end %>
-<% @categories.each do |category| %><section class="panel">
-  <h2><%= category.name %> <small><%= category.available? ? 'Disponível' : 'Indisponível' %></small></h2>
-  <div class="toolbar"><%= button_to 'Alterar disponibilidade da categoria', toggle_availability_staff_category_path(category), method: :patch, class: 'secondary' %>
-    <% if current_user.manager? %><%= link_to 'Editar categoria', edit_staff_category_path(category) %><% end %></div>
-  <% category.menu_items.each do |item| %><div class="line"><div><strong><%= item.name %></strong><p><%= euros(item.price) %> · <%= item.available? ? 'Disponível' : 'Indisponível' %></p></div>
-    <div><%= button_to 'Alterar disponibilidade', toggle_availability_staff_menu_item_path(item), method: :patch, class: 'secondary' %>
-    <% if current_user.manager? %><%= link_to 'Editar', edit_staff_menu_item_path(item) %><% end %></div>
-  </div><% end %>
-</section><% end %>
+
+<% if current_user.manager? %>
+  <div class="toolbar">
+    <%= link_to 'Criar categoria', new_staff_category_path, class: 'button' %>
+    <%= link_to 'Criar produto', new_staff_menu_item_path, class: 'button secondary' %>
+  </div>
+<% end %>
+
+<% @categories.select(&:root?).sort_by(&:name).each do |category| %>
+  <%= render 'staff/menu/category', category: category, level: 0 %>
+<% end %>
