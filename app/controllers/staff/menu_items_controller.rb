@@ -56,12 +56,12 @@ class Staff::MenuItemsController < Staff::BaseController
   def menu_item_params
     values = params.require(:menu_item).permit(
       :name,
+      :description,
       :price,
       :category_id,
       :available,
       :image
     )
-
     current_establishment.categories.find(values[:category_id]) if values[:category_id].present?
     values
   end

@@ -90,4 +90,36 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal old_name, @order.order_items.first.display_name
     assert_not @product.destroy
   end
+
+  test 'accepted order can be marked paid and leaves the unpaid table list' do
+    cashier = venue_user(@venue, role: 'staff')
+    @order.finalize_review!
+
+    @order.mark_paid!(cashier)
+
+    assert @order.reload.paid?
+    assert_equal cashier, @order.paid_by_user
+    assert_not @table.orders.unpaid.exists?(@order.id)
+    assert_raises(Order::InvalidTransition) { @order.mark_paid!(cashier) }
+  end
+
+  test 'accepted order supports paying only part of an item quantity' do
+    cashier = venue_user(@venue, role: 'staff')
+    @order.finalize_review!
+    item = @order.order_items.second
+
+    @order.pay_item!(item.id, 1, cashier)
+
+    assert_equal 1, item.reload.paid_quantity
+    assert_equal 1, item.remaining_quantity
+    assert_equal BigDecimal('20'), @order.reload.outstanding_total
+    assert_not @order.paid?
+
+    @order.pay_item!(item.id, 1, cashier)
+    assert_not @order.reload.paid?
+
+    @order.mark_paid!(cashier)
+    assert @order.reload.paid?
+    assert_equal 0, @order.outstanding_total
+  end
 end

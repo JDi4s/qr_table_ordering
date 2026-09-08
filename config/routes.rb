@@ -22,11 +22,13 @@ Rails.application.routes.draw do
   end
   namespace :staff do
     resources :orders, only: [:index, :show, :update] do
+      member { patch :mark_paid; patch :pay_item }
       collection { get :history }
     end
     resources :order_items, only: :update
     resources :service_calls, only: :update
-    resources :tables, only: [:index, :create, :update] do
+    resources :tables, only: [:index, :show, :create, :update] do
+      collection { get :active }
       member { get :qr_code }
     end
     resources :users, only: [:index, :create, :update]

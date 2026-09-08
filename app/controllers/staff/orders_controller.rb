@@ -4,6 +4,18 @@ class Staff::OrdersController < Staff::BaseController
     @service_calls = current_establishment.service_calls.includes(:table, :assigned_user).where.not(status: 'resolved').order(:created_at)
   end
 
+  def mark_paid
+    order = current_establishment.orders.find(params[:id])
+    order.mark_paid!(current_user)
+    redirect_back fallback_location: active_staff_tables_path, notice: "Pedido ##{order.id} marcado como pago.", status: :see_other
+  end
+
+  def pay_item
+    order = current_establishment.orders.find(params[:id])
+    order.pay_item!(params[:order_item_id], params[:quantity], current_user)
+    redirect_back fallback_location: staff_table_path(order.table), notice: 'Artigo marcado como pago.', status: :see_other
+  end
+
   def show
     @order = current_establishment.orders.includes(:table, order_items: :menu_item).find(params[:id])
   end

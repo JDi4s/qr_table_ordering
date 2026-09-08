@@ -7,5 +7,6 @@ class MenuItem < ApplicationRecord
   attribute :available, :boolean, default: true
   validate { errors.add(:price, 'deve ter no máximo duas casas decimais') if price && price != price.round(2) }
   validates :name, presence: true, length: { maximum: 150 }
+  validates :description, length: { maximum: 500 }, allow_blank: true
   validates :price, numericality: { greater_than_or_equal_to: 0, less_than: 100000 }
 end

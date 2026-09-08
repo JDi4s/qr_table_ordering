@@ -1,0 +1,20 @@
+<p class="eyebrow">CONTROLO DE PAGAMENTOS</p>
+<h1>Mesas ativas</h1>
+<p>Estas são as mesas que têm pedidos ainda por pagar. Escolha uma mesa para consultar os pedidos individuais.</p>
+
+<div class="table-dashboard">
+  <% @tables.each do |table| %>
+    <%= link_to staff_table_path(table), class: 'table-card' do %>
+      <%= table_svg(table) %>
+      <div>
+        <h2>Mesa <%= table.number %></h2>
+        <p><strong><%= table.orders.unpaid.count %></strong> pedido(s) por pagar</p>
+        <p><strong><%= euros(table.orders.unpaid.sum(&:outstanding_total)) %></strong> por pagar</p>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<% if @tables.empty? %>
+  <section class="panel empty-state"><strong>Não existem mesas com pedidos por pagar.</strong><p>Quando entrar um pedido, a mesa aparecerá aqui.</p></section>
+<% end %>

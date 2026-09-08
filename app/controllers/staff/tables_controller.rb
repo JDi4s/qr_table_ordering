@@ -1,9 +1,26 @@
 class Staff::TablesController < Staff::BaseController
-  before_action :require_manager, except: [:index, :qr_code]
+  before_action :require_manager, except: [:index, :active, :show, :qr_code]
 
   def index
     @tables = current_establishment.tables.order(:number)
     @table = current_establishment.tables.new
+  end
+
+  def active
+    @tables = current_establishment.tables
+      .joins(:orders)
+      .merge(Order.unpaid)
+      .distinct
+      .includes(orders: { order_items: :menu_item })
+      .order(:number)
+  end
+
+  def show
+    @table = current_establishment.tables.find_by!(qr_token: params[:id])
+    @orders = @table.orders
+      .unpaid
+      .includes(order_items: :menu_item)
+      .order(:created_at)
   end
 
   def create
@@ -20,6 +37,7 @@ class Staff::TablesController < Staff::BaseController
   def qr_code
     table = current_establishment.tables.where(active: true).find_by!(qr_token: params[:id])
     png = RQRCode::QRCode.new(table.ordering_url).as_png(size: 480, border_modules: 4)
-    send_data png.to_s, type: 'image/png', disposition: 'attachment', filename: "mesa_#{table.number}_qr.png"
+    disposition = params[:download].present? ? 'attachment' : 'inline'
+    send_data png.to_s, type: 'image/png', disposition: disposition, filename: "mesa_#{table.number}_qr.png"
   end
 end

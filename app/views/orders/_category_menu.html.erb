@@ -18,6 +18,7 @@
 
           <div>
             <strong><%= item.name %></strong>
+            <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
             <p><%= euros(item.price) %></p>
           </div>
 

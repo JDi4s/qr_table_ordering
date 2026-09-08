@@ -137,4 +137,39 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     patch staff_service_call_path(call), params: { status: 'resolved' }
     assert call.reload.resolved?
   end
+
+  test 'staff can open active tables and mark an accepted order paid' do
+    order = build_order(@table, @product)
+    order.finalize_review!
+    sign_in(@manager)
+
+    get active_staff_tables_path
+    assert_response :success
+    assert_includes response.body, "Mesa #{@table.number}"
+
+    patch mark_paid_staff_order_path(order)
+    assert_response :redirect
+    assert order.reload.paid?
+
+    get active_staff_tables_path
+    assert_response :success
+    assert_not_includes response.body, "Mesa #{@table.number}"
+  end
+
+  test 'staff can pay one quantity and keep the table active for the remainder' do
+    order = build_order(@table, @product)
+    order.finalize_review!
+    item = order.order_items.second
+    sign_in(@manager)
+
+    patch pay_item_staff_order_path(order), params: { order_item_id: item.id, quantity: 1 }
+
+    assert_response :redirect
+    assert_equal 1, item.reload.paid_quantity
+    assert_not order.reload.paid?
+
+    get staff_table_path(@table)
+    assert_response :success
+    assert_includes response.body, "1 × #{@product.name}"
+  end
 end

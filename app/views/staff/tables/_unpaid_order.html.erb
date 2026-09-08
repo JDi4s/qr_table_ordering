@@ -1,0 +1,31 @@
+<article class="panel unpaid-order">
+  <div class="line"><h2>Pedido #<%= order.id %></h2><span class="badge"><%= state_label(order.status) %></span></div>
+  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
+  <ul>
+    <% order.order_items.each do |item| %>
+      <li class="payment-line">
+        <div>
+          <% if item.denied? %>
+            <%= item.quantity %> × <%= item.display_name %> — rejeitado
+          <% elsif item.paid? %>
+            <%= item.quantity %> × <%= item.display_name %> — pago
+          <% else %>
+            <strong><%= item.remaining_quantity %> × <%= item.display_name %></strong> — <%= euros(item.outstanding_total) %>
+            <% if item.paid_quantity.positive? %><small><%= item.paid_quantity %> já pago(s)</small><% end %>
+          <% end %>
+        </div>
+        <% if item.unpaid? && item.accepted? %>
+          <%= form_with url: pay_item_staff_order_path(order), method: :patch, class: 'payment-form' do %>
+            <%= hidden_field_tag :order_item_id, item.id %>
+            <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true %>
+            <%= submit_tag 'Pagar', data: { turbo_confirm: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name}?" } %>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+  <div class="toolbar">
+    <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button secondary' %>
+    <% if order.accepted? || order.served? %><%= button_to 'Pagar pedido completo', mark_paid_staff_order_path(order), method: :patch, data: { turbo_confirm: "Confirmar pagamento do pedido ##{order.id}?" } %><% end %>
+  </div>
+</article>

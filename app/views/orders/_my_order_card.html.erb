@@ -4,10 +4,12 @@
   <% order.order_items.each do |item| %>
     <div class="line"><div><strong><%= item.quantity %> × <%= item.display_name %></strong>
       <% if item.denied? %><p class="danger">Indisponível: <%= item.denial_reason %></p><% end %>
+      <% unless item.denied? %><p><%= item.paid_quantity %> pago(s) · <%= item.remaining_quantity %> por pagar</p><% end %>
       <% if item.proposed_description.present? %><p>Alteração proposta: <strong><%= item.proposed_description %></strong></p><% end %>
     </div><span><%= item.denied? ? 'Excluído' : euros(item.unit_price * item.quantity) %></span></div>
   <% end %>
   <div class="line"><strong><%= order.pending? ? 'Total provisório' : 'Total' %></strong><strong><%= euros(order.total) %></strong></div>
+  <% if order.paid? %><p class="badge">Pago no balcão</p><% elsif order.paid_total.positive? %><p class="badge">Pagamento parcial no balcão</p><% end %>
   <% if order.pending? %><p>O funcionário está a avaliar a disponibilidade. Aguarde a confirmação.</p><% end %>
   <% if order.needs_customer_action? %>
     <div class="flash notice"><strong>O seu pedido tem alterações.</strong> Confirme os produtos, as alterações e o novo total antes de continuar.</div>

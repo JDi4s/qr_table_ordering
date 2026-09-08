@@ -2,7 +2,7 @@
   <span class="brand">Mesa<span> • </span></span><strong><%= current_establishment.name %></strong>
   <nav>
     <%= link_to 'Pedidos e chamadas', staff_orders_path %><%= link_to 'Menu', staff_menu_path %>
-    <%= link_to 'Mesas / QR', staff_tables_path %><%= link_to 'Histórico', history_staff_orders_path %>
+    <%= link_to 'Mesas ativas', active_staff_tables_path %><%= link_to 'Mesas / QR', staff_tables_path %><%= link_to 'Histórico', history_staff_orders_path %>
     <% if current_user.manager? %><%= link_to 'Equipa', staff_users_path %><% end %>
     <%= link_to 'Preferências', edit_staff_settings_path %>
   </nav>

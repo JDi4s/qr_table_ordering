@@ -19,6 +19,7 @@
     <div class="line">
       <div>
         <strong><%= item.name %></strong>
+        <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
         <p><%= euros(item.price) %> · <%= item.available? ? 'Disponível' : 'Indisponível' %></p>
       </div>
 

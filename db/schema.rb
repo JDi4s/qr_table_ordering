@@ -7,7 +7,7 @@
 # be faster and is potentially less error prone than running all of your
 # migrations from scratch.
 
-ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
+ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
   enable_extension "plpgsql"
 
   create_table "active_storage_attachments", force: :cascade do |t|
@@ -63,6 +63,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
 
   create_table "menu_items", force: :cascade do |t|
     t.string "name"
+    t.text "description"
     t.decimal "price"
     t.boolean "available", default: true, null: false
     t.bigint "category_id", null: false
@@ -81,11 +82,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
     t.decimal "unit_price", precision: 10, scale: 2, default: "0.0", null: false
     t.string "denial_reason"
     t.text "note"
+    t.integer "paid_quantity", default: 0, null: false
     t.string "name_snapshot"
     t.string "proposed_description"
     t.decimal "original_unit_price", precision: 10, scale: 2
     t.index ["menu_item_id"], name: "index_order_items_on_menu_item_id"
     t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["paid_quantity"], name: "index_order_items_on_paid_quantity"
     t.index ["status"], name: "index_order_items_on_status"
   end
 
@@ -98,8 +101,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
     t.text "note"
     t.string "denial_reason"
     t.datetime "served_at"
+    t.datetime "paid_at"
+    t.bigint "paid_by_user_id"
     t.string "customer_token"
     t.string "submission_token"
+    t.index ["customer_token"], name: "index_orders_on_customer_token"
+    t.index ["paid_by_user_id"], name: "index_orders_on_paid_by_user_id"
+    t.index ["table_id", "paid_at"], name: "index_orders_on_table_id_and_paid_at"
     t.index ["table_id", "customer_token", "submission_token"], name: "unique_customer_submission", unique: true
     t.index ["table_id"], name: "index_orders_on_table_id"
   end
@@ -150,6 +158,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
   add_foreign_key "order_items", "menu_items"
   add_foreign_key "order_items", "orders"
   add_foreign_key "orders", "tables"
+  add_foreign_key "orders", "users", column: "paid_by_user_id"
+  add_foreign_key "orders", "users", column: "paid_by_user_id"
   add_foreign_key "service_calls", "tables"
   add_foreign_key "service_calls", "users", column: "assigned_user_id"
   add_foreign_key "tables", "establishments"

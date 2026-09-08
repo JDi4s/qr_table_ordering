@@ -1,7 +1,7 @@
 <article class="panel" id="<%= dom_id(order) %>">
   <div class="line"><h2>Mesa <%= order.table.number %></h2><span>#<%= order.id %></span></div>
   <p><span class="badge"><%= state_label(order.status) %></span></p>
-  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.total) %></strong></p>
+  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
   <ul><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul>
   <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button' %>
 </article>

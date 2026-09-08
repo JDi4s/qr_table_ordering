@@ -2,10 +2,12 @@ class Order < ApplicationRecord
   include ActionView::RecordIdentifier
   class InvalidTransition < StandardError; end
   belongs_to :table
+  belongs_to :paid_by_user, class_name: 'User', optional: true
   has_one :establishment, through: :table
   has_many :order_items, dependent: :destroy
   has_many :menu_items, through: :order_items
   enum status: { pending: 'pending', accepted: 'accepted', needs_customer_action: 'needs_customer_action', denied: 'denied', served: 'served' }
+  scope :unpaid, -> { where(paid_at: nil).where.not(status: 'denied') }
   validates :note, length: { maximum: 1000 }
   validates :customer_token, presence: true
   after_create_commit :broadcast_created
@@ -29,7 +31,7 @@ class Order < ApplicationRecord
       item.update!(changes)
       refresh_total!
     end
-  rescue ArgumentError
+  rescue ArgumentError, TypeError
     raise InvalidTransition, 'Preço inválido.'
   end
 
@@ -86,7 +88,64 @@ class Order < ApplicationRecord
     order_items.where.not(status: 'denied').sum('unit_price * quantity')
   end
 
+  def paid_total
+    payable_total - outstanding_total
+  end
+
+  def outstanding_total
+    order_items.reject(&:denied?).sum(&:outstanding_total)
+  end
+
+  def fully_paid?
+    order_items.where.not(status: 'denied').all? { |item| item.remaining_quantity.zero? }
+  end
+
+  def paid?
+    paid_at.present?
+  end
+
+  def mark_paid!(user)
+    with_lock do
+      ensure_payment_state!
+      raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
+
+      order_items.where.not(status: 'denied').find_each do |item|
+        item.update!(paid_quantity: item.quantity)
+      end
+      complete_payment!(user)
+    end
+  end
+
+  def pay_item!(item_id, quantity, user)
+    quantity = Integer(quantity)
+
+    with_lock do
+      ensure_payment_state!
+      raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
+      raise InvalidTransition, 'Indique uma quantidade válida.' if quantity <= 0
+
+      item = order_items.find(item_id)
+      raise InvalidTransition, 'Este artigo não pode ser pago.' unless item.accepted?
+      raise InvalidTransition, 'A quantidade indicada é superior ao que falta pagar.' if quantity > item.remaining_quantity
+
+      item.update!(paid_quantity: item.paid_quantity + quantity)
+      complete_payment!(user) if fully_paid?
+    end
+  rescue ArgumentError
+    raise InvalidTransition, 'Indique uma quantidade válida.'
+  end
+
   private
+
+  def ensure_payment_state!
+    raise InvalidTransition, 'O pedido tem de ser aceite antes de ser pago.' unless accepted? || served?
+  end
+
+  def complete_payment!(user)
+    return unless fully_paid?
+
+    update!(paid_at: Time.current, paid_by_user: user)
+  end
 
   def ensure_state!(*allowed)
     raise InvalidTransition, 'O pedido já mudou de estado. Atualize a página.' unless allowed.include?(status)

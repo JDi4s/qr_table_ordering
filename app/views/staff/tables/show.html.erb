@@ -1,0 +1,15 @@
+<p class="eyebrow">MESA <%= @table.number %></p>
+<h1>Pedidos por pagar</h1>
+<div class="table-show-header panel">
+  <%= table_svg(@table) %>
+  <div><h2>Mesa <%= @table.number %></h2><p><strong><%= @orders.count %></strong> pedido(s) por pagar</p><p><strong><%= euros(@orders.sum(&:outstanding_total)) %></strong> por pagar</p></div>
+</div>
+
+<div class="grid">
+  <% @orders.each do |order| %>
+    <%= render 'staff/tables/unpaid_order', order: order %>
+  <% end %>
+</div>
+
+<% if @orders.empty? %><section class="panel empty-state"><strong>Não existem pedidos por pagar nesta mesa.</strong></section><% end %>
+<p><%= link_to 'Voltar às Mesas ativas', active_staff_tables_path, class: 'button secondary' %></p>

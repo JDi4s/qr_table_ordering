@@ -1,5 +1,6 @@
 <p class="eyebrow">SERVIÇO EM TEMPO REAL</p><h1>Pedidos e chamadas</h1>
 <p>Mantenha esta página aberta durante o serviço. <button type="button" class="secondary" data-action="staff-orders#enableAudio">Ativar / testar som</button></p>
+<p><%= link_to 'Ver Mesas ativas e pedidos por pagar', active_staff_tables_path, class: 'button' %></p>
 <%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
 <h2>Chamadas à mesa</h2><div id="service_calls" class="grid empty-list">
   <% @service_calls.each do |service_call| %><%= render 'staff/service_calls/call', service_call: service_call %><% end %>

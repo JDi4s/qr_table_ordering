@@ -19,6 +19,10 @@ class Table < ApplicationRecord
     RQRCode::QRCode.new(ordering_url).as_svg(module_size: 6, standalone: true, offset: 24)
   end
 
+  def unpaid_orders
+    orders.unpaid
+  end
+
   private
 
   def generate_qr_token
