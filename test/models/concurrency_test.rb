@@ -9,7 +9,7 @@ class ConcurrencyTest < ActiveSupport::TestCase
     MenuItem.where(category_id: @venue.categories.select(:id)).delete_all
     Category.where(establishment_id: @venue.id).delete_all
     Table.where(establishment_id: @venue.id).delete_all
-    @venue.destroy!
+    @venue.reload.destroy!
   end
 
   test 'two parallel creates cannot exceed the last available table slot' do

@@ -37,6 +37,23 @@ class AddEstablishmentsAndServiceCalls < ActiveRecord::Migration[7.1]
     change_column_default :menu_items, :available, true
     change_column_null :menu_items, :available, false
     execute 'UPDATE order_items SET name_snapshot = menu_items.name FROM menu_items WHERE menu_items.id = order_items.menu_item_id'
+    # Repair unfinished legacy reviews without reopening served/accepted orders.
+    execute <<~SQL
+      UPDATE orders SET total = (
+        SELECT COALESCE(SUM(unit_price * quantity), 0) FROM order_items
+        WHERE order_items.order_id = orders.id AND order_items.status <> 'denied'
+      )
+    SQL
+    execute <<~SQL
+      UPDATE orders SET status = 'denied', denial_reason = 'Todos os produtos foram rejeitados.'
+      WHERE status IN ('pending', 'needs_customer_action')
+        AND EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id)
+        AND NOT EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.status <> 'denied')
+    SQL
+    execute <<~SQL
+      UPDATE orders SET status = 'pending' WHERE status = 'needs_customer_action'
+        AND EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.status = 'pending')
+    SQL
     create_table :service_calls do |t|
       t.references :table, null: false, foreign_key: true
       t.references :assigned_user, foreign_key: { to_table: :users }

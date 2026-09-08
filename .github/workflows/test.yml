@@ -26,6 +26,15 @@ jobs:
           ruby-version: '3.3.5'
           bundler: '2.7.2'
       - run: bundle install
+      - run: git diff --exit-code Gemfile.lock
+      - name: Verify upgrade from existing database
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/mesa_legacy_test
+        run: |
+          bin/rails db:create db:migrate VERSION=20260130202847
+          bin/rails runner test/support/legacy_migration.rb seed
+          bin/rails db:migrate
+          bin/rails runner test/support/legacy_migration.rb verify
       - run: bin/rails db:create db:migrate
       - run: bin/rails zeitwerk:check
       - run: bin/rails test
