@@ -8,14 +8,10 @@
     <%= f.text_field :name, required: true %>
 
     <%= f.label :category_id, 'Categoria' %>
-    <%= f.collection_select(
-      :category_id,
-      current_establishment.categories.order(:name),
-      :id,
-      :name,
+    <%= f.select :category_id,
+      options_for_select(category_options(current_establishment.categories.to_a), @menu_item.category_id),
       {},
-      required: true
-    ) %>
+      required: true %>
 
     <%= f.label :price, 'Preço (€)' %>
     <%= f.number_field :price, min: 0, step: '0.01', required: true %>
@@ -37,6 +33,4 @@
   <% end %>
 </section>
 
-<p>
-  <%= link_to 'Voltar', staff_menu_path %>
-</p>
+<p><%= link_to 'Voltar', staff_menu_path %></p>
