@@ -1,0 +1,43 @@
+<% if category.visible_to_customers? %>
+  <%= content_tag(level.zero? ? :h2 : :h3, category.name, class: "menu-category level-#{level}") %>
+
+  <% items = category.menu_items.select(&:available?) %>
+
+  <% unless items.empty? %>
+    <div class="grid">
+      <% items.each do |item| %>
+        <section class="panel product">
+          <% if item.image.attached? %>
+            <%= image_tag(
+              item.image,
+              alt: item.name,
+              class: 'product-image',
+              loading: 'lazy'
+            ) %>
+          <% end %>
+
+          <div>
+            <strong><%= item.name %></strong>
+            <p><%= euros(item.price) %></p>
+          </div>
+
+          <div>
+            <label for="quantity_<%= item.id %>">Quantidade</label>
+            <%= number_field_tag(
+              "order[items][#{item.id}]",
+              0,
+              min: 0,
+              max: 99,
+              step: 1,
+              id: "quantity_#{item.id}"
+            ) %>
+          </div>
+        </section>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% category.children.order(:name).each do |child| %>
+    <%= render 'orders/category_menu', category: child, level: level + 1 %>
+  <% end %>
+<% end %>
