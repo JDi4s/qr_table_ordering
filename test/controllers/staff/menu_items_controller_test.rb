@@ -1,23 +1,7 @@
-require "test_helper"
-
+require 'test_helper'
 class Staff::MenuItemsControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get staff_menu_items_index_url
-    assert_response :success
-  end
-
-  test "should get show" do
-    get staff_menu_items_show_url
-    assert_response :success
-  end
-
-  test "should get new" do
-    get staff_menu_items_new_url
-    assert_response :success
-  end
-
-  test "should get edit" do
-    get staff_menu_items_edit_url
-    assert_response :success
+  test 'anonymous users must sign in' do
+    get new_staff_menu_item_path
+    assert_redirected_to login_path
   end
 end

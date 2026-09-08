@@ -73,7 +73,7 @@ class OrdersController < ApplicationController
   def selected_items
     raw = params.dig(:order, :items)
     raise Order::InvalidTransition, 'Selecione pelo menos um produto.' unless raw.is_a?(ActionController::Parameters)
-    raise Order::InvalidTransition, 'Demasiados produtos num pedido.' if raw.size > 200
+    raise Order::InvalidTransition, 'Demasiados produtos num pedido.' if raw.keys.size > 200
     items = raw.to_unsafe_h.filter_map do |id, qty|
       raise Order::InvalidTransition, 'Quantidade inválida.' unless qty.to_s.match?(/\A\d{1,2}\z/)
       next if qty.to_i.zero?

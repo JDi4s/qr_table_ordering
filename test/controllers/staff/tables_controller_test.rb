@@ -1,8 +1,7 @@
-require "test_helper"
-
+require 'test_helper'
 class Staff::TablesControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get staff_tables_index_url
-    assert_response :success
+  test 'anonymous users must sign in' do
+    get staff_tables_path
+    assert_redirected_to login_path
   end
 end

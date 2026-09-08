@@ -3,10 +3,10 @@ class ConcurrencyTest < ActiveSupport::TestCase
   self.use_transactional_tests = false
   setup { @venue, @table, @product = build_venue(limit: 2) }
   teardown do
-    @venue.service_calls.delete_all
-    @venue.orders.destroy_all
+    ServiceCall.where(table_id: @venue.tables.select(:id)).delete_all
+    Order.where(table_id: @venue.tables.select(:id)).destroy_all
     @venue.users.delete_all
-    @venue.menu_items.delete_all
+    MenuItem.where(category_id: @venue.categories.select(:id)).delete_all
     @venue.categories.delete_all
     @venue.tables.delete_all
     @venue.destroy!

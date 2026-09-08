@@ -1,8 +1,7 @@
-require "test_helper"
-
+require 'test_helper'
 class TablesControllerTest < ActionDispatch::IntegrationTest
-  test "should get index" do
-    get tables_index_url
-    assert_response :success
+  test 'no public table directory exists' do
+    get '/tables'
+    assert_response :not_found
   end
 end

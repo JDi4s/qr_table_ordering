@@ -15,7 +15,7 @@ class Establishment < ApplicationRecord
   end
 
   def monthly_fee=(value)
-    self.monthly_fee_cents = BigDecimal(value.to_s.tr(',', '.')) * 100
+    self.monthly_fee_cents = (BigDecimal(value.to_s.tr(',', '.')) * 100).to_i
   rescue ArgumentError
     self.monthly_fee_cents = nil
   end

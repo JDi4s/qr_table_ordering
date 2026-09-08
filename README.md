@@ -32,6 +32,7 @@ Não existem passwords predefinidas nos seeds. O administrador é criado interat
 ```sh
 RAILS_ENV=test bin/rails db:prepare
 bin/rails test
+bin/rails test:system # requer Chrome/Chromium
 bin/rails zeitwerk:check
 ```
 
