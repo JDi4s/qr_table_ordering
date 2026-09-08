@@ -1,13 +1,40 @@
 <% categories.each do |category| %>
   <% next unless category.available? %>
+
   <% items = category.menu_items.select(&:available?) %>
   <% next if items.empty? %>
-  <h2><%= category.name %></h2><div class="grid">
+
+  <h2><%= category.name %></h2>
+
+  <div class="grid">
     <% items.each do |item| %>
       <section class="panel product">
-        <div><strong><%= item.name %></strong><p><%= euros(item.price) %></p></div>
-        <div><label for="quantity_<%= item.id %>">Quantidade</label>
-          <%= number_field_tag "order[items][#{item.id}]", 0, min: 0, max: 99, step: 1, id: "quantity_#{item.id}" %></div>
+        <% if item.image.attached? %>
+          <%= image_tag(
+            item.image,
+            alt: item.name,
+            class: 'product-image',
+            loading: 'lazy'
+          ) %>
+        <% end %>
+
+        <div>
+          <strong><%= item.name %></strong>
+          <p><%= euros(item.price) %></p>
+        </div>
+
+        <div>
+          <label for="quantity_<%= item.id %>">Quantidade</label>
+
+          <%= number_field_tag(
+            "order[items][#{item.id}]",
+            0,
+            min: 0,
+            max: 99,
+            step: 1,
+            id: "quantity_#{item.id}"
+          ) %>
+        </div>
       </section>
     <% end %>
   </div>
