@@ -1,0 +1,8 @@
+# Place INSIDE the existing/new HTTPS VirtualHost for your dedicated subdomain.
+# Requires Apache 2.4.47+ and modules proxy, proxy_http, headers, ssl.
+ProxyPreserveHost On
+RequestHeader set X-Forwarded-Proto "https"
+ProxyPass /cable http://127.0.0.1:3100/cable upgrade=websocket
+ProxyPassReverse /cable http://127.0.0.1:3100/cable
+ProxyPass / http://127.0.0.1:3100/
+ProxyPassReverse / http://127.0.0.1:3100/

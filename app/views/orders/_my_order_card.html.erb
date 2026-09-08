@@ -1,41 +1,20 @@
-<div id="<%= dom_id(order) %>" style="border:1px solid #ccc; padding:10px; margin-bottom:12px;">
-  <p>
-    <strong>Order #<%= order.id %></strong>
-    — Status: <strong><%= order.status %></strong>
-    <% if order.respond_to?(:total) && order.total.present? %>
-      — Total: <strong><%= order.total %></strong>
-    <% end %>
-  </p>
-
-  <% if order.note.present? %>
-    <p><strong>Your note:</strong> <%= order.note %></p>
+<section class="panel" id="<%= dom_id(order) %>">
+  <div class="line"><h2>Pedido #<%= order.id %></h2><span class="badge"><%= state_label(order.status) %></span></div>
+  <% if order.note.present? %><p>As suas observações: <%= order.note %></p><% end %>
+  <% order.order_items.each do |item| %>
+    <div class="line"><div><strong><%= item.quantity %> × <%= item.display_name %></strong>
+      <% if item.denied? %><p class="danger">Indisponível: <%= item.denial_reason %></p><% end %>
+      <% if item.proposed_description.present? %><p>Alteração proposta: <strong><%= item.proposed_description %></strong></p><% end %>
+    </div><span><%= item.denied? ? 'Excluído' : euros(item.unit_price * item.quantity) %></span></div>
   <% end %>
-
-  <ul>
-    <% order.order_items.each do |oi| %>
-      <li>
-        <%= oi.menu_item.name %> x <%= oi.quantity %>
-        — <strong><%= oi.status %></strong>
-        <% if oi.denied? && oi.denial_reason.present? %>
-          (Reason: <%= oi.denial_reason %>)
-        <% end %>
-      </li>
-    <% end %>
-  </ul>
-
+  <div class="line"><strong><%= order.pending? ? 'Total provisório' : 'Total' %></strong><strong><%= euros(order.total) %></strong></div>
+  <% if order.pending? %><p>O funcionário está a avaliar a disponibilidade. Aguarde a confirmação.</p><% end %>
   <% if order.needs_customer_action? %>
-    <div style="margin-top:10px; padding:10px; border:1px solid #f3c; background:#fff6fb;">
-      <p><strong>Action needed:</strong> some items were denied. Choose what to do:</p>
-
-      <%= button_to "Accept remaining items",
-            accept_remaining_table_order_path(@table.qr_token, order),
-            method: :post,
-            form: { data: { turbo: true } } %>
-
-      <%= button_to "Cancel order",
-            cancel_table_order_path(@table.qr_token, order),
-            method: :post,
-            form: { data: { turbo: true } } %>
-    </div>
+    <div class="flash notice"><strong>O seu pedido tem alterações.</strong> Confirme os produtos, as alterações e o novo total antes de continuar.</div>
+    <%= button_to 'Aceitar este pedido atualizado', accept_remaining_table_order_path(order.table, order) %>
   <% end %>
-</div>
+  <% if order.pending? || order.needs_customer_action? %>
+    <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary', data: { turbo_confirm: 'Cancelar todo o pedido?' } %>
+  <% end %>
+  <% if order.denied? %><p><%= order.denial_reason %></p><% end %>
+</section>

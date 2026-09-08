@@ -1,13 +1,4 @@
-<!-- app/views/staff/settings/edit.html.erb  (FULL FILE — create) -->
-<h1>Settings</h1>
-
-<%= form_with url: staff_settings_path, method: :patch do %>
-  <p>
-    <label>
-      <input type="checkbox" name="user[staff_sound_enabled]" value="1" <%= "checked" if current_user.staff_sound_enabled %>>
-      Play sound when a new order arrives
-    </label>
-  </p>
-
-  <button type="submit">Save</button>
-<% end %>
+<h1>Preferências</h1><section class="panel">
+<%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
+  <label><%= f.check_box :staff_sound_enabled %> Aviso sonoro de novos pedidos e chamadas</label><%= f.submit 'Guardar' %>
+<% end %><p>Depois de ativar, carregue em «Ativar / testar som» na página dos pedidos.</p></section>

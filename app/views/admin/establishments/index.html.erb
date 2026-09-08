@@ -1,0 +1,8 @@
+<p class="eyebrow">ADMINISTRAÇÃO DA PLATAFORMA</p><h1>Os seus clientes</h1>
+<p><%= link_to 'Criar estabelecimento', new_admin_establishment_path, class: 'button' %></p>
+<div class="grid"><% @establishments.each do |establishment| %><section class="panel">
+  <h2><%= establishment.name %></h2><p><%= establishment.active? ? 'Ativo' : 'Suspenso' %></p>
+  <p><strong><%= establishment.tables.where(active: true).count %> / <%= establishment.table_limit %></strong> mesas ativas</p>
+  <p>Mensalidade acordada: <strong><%= euros(establishment.monthly_fee_cents / 100.0) %></strong></p>
+  <%= link_to 'Gerir contrato / upgrade', edit_admin_establishment_path(establishment), class: 'button secondary' %>
+</section><% end %></div>

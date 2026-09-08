@@ -1,50 +1,11 @@
-<h1>Review Order (Table <%= @table.number %>)</h1>
-
-<p>
-  <%= link_to "← Back to Menu", new_table_order_path(@table.qr_token) %>
-</p>
-
-<% if @review_note.present? %>
-  <p><strong>Note:</strong> <%= @review_note %></p>
-<% end %>
-
-<table border="1" cellspacing="0" cellpadding="6">
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>Qty</th>
-      <th>Unit</th>
-      <th>Line</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% (@review_items || []).each do |it| %>
-      <tr>
-        <td><%= it[:name] %></td>
-        <td><%= it[:quantity] %></td>
-        <td><%= it[:unit_price] %></td>
-        <td><%= it[:line_total] %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<p style="margin-top: 10px;">
-  <strong>Total:</strong> <%= @review_total %>
-</p>
-
-<hr>
-
-<%= form_with url: table_orders_path(@table.qr_token), method: :post, data: { turbo: false } do %>
-  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-  <%= hidden_field_tag "order[note]", @review_note %>
-
-  <% (@review_items || []).each do |it| %>
-    <%= hidden_field_tag "order[items][#{it[:menu_item_id]}]", it[:quantity] %>
+<p class="eyebrow">MESA <%= @table.number %></p><h1>Confirme o seu pedido</h1>
+<section class="panel">
+  <% @review_items.each do |item| %><div class="line"><span><%= item[:quantity] %> × <%= item[:name] %></span><strong><%= euros(item[:line_total]) %></strong></div><% end %>
+  <div class="line"><strong>Total</strong><strong><%= euros(@review_total) %></strong></div>
+  <% if @review_note.present? %><p>Observações: <%= @review_note %></p><% end %>
+  <p>O estabelecimento irá confirmar a disponibilidade. O pagamento é feito no estabelecimento.</p>
+  <%= form_with url: table_orders_path(@table) do %>
+    <%= hidden_field_tag :quote, @quote %><button type="submit">Enviar pedido</button>
   <% end %>
-
-  <button type="submit" style="padding: 8px 14px; font-size: 16px;">
-    Place Order
-  </button>
-<% end %>
+</section>
+<p><%= link_to 'Voltar ao menu', new_table_order_path(@table) %></p>

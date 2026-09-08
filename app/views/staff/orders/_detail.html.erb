@@ -1,0 +1,34 @@
+<section id="order_detail_<%= order.id %>">
+  <p class="eyebrow">MESA <%= order.table.number %></p><h1>Pedido #<%= order.id %></h1>
+  <p><span class="badge"><%= state_label(order.status) %></span> · <strong><%= euros(order.total) %></strong></p>
+  <% if order.note.present? %><div class="flash notice">Observações do cliente: <%= order.note %></div><% end %>
+  <% order.order_items.each do |item| %>
+    <article class="panel">
+      <h2><%= item.quantity %> × <%= item.display_name %></h2><p><%= state_label(item.status) %> · <%= euros(item.unit_price) %> / unidade</p>
+      <% if item.denial_reason.present? %><p>Motivo: <%= item.denial_reason %></p><% end %>
+      <% if item.proposed_description.present? %><p>Proposta: <%= item.proposed_description %></p><% end %>
+      <% if order.pending? %>
+        <%= form_with model: [:staff, item] do |f| %>
+          <%= f.label :status, 'Decisão para este produto' %><%= f.select :status, [['Aceitar / propor alteração', 'accepted'], ['Rejeitar', 'denied']] %>
+          <%= f.label :denial_reason, 'Motivo da rejeição' %><%= f.text_field :denial_reason, maxlength: 300 %>
+          <%= f.label :proposed_description, 'Alteração a confirmar pelo cliente (opcional)' %><%= f.text_field :proposed_description, placeholder: 'Por exemplo: hambúrguer sem queijo', maxlength: 300 %>
+          <%= f.label :unit_price, 'Preço por unidade (€)' %><%= f.number_field :unit_price, step: '0.01', min: 0, required: true %>
+          <%= f.submit 'Guardar decisão' %>
+        <% end %>
+      <% end %>
+    </article>
+  <% end %>
+  <% if order.pending? %>
+    <section class="panel"><h2>Concluir avaliação</h2><p>Os artigos ainda em avaliação serão aceites como pedidos. Se houver rejeições ou propostas, o cliente terá de confirmar.</p>
+      <%= button_to 'Concluir avaliação e avisar cliente', staff_order_path(order, status: 'accepted'), method: :patch %>
+    </section>
+  <% end %>
+  <% if order.pending? || order.needs_customer_action? %>
+    <section class="panel"><%= form_with url: staff_order_path(order), method: :patch do |f| %>
+      <%= hidden_field_tag :status, 'denied' %><%= f.label :denial_reason, 'Rejeitar o pedido completo — motivo' %>
+      <%= f.text_field :denial_reason, required: true, maxlength: 300 %><%= f.submit 'Rejeitar pedido', class: 'secondary' %>
+    <% end %></section>
+  <% end %>
+  <% if order.needs_customer_action? %><div class="flash notice">Aguarde a confirmação do cliente antes de preparar o pedido.</div><% end %>
+  <% if order.accepted? %><%= button_to 'Marcar como servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
+</section>

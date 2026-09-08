@@ -1,15 +1,19 @@
-/*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
- *
- * Any CSS (and SCSS, if configured) file within this directory, lib/assets/stylesheets, or any plugin's
- * vendor/assets/stylesheets directory can be referenced here using a relative path.
- *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any other CSS
- * files in this directory. Styles in this file should be added after the last require_* statement.
- * It is generally better to create a new file per style scope.
- *
- *= require_tree .
- *= require_self
- */
+:root { color-scheme: light; --ink: #203832; --green: #20654d; --muted: #61716a; --line: #dce4dc; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #f5f6f0; color: var(--ink); font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; }
+header { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; padding: 20px 5vw; border-bottom: 1px solid var(--line); background: white; }
+.brand { font-size: 28px; font-weight: 800; letter-spacing: -1px; }.brand span { color: #d99b4b; }
+nav, .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; } nav { flex: 1; } header form { margin: 0; }
+main { max-width: 1160px; padding: 32px 24px 80px; margin: auto; }
+h1 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -1px; margin: 8px 0 22px; }h2 { font-size: 22px; }h3 { font-size: 19px; }
+a { color: var(--green); text-underline-offset: 3px; }.eyebrow { color: var(--muted); font-size: 12px; letter-spacing: 2px; font-weight: 700; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 18px; margin: 20px 0; }
+.panel { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin: 18px 0; box-shadow: 0 4px 16px #20383204; }.grid .panel { margin: 0; }
+.login { max-width: 520px; margin: 8vh auto; }.line { display: flex; gap: 16px; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }.line h2 { margin: 0; }
+.product { display: flex; gap: 20px; justify-content: space-between; align-items: center; }.product input { width: 80px; }
+label { display: block; margin: 14px 0 5px; font-weight: 600; } input, textarea, select { font: inherit; padding: 10px 12px; border: 1px solid #a7b8ad; border-radius: 7px; max-width: 100%; width: 100%; background: #fff; color: var(--ink); } input[type=checkbox] { width: auto; } textarea { min-height: 90px; }
+button, input[type=submit], .button { display: inline-block; width: auto; font: inherit; font-weight: 650; background: var(--green); border: 1px solid var(--green); color: white; border-radius: 8px; padding: 10px 16px; cursor: pointer; text-decoration: none; margin: 8px 0; }.secondary { background: white !important; color: var(--green) !important; }
+button:hover, .button:hover, input[type=submit]:hover { filter: brightness(.94); }:focus-visible { outline: 3px solid #d99b4b; outline-offset: 3px; }
+.badge { display: inline-block; border-radius: 30px; background: #eaf1e8; padding: 5px 12px; font-size: 14px; }.flash { padding: 16px; border-radius: 8px; margin: 16px 0; background: #eaf1e8; }.alert { background: #ffe8e0; }.danger { color: #a33621; }.call { border-left: 5px solid #d99b4b; }
+.qr { max-width: 240px; }.qr svg { width: 100%; height: auto; } small { color: var(--muted); font-size: 14px; }.empty-list:empty::after { content: 'Sem registos em curso.'; color: var(--muted); padding: 12px 0; }
+@media(max-width: 600px) { main { padding: 24px 16px; } header { padding: 16px; gap: 12px; } nav { flex-basis: 100%; }.panel { padding: 18px; }.line { align-items: flex-start; } }

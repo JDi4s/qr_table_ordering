@@ -3,157 +3,85 @@ class OrdersController < ApplicationController
   before_action :ensure_customer_token
 
   def new
-    @categories = Category.includes(:menu_items).where(available: true).order(:name)
-    @active_count = active_orders_count
+    @categories = @table.establishment.categories.includes(:menu_items).where(available: true).order(:name)
+    @active_count = customer_orders.where.not(status: %w[served denied]).count
   end
 
   def review
-    note = params.dig(:order, :note).to_s.strip
-
-    raw = params.dig(:order, :items)
-    raw_hash = raw.is_a?(ActionController::Parameters) ? raw.to_unsafe_h : (raw || {})
-
-    parsed_items = raw_hash.map do |menu_item_id, qty|
-      q = qty.to_i
-      next if q <= 0
-      [menu_item_id.to_i, q]
-    end.compact
-
-    if parsed_items.empty?
-      redirect_to new_table_order_path(@table.qr_token), alert: "Select at least one item."
-      return
-    end
-
-    menu_items = MenuItem.includes(:category).where(id: parsed_items.map(&:first)).index_by(&:id)
-
-    @review_note  = note
-    @review_items = []
-    @review_total = 0
-
-    parsed_items.each do |menu_item_id, qty|
-      mi = menu_items[menu_item_id]
-      next unless mi
-      next unless mi.available && mi.category.available
-
-      line_total = mi.price * qty
-      @review_total += line_total
-
-      @review_items << {
-        menu_item_id: mi.id,
-        name: mi.name,
-        quantity: qty,
-        unit_price: mi.price,
-        line_total: line_total
-      }
-    end
-
-    if @review_items.empty?
-      redirect_to new_table_order_path(@table.qr_token), alert: "Selected items not available."
-      return
-    end
+    @review_note = params.dig(:order, :note).to_s.strip
+    @review_items = selected_items
+    @review_total = @review_items.sum { |item| item[:line_total] }
+    # The signed quote makes double submissions idempotent and detects price changes.
+    @quote = Rails.application.message_verifier(:order_quote).generate(
+      { table_id: @table.id, customer_token: session[:customer_token], nonce: SecureRandom.hex(16),
+        items: @review_items.map { |i| [i[:menu_item_id], i[:quantity], i[:unit_price].to_s] }, note: @review_note },
+      expires_in: 15.minutes
+    )
   end
 
   def create
-    note = params.dig(:order, :note).to_s.strip
-
-    raw = params.dig(:order, :items)
-    raw_hash = raw.is_a?(ActionController::Parameters) ? raw.to_unsafe_h : (raw || {})
-
-    items = raw_hash.map do |menu_item_id, qty|
-      q = qty.to_i
-      next if q <= 0
-      [menu_item_id.to_i, q]
-    end.compact
-
-    if items.empty?
-      redirect_to new_table_order_path(@table.qr_token), alert: "Select at least one item."
-      return
+    quote = Rails.application.message_verifier(:order_quote).verified(params[:quote].to_s)&.deep_symbolize_keys
+    unless quote && quote[:table_id] == @table.id && quote[:customer_token] == session[:customer_token]
+      raise Order::InvalidTransition, 'A revisão expirou. Reveja o pedido novamente.'
     end
-
-    order = @table.orders.new(note: note, customer_token: session[:customer_token], status: "pending")
-
-    menu_index = MenuItem.includes(:category).where(id: items.map(&:first)).index_by(&:id)
-
-    items.each do |menu_item_id, qty|
-      mi = menu_index[menu_item_id]
-      next unless mi
-      next unless mi.available && mi.category.available
-
-      order.order_items.build(
-        menu_item: mi,
-        quantity: qty,
-        unit_price: mi.price,
-        status: "pending"
-      )
+    @table.with_lock do
+      raise Order::InvalidTransition, 'Esta mesa está desativada.' unless @table.active? && @table.establishment.reload.active?
+      unless customer_orders.exists?(submission_token: quote[:nonce])
+        order = @table.orders.new(note: quote[:note], customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
+        quote[:items].each do |id, qty, price|
+          item = @table.establishment.menu_items.includes(:category).find(id)
+          unless item.available? && item.category.available? && item.price == BigDecimal(price)
+            raise Order::InvalidTransition, 'O menu mudou. Reveja os produtos e preços antes de enviar.'
+          end
+          order.order_items.build(menu_item: item, quantity: qty, unit_price: item.price, status: 'pending')
+        end
+        order.total = order.order_items.sum { |item| item.unit_price * item.quantity }
+        order.save!
+      end
     end
-
-    if order.order_items.empty?
-      redirect_to new_table_order_path(@table.qr_token), alert: "Those items are not available."
-      return
-    end
-
-    order.transaction do
-      order.save!
-      order.recalculate_total! if order.respond_to?(:recalculate_total!)
-    end
-
-    redirect_to my_table_orders_path(@table.qr_token), notice: "Order submitted"
-  rescue ActiveRecord::RecordInvalid
-    redirect_to new_table_order_path(@table.qr_token), alert: "Failed to submit order"
+    redirect_to my_table_orders_path(@table), notice: 'Pedido enviado.', status: :see_other
   end
 
   def my
-    @orders = @table.orders
-      .includes(order_items: :menu_item)
-      .where(customer_token: session[:customer_token])
-      .where.not(status: %w[served denied])
-      .order(created_at: :desc)
+    @orders = customer_orders.includes(order_items: :menu_item).order(created_at: :desc).limit(30)
   end
 
-  # customer chooses: accept remaining items (after some denied)
   def accept_remaining
-    order = find_customer_order!(params[:id])
-
-    if order.needs_customer_action?
-      order.transaction do
-        # deny any still pending, keep accepted
-        order.order_items.where(status: "pending").update_all(status: "denied", denial_reason: "Not available")
-        order.update!(status: "accepted")
-      end
-    end
-
-    redirect_to my_table_orders_path(@table.qr_token), notice: "Accepted remaining items"
+    customer_orders.find(params[:id]).accept_remaining!
+    redirect_to my_table_orders_path(@table), notice: 'Alterações aceites.', status: :see_other
   end
 
   def cancel
-    order = find_customer_order!(params[:id])
-
-    order.transaction do
-      order.order_items.update_all(status: "denied", denial_reason: "Canceled by customer")
-      order.update!(status: "denied", denial_reason: "Canceled by customer")
-    end
-
-    redirect_to my_table_orders_path(@table.qr_token), notice: "Order canceled"
+    customer_orders.find(params[:id]).reject!(nil, customer: true)
+    redirect_to my_table_orders_path(@table), notice: 'Pedido cancelado.', status: :see_other
   end
 
   private
 
   def set_table
-    @table = Table.find_by!(qr_token: params[:table_id])
+    @table = Table.joins(:establishment).where(active: true, establishments: { active: true }).find_by!(qr_token: params[:table_id])
   end
 
   def ensure_customer_token
-    session[:customer_token] ||= SecureRandom.hex(16)
+    session[:customer_token] ||= SecureRandom.hex(24)
   end
 
-  def find_customer_order!(id)
-    @table.orders.where(customer_token: session[:customer_token]).find(id)
+  def customer_orders
+    @table.orders.where(customer_token: session[:customer_token])
   end
 
-  def active_orders_count
-    @table.orders
-      .where(customer_token: session[:customer_token])
-      .where.not(status: %w[served denied])
-      .count
+  def selected_items
+    raw = params.dig(:order, :items)
+    raise Order::InvalidTransition, 'Selecione pelo menos um produto.' unless raw.is_a?(ActionController::Parameters)
+    raise Order::InvalidTransition, 'Demasiados produtos num pedido.' if raw.size > 200
+    items = raw.to_unsafe_h.filter_map do |id, qty|
+      raise Order::InvalidTransition, 'Quantidade inválida.' unless qty.to_s.match?(/\A\d{1,2}\z/)
+      next if qty.to_i.zero?
+      item = @table.establishment.menu_items.includes(:category).find(id)
+      raise Order::InvalidTransition, "#{item.name} já não está disponível." unless item.available? && item.category.available?
+      { menu_item_id: item.id, name: item.name, quantity: qty.to_i, unit_price: item.price, line_total: item.price * qty.to_i }
+    end
+    raise Order::InvalidTransition, 'Selecione pelo menos um produto.' if items.empty?
+    items
   end
 end

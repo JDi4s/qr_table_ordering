@@ -1,27 +1,9 @@
-<h1>Staff — Live Orders</h1>
-
-<div style="margin-bottom: 12px;">
-  <%= link_to "History", history_staff_orders_path %>
+<p class="eyebrow">SERVIÇO EM TEMPO REAL</p><h1>Pedidos e chamadas</h1>
+<p>Mantenha esta página aberta durante o serviço. <button type="button" class="secondary" data-action="staff-orders#enableAudio">Ativar / testar som</button></p>
+<%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
+<h2>Chamadas à mesa</h2><div id="service_calls" class="grid empty-list">
+  <% @service_calls.each do |service_call| %><%= render 'staff/service_calls/call', service_call: service_call %><% end %>
 </div>
-
-<%= turbo_stream_from "staff_orders" %>
-
-<table border="1" cellspacing="0" cellpadding="6" style="width:100%;">
-  <thead>
-    <tr>
-      <th>Time</th>
-      <th>ID</th>
-      <th>Table</th>
-      <th>Status</th>
-      <th>Total</th>
-      <th>Items</th>
-      <th>Open</th>
-    </tr>
-  </thead>
-
-  <tbody id="staff_orders_live">
-    <% @orders.each do |order| %>
-      <%= render "order_row", order: order %>
-    <% end %>
-  </tbody>
-</table>
+<h2>Pedidos em curso</h2><div id="staff_orders_live" class="grid empty-list">
+  <% @orders.each do |order| %><%= render 'order_row', order: order %><% end %>
+</div>

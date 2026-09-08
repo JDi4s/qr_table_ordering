@@ -1,31 +1,39 @@
 class Table < ApplicationRecord
-  has_many :orders, dependent: :destroy
-  before_create :generate_qr_token
-  validates :number, presence: true, uniqueness: true
-  validates :qr_token, uniqueness: true
+  belongs_to :establishment
+  has_many :orders, dependent: :restrict_with_error
+  has_many :service_calls, dependent: :restrict_with_error
+  before_validation :generate_qr_token, on: :create
+  around_save :enforce_capacity
+  validates :number, numericality: { only_integer: true, greater_than: 0 }, uniqueness: { scope: :establishment_id }
+  validates :qr_token, presence: true, uniqueness: true
 
-
-  # Use QR token in URLs instead of numeric ID
   def to_param
     qr_token
   end
 
+  def ordering_url
+    URI.join(Rails.configuration.x.public_url + '/', Rails.application.routes.url_helpers.new_table_order_path(qr_token)).to_s
+  end
+
   def qr_code
-    require 'rqrcode'
-    url = Rails.application.routes.url_helpers.new_table_order_url(self.qr_token, host: "localhost:3000")
-    qrcode = RQRCode::QRCode.new(url)
-    qrcode.as_svg(
-    offset: 0,
-    color: '000',
-    shape_rendering: 'crispEdges',
-    module_size: 6,
-    standalone: true
-    )
+    RQRCode::QRCode.new(ordering_url).as_svg(module_size: 6, standalone: true, offset: 24)
   end
 
   private
 
   def generate_qr_token
-    self.qr_token = SecureRandom.hex(5) if qr_token.blank?
+    self.qr_token ||= SecureRandom.hex(24)
+  end
+
+  def enforce_capacity
+    establishment.with_lock do
+      if active? && (new_record? || will_save_change_to_active?)
+        if !establishment.active? || establishment.tables.where(active: true).where.not(id: id).count >= establishment.table_limit
+          errors.add(:base, 'Limite de mesas atingido ou estabelecimento suspenso. Contacte o administrador.')
+          raise ActiveRecord::RecordInvalid, self
+        end
+      end
+      yield
+    end
   end
 end

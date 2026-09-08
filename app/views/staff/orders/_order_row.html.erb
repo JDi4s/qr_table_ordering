@@ -1,32 +1,7 @@
-<tr id="<%= dom_id(order) %>">
-  <td><%= order.created_at.strftime("%H:%M:%S") %></td>
-  <td>#<%= order.id %></td>
-  <td><%= order.table.number %></td>
-  <td><strong><%= order.status %></strong></td>
-
-  <td>
-    <% if order.respond_to?(:total) && order.total.present? %>
-      <%= order.total %>
-    <% else %>
-      -
-    <% end %>
-  </td>
-
-  <td>
-    <ul>
-      <% order.order_items.each do |oi| %>
-        <li>
-          <%= oi.menu_item.name %> x <%= oi.quantity %>
-          (<%= oi.status %><%= oi.denied? && oi.denial_reason.present? ? ": #{oi.denial_reason}" : "" %>)
-        </li>
-      <% end %>
-    </ul>
-  </td>
-
-  <td>
-    <%= button_to "Open",
-          staff_order_path(order),
-          method: :get,
-          form: { data: { turbo: true } } %>
-  </td>
-</tr>
+<article class="panel" id="<%= dom_id(order) %>">
+  <div class="line"><h2>Mesa <%= order.table.number %></h2><span>#<%= order.id %></span></div>
+  <p><span class="badge"><%= state_label(order.status) %></span></p>
+  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.total) %></strong></p>
+  <ul><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul>
+  <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button' %>
+</article>

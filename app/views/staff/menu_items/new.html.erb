@@ -1,24 +1,7 @@
-<h1>New Menu Item</h1>
-
+<h1>Produto</h1><section class="panel"><%= render 'shared/errors', record: @menu_item %>
 <%= form_with model: [:staff, @menu_item] do |f| %>
-  <div>
-    <%= f.label :name %><br />
-    <%= f.text_field :name %>
-  </div>
-
-  <div>
-    <%= f.label :category_id, "Category" %><br />
-    <%= f.collection_select :category_id, Category.order(:name), :id, :name, prompt: "Choose..." %>
-  </div>
-
-  <div>
-    <%= f.label :price %><br />
-    <%= f.number_field :price, step: 0.01 %>
-  </div>
-
-  <div>
-    <%= f.submit "Create" %>
-  </div>
-<% end %>
-
-<p><%= link_to "Back", staff_menu_items_path %></p>
+  <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true %>
+  <%= f.label :category_id, 'Categoria' %><%= f.collection_select :category_id, current_establishment.categories.order(:name), :id, :name, {}, required: true %>
+  <%= f.label :price, 'Preço (€)' %><%= f.number_field :price, min: 0, step: '0.01', required: true %>
+  <label><%= f.check_box :available %> Disponível</label><%= f.submit 'Guardar' %>
+<% end %></section><p><%= link_to 'Voltar', staff_menu_path %></p>

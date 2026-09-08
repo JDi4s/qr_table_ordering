@@ -1,7 +1,15 @@
-<h1>Tables QR Codes</h1>
-
-<% @tables.each do |table| %>
-  <h2>Table <%= table.number %></h2>
-  <%= raw table.qr_code %>
-  <hr>
-<% end %>
+<h1>Mesas e QR codes</h1>
+<p><strong><%= @tables.where(active: true).count %> / <%= current_establishment.table_limit %></strong> mesas ativas. Pode voltar a descarregar um código sem consumir outra mesa.</p>
+<% if current_user.manager? %><section class="panel"><h2>Criar mesa</h2>
+  <%= form_with model: [:staff, @table] do |f| %><%= f.label :number, 'Número da mesa' %><%= f.number_field :number, min: 1, required: true %><%= f.submit 'Criar mesa e QR' %><% end %>
+</section><% end %>
+<div class="grid"><% @tables.each do |table| %><section class="panel">
+  <h2>Mesa <%= table.number %> <small><%= table.active? ? 'Ativa' : 'Desativada' %></small></h2>
+  <% if table.active? %><div class="qr"><%= raw table.qr_code %></div>
+    <p><%= link_to 'Descarregar QR (PNG)', qr_code_staff_table_path(table), data: { turbo: false } %> · <%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener' %></p>
+  <% end %>
+  <% if current_user.manager? %><%= form_with model: [:staff, table] do |f| %>
+    <%= f.label :number, 'Número' %><%= f.number_field :number, min: 1, required: true %>
+    <label><%= f.check_box :active %> Mesa ativa</label><%= f.submit 'Guardar', class: 'secondary' %>
+  <% end %><% end %>
+</section><% end %></div>

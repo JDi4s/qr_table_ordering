@@ -1,14 +1,5 @@
-<h1>New Category</h1>
-
+<h1>Categoria</h1><section class="panel"><%= render 'shared/errors', record: @category %>
 <%= form_with model: [:staff, @category] do |f| %>
-  <div>
-    <%= f.label :name %><br />
-    <%= f.text_field :name %>
-  </div>
-
-  <div>
-    <%= f.submit "Create" %>
-  </div>
-<% end %>
-
-<p><%= link_to "Back", staff_categories_path %></p>
+  <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true %>
+  <label><%= f.check_box :available %> Disponível</label><%= f.submit 'Guardar' %>
+<% end %></section><p><%= link_to 'Voltar', staff_menu_path %></p>

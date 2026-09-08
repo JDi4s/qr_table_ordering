@@ -1,13 +1,8 @@
-<h1>Staff Login</h1>
-
-<%= form_with url: login_path, local: true do |f| %>
-  <div>
-    <%= f.label :email %>
-    <%= f.email_field :email %>
-  </div>
-  <div>
-    <%= f.label :password %>
-    <%= f.password_field :password %>
-  </div>
-  <%= f.submit "Login" %>
-<% end %>
+<section class="panel login">
+  <p class="eyebrow">ÁREA DE GESTÃO</p><h1>Bem-vindo à Mesa.</h1><p>Entre para acompanhar o seu estabelecimento.</p>
+  <%= form_with url: login_path do |f| %>
+    <%= f.label :email, 'Email' %><%= f.email_field :email, required: true, autocomplete: 'username' %>
+    <%= f.label :password, 'Palavra-passe' %><%= f.password_field :password, required: true, autocomplete: 'current-password' %>
+    <%= f.submit 'Entrar' %>
+  <% end %>
+</section>

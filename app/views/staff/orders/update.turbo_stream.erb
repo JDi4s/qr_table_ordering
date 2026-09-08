@@ -1,7 +1,0 @@
-<% if @order.served? || @order.denied? %>
-  <%= turbo_stream.remove dom_id(@order) %>
-<% else %>
-  <%= turbo_stream.replace dom_id(@order) do %>
-    <%= render "order_row", order: @order %>
-  <% end %>
-<% end %>

@@ -1,0 +1,14 @@
+<h1>Equipa</h1><section class="panel"><h2>Criar acesso</h2>
+<%= form_with model: [:staff, @user] do |f| %>
+  <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true %>
+  <%= f.label :email, 'Email' %><%= f.email_field :email, required: true %>
+  <%= f.label :password, 'Palavra-passe (mínimo 12 caracteres)' %><%= f.password_field :password, minlength: 12, required: true, autocomplete: 'new-password' %>
+  <%= f.label :role, 'Perfil' %><%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']] %><%= f.submit 'Criar utilizador' %>
+<% end %></section>
+<% @users.each do |user| %><section class="panel"><h2><%= user.name.presence || user.email %></h2><p><%= user.email %> · <%= user.role %> · <%= user.active? ? 'Ativo' : 'Desativado' %></p>
+  <% if user != current_user %><%= form_with model: [:staff, user] do |f| %>
+    <label><%= f.check_box :active %> Acesso ativo</label>
+    <%= f.label :role, 'Perfil' %><%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']] %>
+    <%= f.label :password, 'Nova palavra-passe (deixe vazio para manter)' %><%= f.password_field :password, minlength: 12, autocomplete: 'new-password' %>
+    <%= f.submit 'Guardar', class: 'secondary' %>
+  <% end %><% end %></section><% end %>

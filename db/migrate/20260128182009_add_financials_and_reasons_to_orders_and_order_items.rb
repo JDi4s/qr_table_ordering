@@ -5,6 +5,6 @@ class AddFinancialsAndReasonsToOrdersAndOrderItems < ActiveRecord::Migration[7.1
 
     add_column :orders, :total, :decimal, precision: 10, scale: 2, null: false, default: 0
 
-    add_index :order_items, :status
+    add_index :order_items, :status unless index_exists?(:order_items, :status)
   end
 end

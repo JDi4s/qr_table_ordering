@@ -1,22 +1,14 @@
 <% categories.each do |category| %>
-  <% next unless category.available %>
-
-  <% items = category.menu_items.select(&:available) %>
+  <% next unless category.available? %>
+  <% items = category.menu_items.select(&:available?) %>
   <% next if items.empty? %>
-
-  <h2><%= category.name %></h2>
-
-  <% items.each do |item| %>
-    <div style="margin-bottom: 10px;">
-      <strong><%= item.name %></strong> ($<%= item.price %>)
-
-      <input type="number"
-             name="order[items][<%= item.id %>]"
-             value="0"
-             min="0"
-             style="width: 70px; margin-left: 10px;">
-    </div>
-  <% end %>
-
-  <hr>
+  <h2><%= category.name %></h2><div class="grid">
+    <% items.each do |item| %>
+      <section class="panel product">
+        <div><strong><%= item.name %></strong><p><%= euros(item.price) %></p></div>
+        <div><label for="quantity_<%= item.id %>">Quantidade</label>
+          <%= number_field_tag "order[items][#{item.id}]", 0, min: 0, max: 99, step: 1, id: "quantity_#{item.id}" %></div>
+      </section>
+    <% end %>
+  </div>
 <% end %>

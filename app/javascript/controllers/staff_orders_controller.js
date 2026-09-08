@@ -1,46 +1,34 @@
-// app/javascript/controllers/staff_orders_controller.js  (FULL FILE — create)
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   connect() {
-    this.handler = this.onTurboStreamRender.bind(this)
+    this.handler = (event) => {
+      const stream = event.target
+      if (stream.getAttribute("action") === "append" && ["staff_orders_live", "service_calls"].includes(stream.getAttribute("target"))) this.beep()
+    }
     document.addEventListener("turbo:before-stream-render", this.handler)
   }
-
   disconnect() {
     document.removeEventListener("turbo:before-stream-render", this.handler)
+    this.audio?.close()
   }
-
-  onTurboStreamRender(event) {
-    // Only beep when a new row is appended into the pending_orders list
-    const stream = event.target
-    if (stream.tagName !== "TURBO-STREAM") return
-    if (stream.getAttribute("action") !== "append") return
-    if (stream.getAttribute("target") !== "pending_orders") return
-
-    const enabled = document.body.dataset.staffSoundEnabled === "1"
-    if (!enabled) return
-
-    this.beep()
+  async enableAudio() {
+    const Audio = window.AudioContext || window.webkitAudioContext
+    if (!Audio) return
+    this.audio ||= new Audio()
+    await this.audio.resume()
+    this.beep(true)
   }
-
-  beep() {
-    // simple, reliable beep (no audio files needed)
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    const o = ctx.createOscillator()
-    const g = ctx.createGain()
-
-    o.type = "sine"
-    o.frequency.value = 880
-    g.gain.value = 0.08
-
-    o.connect(g)
-    g.connect(ctx.destination)
-
-    o.start()
-    setTimeout(() => {
-      o.stop()
-      ctx.close()
-    }, 180)
+  beep(test = false) {
+    if ((!test && this.element.dataset.staffSoundEnabled !== "1") || this.audio?.state !== "running") return
+    const oscillator = this.audio.createOscillator()
+    const gain = this.audio.createGain()
+    oscillator.frequency.value = 880
+    gain.gain.value = 0.08
+    oscillator.connect(gain)
+    gain.connect(this.audio.destination)
+    oscillator.start()
+    oscillator.stop(this.audio.currentTime + 0.18)
+    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect() }
   }
 }

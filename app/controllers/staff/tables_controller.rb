@@ -1,46 +1,25 @@
-class Staff::TablesController < ApplicationController
-  layout "staff"
-  before_action :require_login
+class Staff::TablesController < Staff::BaseController
+  before_action :require_manager, except: [:index, :qr_code]
 
   def index
-    @tables = Table.all
+    @tables = current_establishment.tables.order(:number)
+    @table = current_establishment.tables.new
+  end
+
+  def create
+    current_establishment.tables.create!(params.require(:table).permit(:number))
+    redirect_to staff_tables_path, notice: 'Mesa criada.', status: :see_other
+  end
+
+  def update
+    table = current_establishment.tables.find_by!(qr_token: params[:id])
+    table.update!(params.require(:table).permit(:number, :active))
+    redirect_to staff_tables_path, notice: 'Mesa atualizada.', status: :see_other
   end
 
   def qr_code
-    table = Table.find(params[:id])
-    require "rqrcode"
-    require "chunky_png"
-
-    qrcode = RQRCode::QRCode.new(
-      Rails.application.routes.url_helpers.new_table_order_url(
-        table.qr_token,
-        host: "localhost:3000"
-      )
-    )
-
-    png = qrcode.as_png(
-      bit_depth: 1,
-      border_modules: 4,
-      color_mode: ChunkyPNG::COLOR_GRAYSCALE,
-      color: "black",
-      fill: "white",
-      module_px_size: 6,
-      size: 240
-    )
-
-    send_data png.to_s,
-      type: "image/png",
-      disposition: "attachment",
-      filename: "table_#{table.number}_qr.png"
-  end
-
-  private
-
-  def require_login
-    redirect_to login_path unless current_user&.staff?
-  end
-
-  def current_user
-    @current_user ||= User.find(session[:user_id]) if session[:user_id]
+    table = current_establishment.tables.where(active: true).find_by!(qr_token: params[:id])
+    png = RQRCode::QRCode.new(table.ordering_url).as_png(size: 480, border_modules: 4)
+    send_data png.to_s, type: 'image/png', disposition: 'attachment', filename: "mesa_#{table.number}_qr.png"
   end
 end

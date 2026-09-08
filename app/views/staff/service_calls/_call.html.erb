@@ -1,0 +1,10 @@
+<article class="panel call" id="<%= dom_id(service_call) %>">
+  <h3>Mesa <%= service_call.table.number %> — assistência</h3>
+  <p>Chamada às <%= service_call.created_at.strftime('%H:%M') %></p>
+  <% if service_call.pending? %>
+    <%= button_to 'Assumir chamada', staff_service_call_path(service_call, status: 'claimed'), method: :patch %>
+  <% else %>
+    <p>Assumida por <%= service_call.assigned_user&.name.presence || service_call.assigned_user&.email %></p>
+    <%= button_to 'Marcar como atendida', staff_service_call_path(service_call, status: 'resolved'), method: :patch, class: 'secondary' %>
+  <% end %>
+</article>

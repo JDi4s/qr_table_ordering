@@ -1,20 +1,5 @@
-<h1>Edit Category</h1>
-
-<%= form_with model: [:staff, @category], local: true do |f| %>
-  <p>
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
-  </p>
-
-  <p>
-    <%= f.submit "Save" %>
-    <%= link_to "Back", staff_menu_path %>
-  </p>
-<% end %>
-
-<hr>
-
-<%= button_to "Delete Category",
-      staff_category_path(@category),
-      method: :delete,
-      data: { turbo_confirm: "Delete this category and all its menu items?" } %>
+<h1>Categoria</h1><section class="panel"><%= render 'shared/errors', record: @category %>
+<%= form_with model: [:staff, @category] do |f| %>
+  <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true %>
+  <label><%= f.check_box :available %> Disponível</label><%= f.submit 'Guardar' %>
+<% end %></section><p><%= link_to 'Voltar', staff_menu_path %></p>

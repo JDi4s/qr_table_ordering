@@ -1,0 +1,15 @@
+<%= render 'shared/errors', record: @establishment %>
+<%= form_with model: [:admin, @establishment] do |f| %>
+  <%= f.label :name, 'Nome do estabelecimento' %><%= f.text_field :name, required: true %>
+  <%= f.label :slug, 'Identificador (por exemplo: cafe-central)' %><%= f.text_field :slug, required: true, pattern: '[a-z0-9]+(-[a-z0-9]+)*' %>
+  <%= f.label :table_limit, 'Limite de mesas ativas' %><%= f.number_field :table_limit, min: 0, required: true %>
+  <%= f.label :monthly_fee, 'Mensalidade acordada (€)' %><%= f.number_field :monthly_fee, min: 0, step: '0.01', required: true %>
+  <label><%= f.check_box :active %> Estabelecimento ativo</label>
+  <% if @establishment.new_record? %>
+    <h2>Acesso inicial do gerente</h2>
+    <label for="manager_name">Nome</label><%= text_field_tag 'manager[name]', nil, id: 'manager_name', required: true %>
+    <label for="manager_email">Email</label><%= email_field_tag 'manager[email]', nil, id: 'manager_email', required: true %>
+    <label for="manager_password">Palavra-passe (mínimo 12 caracteres)</label><%= password_field_tag 'manager[password]', nil, id: 'manager_password', required: true, minlength: 12, autocomplete: 'new-password' %>
+  <% end %>
+  <%= f.submit 'Guardar' %>
+<% end %>

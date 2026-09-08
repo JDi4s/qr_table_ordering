@@ -1,19 +1,19 @@
-<!-- app/views/layouts/application.html.erb  (FULL FILE — replace) -->
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>QrTableOrdering</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= action_cable_meta_tag %>
-
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
-
-  <body>
+<html lang="pt-PT">
+<head>
+  <title>Mesa — Pedidos por QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %><%= csp_meta_tag %><%= action_cable_meta_tag %>
+  <%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %>
+  <%= javascript_importmap_tags %>
+</head>
+<body>
+  <header><span class="brand">Mesa<span> • </span></span><span>Pedidos, à sua mesa.</span>
+    <% if current_user %><%= button_to 'Sair', logout_path, method: :delete, class: 'secondary' %><% end %>
+  </header>
+  <main>
+    <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
     <%= yield %>
-  </body>
+  </main>
+</body>
 </html>

@@ -1,14 +1,5 @@
-class Staff::MenuController < ApplicationController
-  layout "staff"
-  before_action :require_login
-
+class Staff::MenuController < Staff::BaseController
   def index
-    @categories = Category.includes(:menu_items).order(:name)
-  end
-
-  private
-
-  def require_login
-    redirect_to login_path unless current_user&.staff?
+    @categories = current_establishment.categories.includes(:menu_items).order(:name)
   end
 end

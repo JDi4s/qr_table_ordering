@@ -1,0 +1,42 @@
+name: Rails tests
+on:
+  push:
+    branches: [main, codex/multi-establishment-vps]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/mesa_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.5'
+          bundler: '2.7.2'
+      - run: bundle install
+      - run: bin/rails db:create db:migrate
+      - run: bin/rails zeitwerk:check
+      - run: bin/rails test
+      - name: Dependency and schema snapshot
+        if: always()
+        run: |
+          echo 'BEGIN_LOCKFILE'
+          cat Gemfile.lock
+          echo 'END_LOCKFILE'
+          echo 'BEGIN_SCHEMA'
+          cat db/schema.rb
+          echo 'END_SCHEMA'
+      - name: Build production image
+        run: docker build -t mesa-test .

@@ -1,31 +1,13 @@
-<h1>Menu for Table <%= @table.number %></h1>
-
-<p>
-  <% if @active_count.to_i > 0 %>
-    You have <strong><%= @active_count %></strong> active orders →
-    <%= link_to "View My Orders", my_table_orders_path(@table.qr_token) %>
-  <% else %>
-    <%= link_to "View My Orders", my_table_orders_path(@table.qr_token) %>
-  <% end %>
-</p>
-
-<form action="<%= review_table_orders_path(@table.qr_token) %>" method="post" data-turbo="false">
-  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-
-  <div id="customer_menu">
-    <%= render "menu", categories: @categories %>
-  </div>
-
-  <div style="margin-bottom: 14px;">
-    <label><strong>Notes for the kitchen (optional)</strong></label><br>
-    <textarea name="order[note]" rows="3"
-              style="width: 100%; max-width: 520px;"
-              placeholder="ex: sem tomate, alergia a ..."></textarea>
-  </div>
-
-  <div style="margin-top: 14px;">
-    <button type="submit" style="padding: 8px 14px; font-size: 16px;">
-      Review Order
-    </button>
-  </div>
-</form>
+<p class="eyebrow"><%= @table.establishment.name %></p><h1>O que vai ser hoje?</h1>
+<div class="toolbar"><span class="badge">Mesa <%= @table.number %></span>
+  <%= link_to "Os meus pedidos (#{@active_count})", my_table_orders_path(@table), class: 'button secondary' %>
+  <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %>
+</div>
+<%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
+  <%= render 'menu', categories: @categories %>
+  <section class="panel">
+    <label for="order_note">Observações para a cozinha</label>
+    <%= text_area_tag 'order[note]', nil, id: 'order_note', maxlength: 1000, placeholder: 'Por exemplo: sem tomate.' %>
+    <button type="submit">Rever pedido</button>
+  </section>
+<% end %>

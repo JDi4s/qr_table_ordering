@@ -1,31 +1,8 @@
-class Staff::OrderItemsController < ApplicationController
-  layout "staff"
-  before_action :require_login
-
+class Staff::OrderItemsController < Staff::BaseController
   def update
-    @order_item = OrderItem.includes(order: [:table]).find(params[:id])
-
-    status = params[:order_item].try(:[], :status) || params[:status]
-    denial_reason = params[:order_item].try(:[], :denial_reason) || params[:denial_reason]
-
-    unless status.in?(%w[accepted denied])
-      return redirect_back fallback_location: staff_order_path(@order_item.order), alert: "Invalid status"
-    end
-
-    @order_item.update!(
-      status: status,
-      denial_reason: (status == "denied" ? denial_reason.to_s.strip.presence : nil)
-    )
-
-    respond_to do |format|
-      format.html { redirect_to staff_order_path(@order_item.order), notice: "Item updated" }
-      format.turbo_stream
-    end
-  end
-
-  private
-
-  def require_login
-    redirect_to login_path unless current_user&.staff?
+    item = OrderItem.joins(order: :table).where(tables: { establishment_id: current_establishment.id }).find(params[:id])
+    values = params.require(:order_item).permit(:status, :denial_reason, :proposed_description, :unit_price)
+    item.order.review_item!(item.id, values[:status], reason: values[:denial_reason], description: values[:proposed_description], price: values[:unit_price])
+    redirect_to staff_order_path(item.order), notice: 'Decisão guardada. Conclua a avaliação para avisar o cliente.', status: :see_other
   end
 end
