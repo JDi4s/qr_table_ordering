@@ -1,6 +1,6 @@
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
-# incrementally modify the database, and then regenerate this schema definition.
+# incrementally modify your database, and then regenerate this schema definition.
 #
 # This file is the source Rails uses to define its schema when running `bin/rails
 # db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
@@ -98,13 +98,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
     t.text "note"
     t.string "denial_reason"
     t.datetime "served_at"
-    t.datetime "updated_at", null: false
+    t.string "customer_token"
+    t.string "submission_token"
     t.index ["table_id", "customer_token", "submission_token"], name: "unique_customer_submission", unique: true
     t.index ["table_id"], name: "index_orders_on_table_id"
   end
 
   create_table "service_calls", force: :cascade do |t|
-    t.bigint "table_id", null: false
+    t.bigint "table_id"
     t.bigint "assigned_user_id"
     t.string "status", default: "pending", null: false
     t.datetime "resolved_at"
