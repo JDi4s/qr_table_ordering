@@ -20,7 +20,7 @@ module ApplicationHelper
       .select { |category| category.parent_id == parent_id }
       .sort_by(&:name)
       .flat_map do |category|
-        [[#{prefix}#{category.name}, category.id]] +
+        [["#{prefix}#{category.name}", category.id]] +
           category_options(categories, category.id, "#{prefix}— ")
       end
   end
