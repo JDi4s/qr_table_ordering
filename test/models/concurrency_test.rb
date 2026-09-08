@@ -5,10 +5,10 @@ class ConcurrencyTest < ActiveSupport::TestCase
   teardown do
     ServiceCall.where(table_id: @venue.tables.select(:id)).delete_all
     Order.where(table_id: @venue.tables.select(:id)).destroy_all
-    @venue.users.delete_all
+    User.where(establishment_id: @venue.id).delete_all
     MenuItem.where(category_id: @venue.categories.select(:id)).delete_all
-    @venue.categories.delete_all
-    @venue.tables.delete_all
+    Category.where(establishment_id: @venue.id).delete_all
+    Table.where(establishment_id: @venue.id).delete_all
     @venue.destroy!
   end
 

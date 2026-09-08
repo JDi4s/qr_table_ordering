@@ -1,7 +1,7 @@
 <p class="eyebrow">MESA <%= @table.number %></p><h1>Os meus pedidos</h1>
 <div class="toolbar"><%= link_to 'Voltar ao menu', new_table_order_path(@table), class: 'button secondary' %>
 <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %></div>
-<%= turbo_stream_from 'customer_orders', channel: 'OrdersChannel', table_token: @table.qr_token %>
+<%= turbo_stream_from 'customer_orders', channel: 'OrdersChannel', data: { table_token: @table.qr_token } %>
 <div id="my_orders">
   <% if @orders.empty? %><p>Ainda não fez nenhum pedido neste dispositivo.</p><% end %>
   <% @orders.each do |order| %><%= render 'my_order_card', order: order %><% end %>
