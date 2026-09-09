@@ -36,6 +36,13 @@ class Staff::TablesController < Staff::BaseController
 
   def qr_code
     table = current_establishment.tables.where(active: true).find_by!(qr_token: params[:id])
+
+    unless params[:download].present? || params[:format].to_s == 'png'
+      @table = table
+      render :qr_code
+      return
+    end
+
     png = RQRCode::QRCode.new(table.ordering_url).as_png(size: 480, border_modules: 4)
     disposition = params[:download].present? ? 'attachment' : 'inline'
     send_data png.to_s, type: 'image/png', disposition: disposition, filename: "mesa_#{table.number}_qr.png"

@@ -1,11 +1,24 @@
 <p class="eyebrow">MESA <%= @table.number %></p><h1>Confirme o seu pedido</h1>
+<%= form_with url: table_orders_path(@table), data: { controller: 'order-review', 'order-review-base-total-value-value': @review_total.to_f } do %>
 <section class="panel">
   <% @review_items.each do |item| %><div class="line"><span><%= item[:quantity] %> × <%= item[:name] %></span><strong><%= euros(item[:line_total]) %></strong></div><% end %>
-  <div class="line"><strong>Total</strong><strong><%= euros(@review_total) %></strong></div>
+  <% unless @review_suggestions.empty? %>
+    <section class="suggestions panel">
+      <p class="eyebrow">TAMBÉM COSTUMAM PEDIR</p>
+      <p>Estas sugestões combinam bem com o seu pedido. Pode ignorar.</p>
+      <% @review_suggestions.each do |suggestion| %>
+        <label class="suggestion-line" data-order-review-target="suggestion" data-price="<%= suggestion.price %>">
+          <%= check_box_tag 'suggestion_ids[]', suggestion.id, false, data: { action: 'order-review#updateTotal' } %>
+          <span><%= suggestion.name %></span>
+          <strong><%= euros(suggestion.price) %></strong>
+        </label>
+      <% end %>
+    </section>
+  <% end %>
+  <div class="line"><strong>Total</strong><strong data-order-review-target="total"><%= euros(@review_total) %></strong></div>
   <% if @review_note.present? %><p>Observações: <%= @review_note %></p><% end %>
   <p>O estabelecimento irá confirmar a disponibilidade. O pagamento é feito no estabelecimento.</p>
-  <%= form_with url: table_orders_path(@table) do %>
-    <%= hidden_field_tag :quote, @quote %><button type="submit">Enviar pedido</button>
-  <% end %>
+  <%= hidden_field_tag :quote, @quote %><button type="submit">Enviar pedido</button>
 </section>
+<% end %>
 <p><%= link_to 'Voltar ao menu', new_table_order_path(@table) %></p>

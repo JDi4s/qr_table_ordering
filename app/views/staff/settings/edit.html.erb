@@ -1,4 +1,4 @@
 <h1>Preferências</h1><section class="panel">
 <%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
   <label><%= f.check_box :staff_sound_enabled %> Aviso sonoro de novos pedidos e chamadas</label><%= f.submit 'Guardar' %>
-<% end %><p>Depois de ativar, carregue em «Ativar / testar som» na página dos pedidos.</p></section>
+<% end %><p>Depois de guardar, ative o som e as notificações na página dos pedidos, em cada dispositivo autorizado.</p></section>

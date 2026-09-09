@@ -1,0 +1,10 @@
+<p class="eyebrow">QR CODE</p>
+<h1>Mesa <%= @table.number %></h1>
+<section class="panel qr-preview">
+  <%= image_tag qr_code_staff_table_path(@table, format: :png), alt: "QR code da mesa #{@table.number}", class: 'qr-preview-image' %>
+  <div class="toolbar">
+    <%= link_to 'Descarregar QR (PNG)', qr_code_staff_table_path(@table, download: 1), class: 'button', data: { turbo: false } %>
+    <%= link_to 'Abrir menu', new_table_order_path(@table), target: '_blank', rel: 'noopener', class: 'button secondary' %>
+  </div>
+  <p><small>No telemóvel, pode guardar ou partilhar a imagem através das opções do navegador.</small></p>
+</section>

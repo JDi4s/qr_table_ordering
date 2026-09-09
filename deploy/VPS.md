@@ -21,6 +21,14 @@ openssl rand -hex 32
 
 Edite `.env` localmente na VPS: coloque o domínio HTTPS em `APP_PUBLIC_URL`, o primeiro valor gerado em `SECRET_KEY_BASE` e o segundo em `POSTGRES_PASSWORD`. Não partilhe esses valores. Use apenas hexadecimal na password neste exemplo, para ser segura dentro do URL da base de dados. Mantenha os segredos entre reinícios; mudar `SECRET_KEY_BASE` invalida sessões e revisões pendentes.
 
+Para ativar as notificações dos funcionários, gere uma chave VAPID depois de construir a imagem:
+
+```sh
+docker compose run --rm web bundle exec ruby -rweb_push -e 'key = WebPush.generate_key; puts "VAPID_PUBLIC_KEY=#{key.public_key}"; puts "VAPID_PRIVATE_KEY=#{key.private_key}"'
+```
+
+Coloque os dois valores no `.env`, mantenha-os privados e reinicie o serviço web. Cada funcionário deverá depois ativar as notificações no dispositivo que vai utilizar; só fica registado um dispositivo por funcionário.
+
 ## 3. Construir e arrancar
 
 ```sh

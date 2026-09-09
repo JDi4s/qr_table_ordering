@@ -10,6 +10,8 @@ class Category < ApplicationRecord
 
   has_many :menu_items, dependent: :restrict_with_error
 
+  scope :not_archived, -> { where(archived_at: nil) }
+
   attribute :available, :boolean, default: true
 
   validates :name, presence: true, length: { maximum: 120 }
@@ -22,7 +24,11 @@ class Category < ApplicationRecord
   end
 
   def visible_to_customers?
-    available? && (parent.nil? || parent.visible_to_customers?)
+    !archived? && available? && (parent.nil? || parent.visible_to_customers?)
+  end
+
+  def archived?
+    archived_at.present?
   end
 
   private

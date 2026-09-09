@@ -1,6 +1,6 @@
 class Staff::CategoriesController < Staff::BaseController
   before_action :require_manager, except: :toggle_availability
-  before_action :set_category, only: [:edit, :update, :destroy, :toggle_availability]
+  before_action :set_category, only: [:edit, :update, :destroy, :toggle_availability, :restore]
   before_action :load_parent_categories, only: [:new, :create, :edit, :update]
 
   def new
@@ -29,13 +29,18 @@ class Staff::CategoriesController < Staff::BaseController
   end
 
   def destroy
-    @category.destroy!
-    redirect_to staff_menu_path, status: :see_other
-  rescue ActiveRecord::RecordNotDestroyed
-    redirect_to staff_menu_path, alert: 'A categoria tem produtos ou subcategorias. Desative-a para preservar o histórico.'
+    @category.update!(archived_at: Time.current, available: false)
+    redirect_to staff_menu_path, notice: 'Categoria arquivada.', status: :see_other
+  end
+
+  def restore
+    @category.update!(archived_at: nil, available: true)
+    redirect_to staff_menu_path, notice: 'Categoria restaurada.', status: :see_other
   end
 
   def toggle_availability
+    raise Order::InvalidTransition, 'Restaure primeiro a categoria arquivada.' if @category.archived?
+
     @category.update!(available: !@category.available?)
     redirect_to staff_menu_path, status: :see_other
   end
@@ -47,12 +52,12 @@ class Staff::CategoriesController < Staff::BaseController
   end
 
   def load_parent_categories
-    @parent_categories = current_establishment.categories.where.not(id: @category&.id).order(:name)
+    @parent_categories = current_establishment.categories.not_archived.where.not(id: @category&.id).order(:name)
   end
 
   def category_params
     values = params.require(:category).permit(:name, :available, :parent_id)
-    current_establishment.categories.find(values[:parent_id]) if values[:parent_id].present?
+    current_establishment.categories.not_archived.find(values[:parent_id]) if values[:parent_id].present?
     values
   end
 end

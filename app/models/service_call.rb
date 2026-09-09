@@ -4,6 +4,7 @@ class ServiceCall < ApplicationRecord
   belongs_to :assigned_user, class_name: 'User', optional: true
   enum status: { pending: 'pending', claimed: 'claimed', resolved: 'resolved' }
   after_create_commit :broadcast_created
+  after_create_commit :notify_staff_devices
   after_update_commit :broadcast_updated
 
   def self.request_for!(table)
@@ -43,5 +44,9 @@ class ServiceCall < ApplicationRecord
     else
       broadcast_replace_to(table.establishment.staff_stream, target: dom_id(self), partial: 'staff/service_calls/call', locals: { service_call: self })
     end
+  end
+
+  def notify_staff_devices
+    StaffPushNotifier.notify_service_call(self)
   end
 end

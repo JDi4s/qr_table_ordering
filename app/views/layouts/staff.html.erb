@@ -3,14 +3,20 @@
 <head>
   <title>Mesa — Gestão</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#20654d">
   <%= csrf_meta_tags %><%= csp_meta_tag %><%= action_cable_meta_tag %>
   <%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %>
   <%= javascript_importmap_tags %>
 </head>
-<body data-controller="staff-orders" data-staff-sound-enabled="<%= current_user&.staff_sound_enabled? ? '1' : '0' %>">
+<body data-controller="staff-orders"
+      data-staff-sound-enabled="<%= current_user&.staff_sound_enabled? ? '1' : '0' %>"
+      data-vapid-public-key="<%= h(ENV['VAPID_PUBLIC_KEY'].to_s) %>"
+      data-web-push-enabled="<%= ENV['VAPID_PUBLIC_KEY'].present? ? '1' : '0' %>">
   <%= render 'staff/shared/nav' %>
   <main>
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
+    <div id="staff_notifications" aria-live="assertive"></div>
     <%= yield %>
   </main>
 </body>

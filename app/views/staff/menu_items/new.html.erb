@@ -22,6 +22,10 @@
     <%= f.label :image, 'Imagem do produto (opcional)' %>
     <%= f.file_field :image, accept: 'image/png,image/jpeg,image/webp' %>
 
+    <%= f.label :recommended_menu_item_ids, 'Sugestões quando este produto for pedido (opcional)' %>
+    <%= f.collection_select :recommended_menu_item_ids, @recommendation_options.reject { |item| item.id == @menu_item.id }, :id, :name, {}, multiple: true %>
+    <small>Selecione os produtos que costumam acompanhar este produto.</small>
+
     <label>
       <%= f.check_box :available %>
       Disponível

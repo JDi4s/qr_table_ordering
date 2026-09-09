@@ -7,7 +7,7 @@
 # be faster and is potentially less error prone than running all of your
 # migrations from scratch.
 
-ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
+ActiveRecord::Schema[7.1].define(version: 2026_09_09_012000) do
   enable_extension "plpgsql"
 
   create_table "active_storage_attachments", force: :cascade do |t|
@@ -45,8 +45,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
     t.boolean "available"
     t.bigint "establishment_id", null: false
     t.bigint "parent_id"
+    t.datetime "archived_at"
     t.index ["establishment_id"], name: "index_categories_on_establishment_id"
     t.index ["parent_id"], name: "index_categories_on_parent_id"
+    t.index ["archived_at"], name: "index_categories_on_archived_at"
   end
 
   create_table "establishments", force: :cascade do |t|
@@ -67,9 +69,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
     t.decimal "price"
     t.boolean "available", default: true, null: false
     t.bigint "category_id", null: false
+    t.datetime "archived_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_menu_items_on_category_id"
+    t.index ["archived_at"], name: "index_menu_items_on_archived_at"
+  end
+
+  create_table "menu_item_recommendations", force: :cascade do |t|
+    t.bigint "menu_item_id", null: false
+    t.bigint "recommended_menu_item_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["menu_item_id", "recommended_menu_item_id"], name: "unique_menu_item_recommendation", unique: true
+    t.index ["menu_item_id"], name: "index_menu_item_recommendations_on_menu_item_id"
+    t.index ["recommended_menu_item_id"], name: "index_menu_item_recommendations_on_recommended_menu_item_id"
+    t.check_constraint "menu_item_id <> recommended_menu_item_id", name: "recommendation_cannot_reference_itself"
   end
 
   create_table "order_items", force: :cascade do |t|
@@ -125,6 +140,17 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'claimed'::character varying, 'resolved'::character varying]::text[])", name: "valid_service_call_status"
   end
 
+  create_table "staff_push_subscriptions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.text "endpoint", null: false
+    t.text "p256dh", null: false
+    t.text "auth", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["endpoint"], name: "index_staff_push_subscriptions_on_endpoint", unique: true
+    t.index ["user_id"], name: "index_staff_push_subscriptions_on_user_id", unique: true
+  end
+
   create_table "tables", force: :cascade do |t|
     t.integer "number"
     t.string "qr_token", null: false
@@ -155,6 +181,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
   add_foreign_key "categories", "establishments"
   add_foreign_key "categories", "categories", column: "parent_id"
   add_foreign_key "menu_items", "categories"
+  add_foreign_key "menu_item_recommendations", "menu_items"
+  add_foreign_key "menu_item_recommendations", "menu_items", column: "recommended_menu_item_id"
   add_foreign_key "order_items", "menu_items"
   add_foreign_key "order_items", "orders"
   add_foreign_key "orders", "tables"
@@ -162,6 +190,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
   add_foreign_key "orders", "users", column: "paid_by_user_id"
   add_foreign_key "service_calls", "tables"
   add_foreign_key "service_calls", "users", column: "assigned_user_id"
+  add_foreign_key "staff_push_subscriptions", "users"
   add_foreign_key "tables", "establishments"
   add_foreign_key "users", "establishments"
 end

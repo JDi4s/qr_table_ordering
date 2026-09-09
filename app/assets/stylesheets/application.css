@@ -301,6 +301,15 @@ small {
 .table-show-header h2 { margin-top: 0; }
 .unpaid-order ul { margin-bottom: 20px; }
 .empty-state { text-align: center; }
+.qr-preview { max-width: 560px; text-align: center; }
+.qr-preview-image { display: block; width: min(480px, 100%); height: auto; margin: 0 auto 20px; }
+.suggestion-line { display: flex; gap: 12px; align-items: center; margin: 10px 0; font-weight: 400; }
+.suggestion-line input { width: auto; }
+.suggestion-line span { flex: 1; }
+.suggestions { margin: 20px 0; padding: 16px; background: #f5f6f0; box-shadow: none; }
+.staff-popup { position: fixed; z-index: 20; right: 24px; bottom: 24px; max-width: min(420px, calc(100vw - 32px)); background: #fff; border: 2px solid #d99b4b; border-radius: 12px; padding: 14px 16px; box-shadow: 0 8px 24px #20383228; }
+.staff-popup button { margin: 8px 0 0; }
+.push-status { color: var(--muted); min-height: 1.5em; }
 
 @media (max-width: 600px) {
   main {

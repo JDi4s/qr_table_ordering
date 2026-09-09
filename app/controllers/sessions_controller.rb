@@ -14,6 +14,7 @@ class SessionsController < ApplicationController
   end
 
   def destroy
+    current_user&.staff_push_subscription&.destroy!
     reset_session
     redirect_to login_path, status: :see_other
   end

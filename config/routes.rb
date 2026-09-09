@@ -34,11 +34,12 @@ Rails.application.routes.draw do
     resources :users, only: [:index, :create, :update]
     get '/menu', to: 'menu#index', as: :menu
     resources :menu_items do
-      member { patch :toggle_availability }
+      member { patch :toggle_availability; patch :restore }
     end
     resources :categories do
-      member { patch :toggle_availability }
+      member { patch :toggle_availability; patch :restore }
     end
+    resource :push_subscription, only: [:create, :destroy], controller: 'push_subscriptions'
     resource :settings, only: [:edit, :update]
   end
   root 'sessions#new'

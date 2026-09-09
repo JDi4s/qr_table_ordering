@@ -13,6 +13,7 @@ gem 'bootsnap', require: false
 gem 'bcrypt', '~> 3.1.18'
 gem 'rqrcode'
 gem 'redis', '~> 5.4'
+gem 'web-push', '~> 3.1'
 group :development, :test do
   gem 'debug', platforms: %i[mri windows]
 end

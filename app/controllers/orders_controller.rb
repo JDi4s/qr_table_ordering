@@ -3,13 +3,14 @@ class OrdersController < ApplicationController
   before_action :ensure_customer_token
 
   def new
-    @categories = @table.establishment.categories.includes(:menu_items, :children).where(available: true).order(:name)
+    @categories = @table.establishment.categories.not_archived.includes(:menu_items, :children).where(available: true).order(:name)
     @active_count = customer_orders.where.not(status: %w[served denied]).count
   end
 
   def review
     @review_note = params.dig(:order, :note).to_s.strip
     @review_items = selected_items
+    @review_suggestions = suggestions_for(@review_items)
     @review_total = @review_items.sum { |item| item[:line_total] }
     @quote = Rails.application.message_verifier(:order_quote).generate(
       { table_id: @table.id, customer_token: session[:customer_token], nonce: SecureRandom.hex(16),
@@ -30,10 +31,14 @@ class OrdersController < ApplicationController
       unless customer_orders.exists?(submission_token: quote[:nonce])
         order = @table.orders.new(note: quote[:note], customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
 
-        quote[:items].each do |id, qty, price|
+        items = quote[:items].dup
+        suggestion_ids = valid_suggestion_ids(quote[:items].map(&:first), params[:suggestion_ids])
+        suggestion_ids.each { |id| items << [id, 1, nil] }
+
+        items.each do |id, qty, price|
           item = @table.establishment.menu_items.includes(:category).find(id)
 
-          unless item.available? && item.category.visible_to_customers? && item.price == BigDecimal(price)
+          unless item.available? && !item.archived? && item.category.visible_to_customers? && (price.blank? || item.price == BigDecimal(price))
             raise Order::InvalidTransition, 'O menu mudou. Reveja os produtos e preços antes de enviar.'
           end
 
@@ -86,12 +91,44 @@ class OrdersController < ApplicationController
       next if qty.to_i.zero?
 
       item = @table.establishment.menu_items.includes(:category).find(id)
-      raise Order::InvalidTransition, "#{item.name} já não está disponível." unless item.available? && item.category.visible_to_customers?
+      raise Order::InvalidTransition, "#{item.name} já não está disponível." unless item.available? && !item.archived? && item.category.visible_to_customers?
 
       { menu_item_id: item.id, name: item.name, quantity: qty.to_i, unit_price: item.price, line_total: item.price * qty.to_i }
     end
 
     raise Order::InvalidTransition, 'Selecione pelo menos um produto.' if items.empty?
     items
+  end
+
+  def suggestions_for(items)
+    ids = items.map { |item| item[:menu_item_id] }
+    return MenuItem.none if ids.empty?
+
+    @table.establishment.menu_items.not_archived
+      .joins(:recommended_by)
+      .where(menu_item_recommendations: { menu_item_id: ids })
+      .where.not(id: ids)
+      .where(available: true)
+      .where(categories: { archived_at: nil })
+      .distinct
+      .order(:name)
+      .limit(4)
+  end
+
+  def valid_suggestion_ids(source_ids, raw_ids)
+    ids = Array(raw_ids).filter_map { |id| Integer(id, exception: false) }.uniq
+    return [] if ids.empty?
+
+    allowed = MenuItemRecommendation
+      .where(menu_item_id: source_ids, recommended_menu_item_id: ids)
+      .where.not(recommended_menu_item_id: source_ids)
+      .pluck(:recommended_menu_item_id)
+
+    allowed = @table.establishment.menu_items.not_archived
+      .where(id: allowed, available: true)
+      .select { |item| item.category.visible_to_customers? }
+      .map(&:id)
+
+    allowed & ids
   end
 end

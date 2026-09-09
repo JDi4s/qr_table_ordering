@@ -1,17 +1,24 @@
 <section class="panel category-panel category-level-<%= level %>">
   <h2>
     <%= category.name %>
-    <small><%= category.available? ? 'Disponível' : 'Indisponível' %></small>
+    <small><%= category.archived? ? 'Arquivada' : (category.available? ? 'Disponível' : 'Indisponível') %></small>
   </h2>
 
   <div class="toolbar">
-    <%= button_to 'Alterar disponibilidade da categoria',
-      toggle_availability_staff_category_path(category),
-      method: :patch,
-      class: 'secondary' %>
+    <% unless category.archived? %>
+      <%= button_to 'Alterar disponibilidade da categoria',
+        toggle_availability_staff_category_path(category),
+        method: :patch,
+        class: 'secondary' %>
+    <% end %>
 
     <% if current_user.manager? %>
       <%= link_to 'Editar categoria', edit_staff_category_path(category) %>
+      <% if category.archived? %>
+        <%= button_to 'Restaurar categoria', restore_staff_category_path(category), method: :patch, class: 'secondary' %>
+      <% else %>
+        <%= button_to 'Arquivar categoria', staff_category_path(category), method: :delete, class: 'secondary', data: { turbo_confirm: 'Arquivar esta categoria? Os produtos deixam de aparecer no menu.' } %>
+      <% end %>
     <% end %>
   </div>
 
@@ -20,17 +27,24 @@
       <div>
         <strong><%= item.name %></strong>
         <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
-        <p><%= euros(item.price) %> · <%= item.available? ? 'Disponível' : 'Indisponível' %></p>
+        <p><%= euros(item.price) %> · <%= item.archived? ? 'Arquivado' : (item.available? ? 'Disponível' : 'Indisponível') %></p>
       </div>
 
       <div>
-        <%= button_to 'Alterar disponibilidade',
-          toggle_availability_staff_menu_item_path(item),
-          method: :patch,
-          class: 'secondary' %>
+        <% unless item.archived? %>
+          <%= button_to 'Alterar disponibilidade',
+            toggle_availability_staff_menu_item_path(item),
+            method: :patch,
+            class: 'secondary' %>
+        <% end %>
 
         <% if current_user.manager? %>
           <%= link_to 'Editar', edit_staff_menu_item_path(item) %>
+          <% if item.archived? %>
+            <%= button_to 'Restaurar', restore_staff_menu_item_path(item), method: :patch, class: 'secondary' %>
+          <% else %>
+            <%= button_to 'Arquivar', staff_menu_item_path(item), method: :delete, class: 'secondary', data: { turbo_confirm: 'Arquivar este produto? Deixará de aparecer no menu.' } %>
+          <% end %>
         <% end %>
       </div>
     </div>

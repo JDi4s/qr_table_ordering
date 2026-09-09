@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   has_secure_password
   belongs_to :establishment, optional: true
+  has_one :staff_push_subscription, dependent: :destroy
   enum role: { staff: 'staff', manager: 'manager', platform_admin: 'platform_admin' }
   before_validation { self.email = email.to_s.strip.downcase }
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }

@@ -127,6 +127,8 @@ GEM
     jbuilder (2.14.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
+    jwt (3.2.0)
+      base64 (>= 0)
     logger (1.7.0)
     loofah (2.25.0)
       crass (~> 1.0.2)
@@ -169,6 +171,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-musl)
       racc (~> 1.4)
+    openssl (3.3.2)
     pg (1.6.3)
     pg (1.6.3-aarch64-linux)
     pg (1.6.3-aarch64-linux-musl)
@@ -274,6 +277,9 @@ GEM
       activemodel (>= 6.0.0)
       bindex (>= 0.4.0)
       railties (>= 6.0.0)
+    web-push (3.1.0)
+      jwt (~> 3.0)
+      openssl (>= 3.0)
     websocket (1.2.11)
     websocket-driver (0.8.0)
       base64
@@ -314,6 +320,7 @@ DEPENDENCIES
   turbo-rails
   tzinfo-data
   web-console
+  web-push (~> 3.1)
 
 RUBY VERSION
    ruby 3.3.5p100
