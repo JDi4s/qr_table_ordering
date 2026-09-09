@@ -1,0 +1,813 @@
+From 08b529a769c6a5462a41ff30313b3eb8da73a181 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Wed, 9 Sep 2026 00:07:37 +0200
+Subject: [PATCH] Add product descriptions active tables and split payments
+
+---
+ app/assets/stylesheets/application.css        | 52 ++++++++++++++++
+ .../staff/menu_items_controller.rb            |  2 +-
+ app/controllers/staff/orders_controller.rb    | 12 ++++
+ app/controllers/staff/tables_controller.rb    | 22 ++++++-
+ app/helpers/tables_helper.rb                  |  9 +++
+ app/models/menu_item.rb                       |  1 +
+ app/models/order.rb                           | 61 ++++++++++++++++++-
+ app/models/order_item.rb                      | 25 ++++++++
+ app/models/table.rb                           |  4 ++
+ app/views/orders/_category_menu.html.erb      |  1 +
+ app/views/orders/_my_order_card.html.erb      |  2 +
+ app/views/staff/menu/_category.html.erb       |  1 +
+ app/views/staff/menu_items/edit.html.erb      |  3 +
+ app/views/staff/menu_items/new.html.erb       |  3 +
+ app/views/staff/orders/_detail.html.erb       | 11 +++-
+ app/views/staff/orders/_order_row.html.erb    |  2 +-
+ app/views/staff/orders/index.html.erb         |  1 +
+ app/views/staff/shared/_nav.html.erb          |  2 +-
+ app/views/staff/tables/_unpaid_order.html.erb | 31 ++++++++++
+ app/views/staff/tables/active.html.erb        | 20 ++++++
+ app/views/staff/tables/index.html.erb         |  5 +-
+ app/views/staff/tables/show.html.erb          | 15 +++++
+ config/routes.rb                              |  4 +-
+ ...nu_item_descriptions_and_order_payments.rb |  9 +++
+ ...000000_add_paid_quantity_to_order_items.rb |  6 ++
+ db/schema.rb                                  | 12 +++-
+ test/integration/venue_workflow_test.rb       | 35 +++++++++++
+ test/models/order_test.rb                     | 32 ++++++++++
+ 28 files changed, 372 insertions(+), 11 deletions(-)
+ create mode 100644 app/views/staff/tables/_unpaid_order.html.erb
+ create mode 100644 app/views/staff/tables/active.html.erb
+ create mode 100644 app/views/staff/tables/show.html.erb
+ create mode 100644 db/migrate/20260908230000_add_menu_item_descriptions_and_order_payments.rb
+ create mode 100644 db/migrate/20260909000000_add_paid_quantity_to_order_items.rb
+
+diff --git a/app/assets/stylesheets/application.css b/app/assets/stylesheets/application.css
+index fe6ce7d..55ebdb1 100644
+--- a/app/assets/stylesheets/application.css
++++ b/app/assets/stylesheets/application.css
+@@ -250,6 +250,58 @@ small {
+   padding: 12px 0;
+ }
+ 
++.product-description {
++  color: var(--muted);
++  margin: 4px 0;
++  max-width: 52ch;
++}
++
++.payment-line {
++  display: flex;
++  gap: 14px;
++  justify-content: space-between;
++  align-items: center;
++  margin: 12px 0;
++}
++
++.payment-line small { display: block; }
++.payment-form { display: flex; gap: 6px; align-items: center; margin: 0; }
++.payment-form label { margin: 0; }
++.payment-form input[type="number"] { width: 72px; }
++.payment-form input[type="submit"] { margin: 0; padding: 7px 10px; font-size: 14px; }
++
++.table-dashboard {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
++  gap: 18px;
++  margin: 24px 0;
++}
++
++.table-card {
++  display: flex;
++  gap: 16px;
++  align-items: center;
++  background: white;
++  border: 1px solid var(--line);
++  border-radius: 14px;
++  padding: 18px;
++  color: var(--ink);
++  text-decoration: none;
++  box-shadow: 0 4px 16px #20383204;
++}
++
++.table-card:hover { border-color: var(--green); transform: translateY(-1px); }
++.table-card h2, .table-card p { margin: 0 0 4px; }
++.table-visual { width: 120px; min-width: 120px; height: 108px; }
++.table-visual-surface { fill: #eaf1e8; stroke: var(--green); stroke-width: 3; }
++.table-visual-leg { fill: #d99b4b; }
++.table-visual-number { fill: var(--ink); font-size: 42px; font-weight: 800; }
++.table-show-header { display: flex; gap: 24px; align-items: center; }
++.table-show-header .table-visual { width: 170px; min-width: 170px; height: 140px; }
++.table-show-header h2 { margin-top: 0; }
++.unpaid-order ul { margin-bottom: 20px; }
++.empty-state { text-align: center; }
++
+ @media (max-width: 600px) {
+   main {
+     padding: 24px 16px 60px;
+diff --git a/app/controllers/staff/menu_items_controller.rb b/app/controllers/staff/menu_items_controller.rb
+index 57adfcc..5739a64 100644
+--- a/app/controllers/staff/menu_items_controller.rb
++++ b/app/controllers/staff/menu_items_controller.rb
+@@ -56,12 +56,12 @@ class Staff::MenuItemsController < Staff::BaseController
+   def menu_item_params
+     values = params.require(:menu_item).permit(
+       :name,
++      :description,
+       :price,
+       :category_id,
+       :available,
+       :image
+     )
+-
+     current_establishment.categories.find(values[:category_id]) if values[:category_id].present?
+     values
+   end
+diff --git a/app/controllers/staff/orders_controller.rb b/app/controllers/staff/orders_controller.rb
+index 307a215..5afcc89 100644
+--- a/app/controllers/staff/orders_controller.rb
++++ b/app/controllers/staff/orders_controller.rb
+@@ -4,6 +4,18 @@ class Staff::OrdersController < Staff::BaseController
+     @service_calls = current_establishment.service_calls.includes(:table, :assigned_user).where.not(status: 'resolved').order(:created_at)
+   end
+ 
++  def mark_paid
++    order = current_establishment.orders.find(params[:id])
++    order.mark_paid!(current_user)
++    redirect_back fallback_location: active_staff_tables_path, notice: "Pedido ##{order.id} marcado como pago.", status: :see_other
++  end
++
++  def pay_item
++    order = current_establishment.orders.find(params[:id])
++    order.pay_item!(params[:order_item_id], params[:quantity], current_user)
++    redirect_back fallback_location: staff_table_path(order.table), notice: 'Artigo marcado como pago.', status: :see_other
++  end
++
+   def show
+     @order = current_establishment.orders.includes(:table, order_items: :menu_item).find(params[:id])
+   end
+diff --git a/app/controllers/staff/tables_controller.rb b/app/controllers/staff/tables_controller.rb
+index 9f87881..cd9b94c 100644
+--- a/app/controllers/staff/tables_controller.rb
++++ b/app/controllers/staff/tables_controller.rb
+@@ -1,11 +1,28 @@
+ class Staff::TablesController < Staff::BaseController
+-  before_action :require_manager, except: [:index, :qr_code]
++  before_action :require_manager, except: [:index, :active, :show, :qr_code]
+ 
+   def index
+     @tables = current_establishment.tables.order(:number)
+     @table = current_establishment.tables.new
+   end
+ 
++  def active
++    @tables = current_establishment.tables
++      .joins(:orders)
++      .merge(Order.unpaid)
++      .distinct
++      .includes(orders: { order_items: :menu_item })
++      .order(:number)
++  end
++
++  def show
++    @table = current_establishment.tables.find_by!(qr_token: params[:id])
++    @orders = @table.orders
++      .unpaid
++      .includes(order_items: :menu_item)
++      .order(:created_at)
++  end
++
+   def create
+     current_establishment.tables.create!(params.require(:table).permit(:number))
+     redirect_to staff_tables_path, notice: 'Mesa criada.', status: :see_other
+@@ -20,6 +37,7 @@ class Staff::TablesController < Staff::BaseController
+   def qr_code
+     table = current_establishment.tables.where(active: true).find_by!(qr_token: params[:id])
+     png = RQRCode::QRCode.new(table.ordering_url).as_png(size: 480, border_modules: 4)
+-    send_data png.to_s, type: 'image/png', disposition: 'attachment', filename: "mesa_#{table.number}_qr.png"
++    disposition = params[:download].present? ? 'attachment' : 'inline'
++    send_data png.to_s, type: 'image/png', disposition: disposition, filename: "mesa_#{table.number}_qr.png"
+   end
+ end
+diff --git a/app/helpers/tables_helper.rb b/app/helpers/tables_helper.rb
+index 35826e3..300648d 100644
+--- a/app/helpers/tables_helper.rb
++++ b/app/helpers/tables_helper.rb
+@@ -1,2 +1,11 @@
+ module TablesHelper
++  def table_svg(table)
++    safe_join([
++      content_tag(:rect, nil, x: 20, y: 35, width: 160, height: 110, rx: 24, class: 'table-visual-surface'),
++      content_tag(:circle, nil, cx: 20, cy: 90, r: 12, class: 'table-visual-leg'),
++      content_tag(:circle, nil, cx: 180, cy: 90, r: 12, class: 'table-visual-leg'),
++      content_tag(:text, table.number, x: 100, y: 105, class: 'table-visual-number', 'text-anchor': 'middle')
++    ])
++      .then { |contents| content_tag(:svg, contents, xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 200 180', role: 'img', aria: { label: "Mesa #{table.number}" }, class: 'table-visual') }
++  end
+ end
+diff --git a/app/models/menu_item.rb b/app/models/menu_item.rb
+index d3539aa..910fc2c 100644
+--- a/app/models/menu_item.rb
++++ b/app/models/menu_item.rb
+@@ -7,5 +7,6 @@ class MenuItem < ApplicationRecord
+   attribute :available, :boolean, default: true
+   validate { errors.add(:price, 'deve ter no máximo duas casas decimais') if price && price != price.round(2) }
+   validates :name, presence: true, length: { maximum: 150 }
++  validates :description, length: { maximum: 500 }, allow_blank: true
+   validates :price, numericality: { greater_than_or_equal_to: 0, less_than: 100000 }
+ end
+diff --git a/app/models/order.rb b/app/models/order.rb
+index 9e64911..384d2c4 100644
+--- a/app/models/order.rb
++++ b/app/models/order.rb
+@@ -2,10 +2,12 @@ class Order < ApplicationRecord
+   include ActionView::RecordIdentifier
+   class InvalidTransition < StandardError; end
+   belongs_to :table
++  belongs_to :paid_by_user, class_name: 'User', optional: true
+   has_one :establishment, through: :table
+   has_many :order_items, dependent: :destroy
+   has_many :menu_items, through: :order_items
+   enum status: { pending: 'pending', accepted: 'accepted', needs_customer_action: 'needs_customer_action', denied: 'denied', served: 'served' }
++  scope :unpaid, -> { where(paid_at: nil).where.not(status: 'denied') }
+   validates :note, length: { maximum: 1000 }
+   validates :customer_token, presence: true
+   after_create_commit :broadcast_created
+@@ -29,7 +31,7 @@ class Order < ApplicationRecord
+       item.update!(changes)
+       refresh_total!
+     end
+-  rescue ArgumentError
++  rescue ArgumentError, TypeError
+     raise InvalidTransition, 'Preço inválido.'
+   end
+ 
+@@ -86,8 +88,65 @@ class Order < ApplicationRecord
+     order_items.where.not(status: 'denied').sum('unit_price * quantity')
+   end
+ 
++  def paid_total
++    payable_total - outstanding_total
++  end
++
++  def outstanding_total
++    order_items.reject(&:denied?).sum(&:outstanding_total)
++  end
++
++  def fully_paid?
++    order_items.where.not(status: 'denied').all? { |item| item.remaining_quantity.zero? }
++  end
++
++  def paid?
++    paid_at.present?
++  end
++
++  def mark_paid!(user)
++    with_lock do
++      ensure_payment_state!
++      raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
++
++      order_items.where.not(status: 'denied').find_each do |item|
++        item.update!(paid_quantity: item.quantity)
++      end
++      complete_payment!(user)
++    end
++  end
++
++  def pay_item!(item_id, quantity, user)
++    quantity = Integer(quantity)
++
++    with_lock do
++      ensure_payment_state!
++      raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
++      raise InvalidTransition, 'Indique uma quantidade válida.' if quantity <= 0
++
++      item = order_items.find(item_id)
++      raise InvalidTransition, 'Este artigo não pode ser pago.' unless item.accepted?
++      raise InvalidTransition, 'A quantidade indicada é superior ao que falta pagar.' if quantity > item.remaining_quantity
++
++      item.update!(paid_quantity: item.paid_quantity + quantity)
++      complete_payment!(user) if fully_paid?
++    end
++  rescue ArgumentError
++    raise InvalidTransition, 'Indique uma quantidade válida.'
++  end
++
+   private
+ 
++  def ensure_payment_state!
++    raise InvalidTransition, 'O pedido tem de ser aceite antes de ser pago.' unless accepted? || served?
++  end
++
++  def complete_payment!(user)
++    return unless fully_paid?
++
++    update!(paid_at: Time.current, paid_by_user: user)
++  end
++
+   def ensure_state!(*allowed)
+     raise InvalidTransition, 'O pedido já mudou de estado. Atualize a página.' unless allowed.include?(status)
+   end
+diff --git a/app/models/order_item.rb b/app/models/order_item.rb
+index 82e66d7..65c9221 100644
+--- a/app/models/order_item.rb
++++ b/app/models/order_item.rb
+@@ -2,22 +2,47 @@ class OrderItem < ApplicationRecord
+   belongs_to :order
+   belongs_to :menu_item
+   enum status: { pending: 'pending', accepted: 'accepted', denied: 'denied' }
++  attribute :paid_quantity, :integer, default: 0
+   before_validation do
+     self.name_snapshot ||= menu_item&.name
+     self.original_unit_price ||= unit_price
+   end
+   validates :quantity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 99 }
+   validates :unit_price, numericality: { greater_than_or_equal_to: 0, less_than: 100000 }
++  validates :paid_quantity, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+   validates :denial_reason, presence: true, if: :denied?
+   validates :denial_reason, :proposed_description, length: { maximum: 300 }
++  validate :paid_quantity_cannot_exceed_quantity
+   validate :same_establishment
+ 
+   def display_name
+     name_snapshot.presence || menu_item.name
+   end
+ 
++  def remaining_quantity
++    [quantity.to_i - paid_quantity.to_i, 0].max
++  end
++
++  def paid?
++    !denied? && remaining_quantity.zero?
++  end
++
++  def unpaid?
++    !denied? && remaining_quantity.positive?
++  end
++
++  def outstanding_total
++    unit_price.to_d * remaining_quantity
++  end
++
+   private
+ 
++  def paid_quantity_cannot_exceed_quantity
++    return unless quantity && paid_quantity && paid_quantity > quantity
++
++    errors.add(:paid_quantity, 'não pode ser superior à quantidade pedida')
++  end
++
+   def same_establishment
+     if order&.table && menu_item && order.table.establishment_id != menu_item.category.establishment_id
+       errors.add(:menu_item, 'não pertence a este estabelecimento')
+diff --git a/app/models/table.rb b/app/models/table.rb
+index d8793b5..ae6a37b 100644
+--- a/app/models/table.rb
++++ b/app/models/table.rb
+@@ -19,6 +19,10 @@ class Table < ApplicationRecord
+     RQRCode::QRCode.new(ordering_url).as_svg(module_size: 6, standalone: true, offset: 24)
+   end
+ 
++  def unpaid_orders
++    orders.unpaid
++  end
++
+   private
+ 
+   def generate_qr_token
+diff --git a/app/views/orders/_category_menu.html.erb b/app/views/orders/_category_menu.html.erb
+index 7408845..347ddc1 100644
+--- a/app/views/orders/_category_menu.html.erb
++++ b/app/views/orders/_category_menu.html.erb
+@@ -18,6 +18,7 @@
+ 
+           <div>
+             <strong><%= item.name %></strong>
++            <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
+             <p><%= euros(item.price) %></p>
+           </div>
+ 
+diff --git a/app/views/orders/_my_order_card.html.erb b/app/views/orders/_my_order_card.html.erb
+index d93df75..00a38bb 100644
+--- a/app/views/orders/_my_order_card.html.erb
++++ b/app/views/orders/_my_order_card.html.erb
+@@ -4,10 +4,12 @@
+   <% order.order_items.each do |item| %>
+     <div class="line"><div><strong><%= item.quantity %> × <%= item.display_name %></strong>
+       <% if item.denied? %><p class="danger">Indisponível: <%= item.denial_reason %></p><% end %>
++      <% unless item.denied? %><p><%= item.paid_quantity %> pago(s) · <%= item.remaining_quantity %> por pagar</p><% end %>
+       <% if item.proposed_description.present? %><p>Alteração proposta: <strong><%= item.proposed_description %></strong></p><% end %>
+     </div><span><%= item.denied? ? 'Excluído' : euros(item.unit_price * item.quantity) %></span></div>
+   <% end %>
+   <div class="line"><strong><%= order.pending? ? 'Total provisório' : 'Total' %></strong><strong><%= euros(order.total) %></strong></div>
++  <% if order.paid? %><p class="badge">Pago no balcão</p><% elsif order.paid_total.positive? %><p class="badge">Pagamento parcial no balcão</p><% end %>
+   <% if order.pending? %><p>O funcionário está a avaliar a disponibilidade. Aguarde a confirmação.</p><% end %>
+   <% if order.needs_customer_action? %>
+     <div class="flash notice"><strong>O seu pedido tem alterações.</strong> Confirme os produtos, as alterações e o novo total antes de continuar.</div>
+diff --git a/app/views/staff/menu/_category.html.erb b/app/views/staff/menu/_category.html.erb
+index 0589b63..9be0d9c 100644
+--- a/app/views/staff/menu/_category.html.erb
++++ b/app/views/staff/menu/_category.html.erb
+@@ -19,6 +19,7 @@
+     <div class="line">
+       <div>
+         <strong><%= item.name %></strong>
++        <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
+         <p><%= euros(item.price) %> · <%= item.available? ? 'Disponível' : 'Indisponível' %></p>
+       </div>
+ 
+diff --git a/app/views/staff/menu_items/edit.html.erb b/app/views/staff/menu_items/edit.html.erb
+index fffe7df..ea129c2 100644
+--- a/app/views/staff/menu_items/edit.html.erb
++++ b/app/views/staff/menu_items/edit.html.erb
+@@ -7,6 +7,9 @@
+     <%= f.label :name, 'Nome' %>
+     <%= f.text_field :name, required: true %>
+ 
++    <%= f.label :description, 'Descrição (opcional)' %>
++    <%= f.text_area :description, maxlength: 500, placeholder: 'Por exemplo: pão artesanal, queijo e molho da casa' %>
++
+     <%= f.label :category_id, 'Categoria' %>
+     <%= f.select :category_id,
+       options_for_select(category_options(current_establishment.categories.to_a), @menu_item.category_id),
+diff --git a/app/views/staff/menu_items/new.html.erb b/app/views/staff/menu_items/new.html.erb
+index b9d5251..8057499 100644
+--- a/app/views/staff/menu_items/new.html.erb
++++ b/app/views/staff/menu_items/new.html.erb
+@@ -7,6 +7,9 @@
+     <%= f.label :name, 'Nome' %>
+     <%= f.text_field :name, required: true %>
+ 
++    <%= f.label :description, 'Descrição (opcional)' %>
++    <%= f.text_area :description, maxlength: 500, placeholder: 'Por exemplo: pão artesanal, queijo e molho da casa' %>
++
+     <%= f.label :category_id, 'Categoria' %>
+     <%= f.select :category_id,
+       options_for_select(category_options(current_establishment.categories.to_a), @menu_item.category_id),
+diff --git a/app/views/staff/orders/_detail.html.erb b/app/views/staff/orders/_detail.html.erb
+index 8f5039a..0761d93 100644
+--- a/app/views/staff/orders/_detail.html.erb
++++ b/app/views/staff/orders/_detail.html.erb
+@@ -1,10 +1,11 @@
+ <section id="order_detail_<%= order.id %>">
+   <p class="eyebrow">MESA <%= order.table.number %></p><h1>Pedido #<%= order.id %></h1>
+-  <p><span class="badge"><%= state_label(order.status) %></span> · <strong><%= euros(order.total) %></strong></p>
++  <p><span class="badge"><%= state_label(order.status) %></span> · Total: <strong><%= euros(order.total) %></strong> · Por pagar: <strong><%= euros(order.outstanding_total) %></strong></p>
+   <% if order.note.present? %><div class="flash notice">Observações do cliente: <%= order.note %></div><% end %>
+   <% order.order_items.each do |item| %>
+     <article class="panel">
+       <h2><%= item.quantity %> × <%= item.display_name %></h2><p><%= state_label(item.status) %> · <%= euros(item.unit_price) %> / unidade</p>
++      <% unless item.denied? %><p><%= item.paid_quantity %> paga(s) · <%= item.remaining_quantity %> por pagar</p><% end %>
+       <% if item.denial_reason.present? %><p>Motivo: <%= item.denial_reason %></p><% end %>
+       <% if item.proposed_description.present? %><p>Proposta: <%= item.proposed_description %></p><% end %>
+       <% if order.pending? %>
+@@ -16,6 +17,13 @@
+           <%= f.submit 'Guardar decisão' %>
+         <% end %>
+       <% end %>
++      <% if (order.accepted? || order.served?) && item.unpaid? %>
++        <%= form_with url: pay_item_staff_order_path(order), method: :patch, class: 'payment-form' do %>
++          <%= hidden_field_tag :order_item_id, item.id %>
++          <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true %>
++          <%= submit_tag 'Pagar artigo', data: { turbo_confirm: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name}?" } %>
++        <% end %>
++      <% end %>
+     </article>
+   <% end %>
+   <% if order.pending? %>
+@@ -31,4 +39,5 @@
+   <% end %>
+   <% if order.needs_customer_action? %><div class="flash notice">Aguarde a confirmação do cliente antes de preparar o pedido.</div><% end %>
+   <% if order.accepted? %><%= button_to 'Marcar como servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
++  <% if (order.accepted? || order.served?) && !order.paid? %><%= button_to 'Pagar pedido completo', mark_paid_staff_order_path(order), method: :patch, class: 'secondary', data: { turbo_confirm: "Confirmar pagamento do pedido ##{order.id}?" } %><% end %>
+ </section>
+diff --git a/app/views/staff/orders/_order_row.html.erb b/app/views/staff/orders/_order_row.html.erb
+index ed34267..213cde7 100644
+--- a/app/views/staff/orders/_order_row.html.erb
++++ b/app/views/staff/orders/_order_row.html.erb
+@@ -1,7 +1,7 @@
+ <article class="panel" id="<%= dom_id(order) %>">
+   <div class="line"><h2>Mesa <%= order.table.number %></h2><span>#<%= order.id %></span></div>
+   <p><span class="badge"><%= state_label(order.status) %></span></p>
+-  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.total) %></strong></p>
++  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
+   <ul><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul>
+   <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button' %>
+ </article>
+diff --git a/app/views/staff/orders/index.html.erb b/app/views/staff/orders/index.html.erb
+index 06725dd..d21179f 100644
+--- a/app/views/staff/orders/index.html.erb
++++ b/app/views/staff/orders/index.html.erb
+@@ -1,5 +1,6 @@
+ <p class="eyebrow">SERVIÇO EM TEMPO REAL</p><h1>Pedidos e chamadas</h1>
+ <p>Mantenha esta página aberta durante o serviço. <button type="button" class="secondary" data-action="staff-orders#enableAudio">Ativar / testar som</button></p>
++<p><%= link_to 'Ver Mesas ativas e pedidos por pagar', active_staff_tables_path, class: 'button' %></p>
+ <%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
+ <h2>Chamadas à mesa</h2><div id="service_calls" class="grid empty-list">
+   <% @service_calls.each do |service_call| %><%= render 'staff/service_calls/call', service_call: service_call %><% end %>
+diff --git a/app/views/staff/shared/_nav.html.erb b/app/views/staff/shared/_nav.html.erb
+index 55f37f3..4e22acb 100644
+--- a/app/views/staff/shared/_nav.html.erb
++++ b/app/views/staff/shared/_nav.html.erb
+@@ -2,7 +2,7 @@
+   <span class="brand">Mesa<span> • </span></span><strong><%= current_establishment.name %></strong>
+   <nav>
+     <%= link_to 'Pedidos e chamadas', staff_orders_path %><%= link_to 'Menu', staff_menu_path %>
+-    <%= link_to 'Mesas / QR', staff_tables_path %><%= link_to 'Histórico', history_staff_orders_path %>
++    <%= link_to 'Mesas ativas', active_staff_tables_path %><%= link_to 'Mesas / QR', staff_tables_path %><%= link_to 'Histórico', history_staff_orders_path %>
+     <% if current_user.manager? %><%= link_to 'Equipa', staff_users_path %><% end %>
+     <%= link_to 'Preferências', edit_staff_settings_path %>
+   </nav>
+diff --git a/app/views/staff/tables/_unpaid_order.html.erb b/app/views/staff/tables/_unpaid_order.html.erb
+new file mode 100644
+index 0000000..e0065f9
+--- /dev/null
++++ b/app/views/staff/tables/_unpaid_order.html.erb
+@@ -0,0 +1,31 @@
++<article class="panel unpaid-order">
++  <div class="line"><h2>Pedido #<%= order.id %></h2><span class="badge"><%= state_label(order.status) %></span></div>
++  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
++  <ul>
++    <% order.order_items.each do |item| %>
++      <li class="payment-line">
++        <div>
++          <% if item.denied? %>
++            <%= item.quantity %> × <%= item.display_name %> — rejeitado
++          <% elsif item.paid? %>
++            <%= item.quantity %> × <%= item.display_name %> — pago
++          <% else %>
++            <strong><%= item.remaining_quantity %> × <%= item.display_name %></strong> — <%= euros(item.outstanding_total) %>
++            <% if item.paid_quantity.positive? %><small><%= item.paid_quantity %> já pago(s)</small><% end %>
++          <% end %>
++        </div>
++        <% if item.unpaid? && item.accepted? %>
++          <%= form_with url: pay_item_staff_order_path(order), method: :patch, class: 'payment-form' do %>
++            <%= hidden_field_tag :order_item_id, item.id %>
++            <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true %>
++            <%= submit_tag 'Pagar', data: { turbo_confirm: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name}?" } %>
++          <% end %>
++        <% end %>
++      </li>
++    <% end %>
++  </ul>
++  <div class="toolbar">
++    <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button secondary' %>
++    <% if order.accepted? || order.served? %><%= button_to 'Pagar pedido completo', mark_paid_staff_order_path(order), method: :patch, data: { turbo_confirm: "Confirmar pagamento do pedido ##{order.id}?" } %><% end %>
++  </div>
++</article>
+diff --git a/app/views/staff/tables/active.html.erb b/app/views/staff/tables/active.html.erb
+new file mode 100644
+index 0000000..b8c9710
+--- /dev/null
++++ b/app/views/staff/tables/active.html.erb
+@@ -0,0 +1,20 @@
++<p class="eyebrow">CONTROLO DE PAGAMENTOS</p>
++<h1>Mesas ativas</h1>
++<p>Estas são as mesas que têm pedidos ainda por pagar. Escolha uma mesa para consultar os pedidos individuais.</p>
++
++<div class="table-dashboard">
++  <% @tables.each do |table| %>
++    <%= link_to staff_table_path(table), class: 'table-card' do %>
++      <%= table_svg(table) %>
++      <div>
++        <h2>Mesa <%= table.number %></h2>
++        <p><strong><%= table.orders.unpaid.count %></strong> pedido(s) por pagar</p>
++        <p><strong><%= euros(table.orders.unpaid.sum(&:outstanding_total)) %></strong> por pagar</p>
++      </div>
++    <% end %>
++  <% end %>
++</div>
++
++<% if @tables.empty? %>
++  <section class="panel empty-state"><strong>Não existem mesas com pedidos por pagar.</strong><p>Quando entrar um pedido, a mesa aparecerá aqui.</p></section>
++<% end %>
+diff --git a/app/views/staff/tables/index.html.erb b/app/views/staff/tables/index.html.erb
+index 8768c73..dfbd457 100644
+--- a/app/views/staff/tables/index.html.erb
++++ b/app/views/staff/tables/index.html.erb
+@@ -1,12 +1,13 @@
+ <h1>Mesas e QR codes</h1>
+ <p><strong><%= @tables.where(active: true).count %> / <%= current_establishment.table_limit %></strong> mesas ativas. Pode voltar a descarregar um código sem consumir outra mesa.</p>
++<p><%= link_to 'Abrir Mesas ativas', active_staff_tables_path, class: 'button' %></p>
+ <% if current_user.manager? %><section class="panel"><h2>Criar mesa</h2>
+   <%= form_with model: [:staff, @table] do |f| %><%= f.label :number, 'Número da mesa' %><%= f.number_field :number, min: 1, required: true %><%= f.submit 'Criar mesa e QR' %><% end %>
+ </section><% end %>
+ <div class="grid"><% @tables.each do |table| %><section class="panel">
+   <h2>Mesa <%= table.number %> <small><%= table.active? ? 'Ativa' : 'Desativada' %></small></h2>
+-  <% if table.active? %><div class="qr"><%= raw table.qr_code %></div>
+-    <p><%= link_to 'Descarregar QR (PNG)', qr_code_staff_table_path(table), data: { turbo: false } %> · <%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener' %></p>
++  <% if table.active? %>
++    <p><%= link_to 'Abrir QR grande', qr_code_staff_table_path(table), target: '_blank', rel: 'noopener', data: { turbo: false } %> · <%= link_to 'Descarregar QR (PNG)', qr_code_staff_table_path(table, download: 1), data: { turbo: false } %> · <%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener' %></p>
+   <% end %>
+   <% if current_user.manager? %><%= form_with model: [:staff, table] do |f| %>
+     <%= f.label :number, 'Número' %><%= f.number_field :number, min: 1, required: true %>
+diff --git a/app/views/staff/tables/show.html.erb b/app/views/staff/tables/show.html.erb
+new file mode 100644
+index 0000000..55abd6e
+--- /dev/null
++++ b/app/views/staff/tables/show.html.erb
+@@ -0,0 +1,15 @@
++<p class="eyebrow">MESA <%= @table.number %></p>
++<h1>Pedidos por pagar</h1>
++<div class="table-show-header panel">
++  <%= table_svg(@table) %>
++  <div><h2>Mesa <%= @table.number %></h2><p><strong><%= @orders.count %></strong> pedido(s) por pagar</p><p><strong><%= euros(@orders.sum(&:outstanding_total)) %></strong> por pagar</p></div>
++</div>
++
++<div class="grid">
++  <% @orders.each do |order| %>
++    <%= render 'staff/tables/unpaid_order', order: order %>
++  <% end %>
++</div>
++
++<% if @orders.empty? %><section class="panel empty-state"><strong>Não existem pedidos por pagar nesta mesa.</strong></section><% end %>
++<p><%= link_to 'Voltar às Mesas ativas', active_staff_tables_path, class: 'button secondary' %></p>
+diff --git a/config/routes.rb b/config/routes.rb
+index d453188..c0536fa 100644
+--- a/config/routes.rb
++++ b/config/routes.rb
+@@ -22,11 +22,13 @@ Rails.application.routes.draw do
+   end
+   namespace :staff do
+     resources :orders, only: [:index, :show, :update] do
++      member { patch :mark_paid; patch :pay_item }
+       collection { get :history }
+     end
+     resources :order_items, only: :update
+     resources :service_calls, only: :update
+-    resources :tables, only: [:index, :create, :update] do
++    resources :tables, only: [:index, :show, :create, :update] do
++      collection { get :active }
+       member { get :qr_code }
+     end
+     resources :users, only: [:index, :create, :update]
+diff --git a/db/migrate/20260908230000_add_menu_item_descriptions_and_order_payments.rb b/db/migrate/20260908230000_add_menu_item_descriptions_and_order_payments.rb
+new file mode 100644
+index 0000000..591a7c2
+--- /dev/null
++++ b/db/migrate/20260908230000_add_menu_item_descriptions_and_order_payments.rb
+@@ -0,0 +1,9 @@
++class AddMenuItemDescriptionsAndOrderPayments < ActiveRecord::Migration[7.1]
++  def change
++    add_column :menu_items, :description, :text
++
++    add_column :orders, :paid_at, :datetime
++    add_reference :orders, :paid_by_user, foreign_key: { to_table: :users }
++    add_index :orders, [:table_id, :paid_at]
++  end
++end
+diff --git a/db/migrate/20260909000000_add_paid_quantity_to_order_items.rb b/db/migrate/20260909000000_add_paid_quantity_to_order_items.rb
+new file mode 100644
+index 0000000..1ecfcff
+--- /dev/null
++++ b/db/migrate/20260909000000_add_paid_quantity_to_order_items.rb
+@@ -0,0 +1,6 @@
++class AddPaidQuantityToOrderItems < ActiveRecord::Migration[7.1]
++  def change
++    add_column :order_items, :paid_quantity, :integer, default: 0, null: false
++    add_index :order_items, :paid_quantity
++  end
++end
+diff --git a/db/schema.rb b/db/schema.rb
+index f98923a..cb31d6c 100644
+--- a/db/schema.rb
++++ b/db/schema.rb
+@@ -7,7 +7,7 @@
+ # be faster and is potentially less error prone than running all of your
+ # migrations from scratch.
+ 
+-ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
++ActiveRecord::Schema[7.1].define(version: 2026_09_09_000000) do
+   enable_extension "plpgsql"
+ 
+   create_table "active_storage_attachments", force: :cascade do |t|
+@@ -63,6 +63,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
+ 
+   create_table "menu_items", force: :cascade do |t|
+     t.string "name"
++    t.text "description"
+     t.decimal "price"
+     t.boolean "available", default: true, null: false
+     t.bigint "category_id", null: false
+@@ -81,11 +82,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
+     t.decimal "unit_price", precision: 10, scale: 2, default: "0.0", null: false
+     t.string "denial_reason"
+     t.text "note"
++    t.integer "paid_quantity", default: 0, null: false
+     t.string "name_snapshot"
+     t.string "proposed_description"
+     t.decimal "original_unit_price", precision: 10, scale: 2
+     t.index ["menu_item_id"], name: "index_order_items_on_menu_item_id"
+     t.index ["order_id"], name: "index_order_items_on_order_id"
++    t.index ["paid_quantity"], name: "index_order_items_on_paid_quantity"
+     t.index ["status"], name: "index_order_items_on_status"
+   end
+ 
+@@ -98,8 +101,13 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
+     t.text "note"
+     t.string "denial_reason"
+     t.datetime "served_at"
++    t.datetime "paid_at"
++    t.bigint "paid_by_user_id"
+     t.string "customer_token"
+     t.string "submission_token"
++    t.index ["customer_token"], name: "index_orders_on_customer_token"
++    t.index ["paid_by_user_id"], name: "index_orders_on_paid_by_user_id"
++    t.index ["table_id", "paid_at"], name: "index_orders_on_table_id_and_paid_at"
+     t.index ["table_id", "customer_token", "submission_token"], name: "unique_customer_submission", unique: true
+     t.index ["table_id"], name: "index_orders_on_table_id"
+   end
+@@ -150,6 +158,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_08_200000) do
+   add_foreign_key "order_items", "menu_items"
+   add_foreign_key "order_items", "orders"
+   add_foreign_key "orders", "tables"
++  add_foreign_key "orders", "users", column: "paid_by_user_id"
++  add_foreign_key "orders", "users", column: "paid_by_user_id"
+   add_foreign_key "service_calls", "tables"
+   add_foreign_key "service_calls", "users", column: "assigned_user_id"
+   add_foreign_key "tables", "establishments"
+diff --git a/test/integration/venue_workflow_test.rb b/test/integration/venue_workflow_test.rb
+index 64c2a5c..ba481d8 100644
+--- a/test/integration/venue_workflow_test.rb
++++ b/test/integration/venue_workflow_test.rb
+@@ -137,4 +137,39 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
+     patch staff_service_call_path(call), params: { status: 'resolved' }
+     assert call.reload.resolved?
+   end
++
++  test 'staff can open active tables and mark an accepted order paid' do
++    order = build_order(@table, @product)
++    order.finalize_review!
++    sign_in(@manager)
++
++    get active_staff_tables_path
++    assert_response :success
++    assert_includes response.body, "Mesa #{@table.number}"
++
++    patch mark_paid_staff_order_path(order)
++    assert_response :redirect
++    assert order.reload.paid?
++
++    get active_staff_tables_path
++    assert_response :success
++    assert_not_includes response.body, "Mesa #{@table.number}"
++  end
++
++  test 'staff can pay one quantity and keep the table active for the remainder' do
++    order = build_order(@table, @product)
++    order.finalize_review!
++    item = order.order_items.second
++    sign_in(@manager)
++
++    patch pay_item_staff_order_path(order), params: { order_item_id: item.id, quantity: 1 }
++
++    assert_response :redirect
++    assert_equal 1, item.reload.paid_quantity
++    assert_not order.reload.paid?
++
++    get staff_table_path(@table)
++    assert_response :success
++    assert_includes response.body, "1 × #{@product.name}"
++  end
+ end
+diff --git a/test/models/order_test.rb b/test/models/order_test.rb
+index 90180f9..5b3e12b 100644
+--- a/test/models/order_test.rb
++++ b/test/models/order_test.rb
+@@ -90,4 +90,36 @@ class OrderTest < ActiveSupport::TestCase
+     assert_equal old_name, @order.order_items.first.display_name
+     assert_not @product.destroy
+   end
++
++  test 'accepted order can be marked paid and leaves the unpaid table list' do
++    cashier = venue_user(@venue, role: 'staff')
++    @order.finalize_review!
++
++    @order.mark_paid!(cashier)
++
++    assert @order.reload.paid?
++    assert_equal cashier, @order.paid_by_user
++    assert_not @table.orders.unpaid.exists?(@order.id)
++    assert_raises(Order::InvalidTransition) { @order.mark_paid!(cashier) }
++  end
++
++  test 'accepted order supports paying only part of an item quantity' do
++    cashier = venue_user(@venue, role: 'staff')
++    @order.finalize_review!
++    item = @order.order_items.second
++
++    @order.pay_item!(item.id, 1, cashier)
++
++    assert_equal 1, item.reload.paid_quantity
++    assert_equal 1, item.remaining_quantity
++    assert_equal BigDecimal('20'), @order.reload.outstanding_total
++    assert_not @order.paid?
++
++    @order.pay_item!(item.id, 1, cashier)
++    assert_not @order.reload.paid?
++
++    @order.mark_paid!(cashier)
++    assert @order.reload.paid?
++    assert_equal 0, @order.outstanding_total
++  end
+ end
+-- 
+2.51.1
+
