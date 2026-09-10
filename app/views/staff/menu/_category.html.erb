@@ -53,7 +53,14 @@ end %>
   </div>
 
   <details class="staff-category-details">
-    <summary><%= items.count %> produtos · ver categoria</summary>
+    <summary>
+      <%= items.count %> produtos
+      <% if matching_children.any? %>
+        · <%= matching_children.count %> <%= matching_children.count == 1 ? 'subcategoria' : 'subcategorias' %>
+      <% else %>
+        · ver categoria
+      <% end %>
+    </summary>
     <div class="staff-category-content">
 
   <% items.each do |item| %>
