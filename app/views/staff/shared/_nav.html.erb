@@ -1,5 +1,7 @@
 <header class="staff-header">
-  <span class="brand">Mesa<span> • </span></span><strong><%= current_establishment.name %></strong>
+  <div class="staff-identity">
+    <span class="brand">Mesa<span> • </span></span><strong><%= current_establishment.name %></strong>
+  </div>
   <nav class="staff-main-nav" aria-label="Navegação principal">
     <div class="staff-nav-group">
       <%= link_to 'Pedidos', staff_orders_path, class: ('is-active' if staff_nav_active?(:orders)), aria: { current: (staff_nav_active?(:orders) ? 'page' : nil) } %>
