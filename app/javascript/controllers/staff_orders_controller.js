@@ -6,9 +6,15 @@ export default class extends Controller {
   connect() {
     this.handler = (event) => {
       const stream = event.target
-      if (stream.getAttribute("action") !== "append") return
-
+      const action = stream.getAttribute("action")
       const target = stream.getAttribute("target")
+
+      if ((action === "replace" || action === "remove") && target?.startsWith("service_call_")) {
+        this.dismissCallPopup(target)
+        return
+      }
+
+      if (action !== "append") return
       if (target === "staff_orders_live") this.beep("order")
       if (target === "service_calls") {
         this.beep("call")
@@ -99,6 +105,7 @@ export default class extends Controller {
     const callId = call?.id
     const popup = document.createElement("div")
     popup.className = "staff-popup call-popup"
+    popup.dataset.serviceCallId = callId
     const heading = document.createElement("strong")
     heading.textContent = table
     popup.append(heading)
@@ -120,6 +127,12 @@ export default class extends Controller {
     })
     popup.append(viewButton)
     document.getElementById("staff_notifications")?.appendChild(popup)
+  }
+
+  dismissCallPopup(callId) {
+    document.querySelectorAll(".call-popup").forEach((popup) => {
+      if (popup.dataset.serviceCallId === callId) popup.remove()
+    })
   }
 
   async registerServiceWorker() {
