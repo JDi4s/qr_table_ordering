@@ -31,7 +31,7 @@ class Staff::OrdersController < Staff::BaseController
     AuditLogger.record(user: current_user, action: 'payment_received', record: order,
                        metadata: { amount: payment.amount.to_s, payment_method: payment.payment_method })
     if order.fully_paid?
-      redirect_to staff_table_path(order.table), notice: 'Artigos selecionados marcados como pagos.', status: :see_other
+      redirect_to active_staff_tables_path, notice: 'Artigos selecionados marcados como pagos.', status: :see_other
     else
       redirect_to staff_table_path(order.table, open_order: order.id, anchor: "order-#{order.id}"),
                   notice: 'Artigos selecionados marcados como pagos.', status: :see_other
