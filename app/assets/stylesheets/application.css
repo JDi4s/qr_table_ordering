@@ -1061,6 +1061,12 @@ small {
   white-space: nowrap;
 }
 
+.history-filter-form .history-clear-filter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .history-list {
   display: grid;
   gap: 10px;
