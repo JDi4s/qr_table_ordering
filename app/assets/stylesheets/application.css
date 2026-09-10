@@ -59,6 +59,10 @@ header form {
   margin: 0;
 }
 
+header:not(.staff-header) form {
+  margin-left: auto;
+}
+
 header form button.secondary {
   position: relative;
   top: 1px;
