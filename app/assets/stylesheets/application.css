@@ -690,8 +690,8 @@ small {
     gap: 12px;
   }
 
-  .staff-header { align-items: flex-start; }
-  .staff-header > strong { flex: 1; min-width: 130px; }
+  .staff-header { align-items: center; }
+  .staff-header > strong { align-self: center; flex: 1; min-width: 130px; line-height: 1.2; }
   .staff-main-nav { order: 3; flex-basis: 100%; width: 100%; gap: 8px; overflow-x: auto; justify-content: flex-start; padding-bottom: 2px; scrollbar-width: none; }
   .staff-main-nav { flex-wrap: nowrap; }
   .staff-main-nav::-webkit-scrollbar { display: none; }
