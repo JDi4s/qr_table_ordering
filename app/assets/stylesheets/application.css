@@ -1351,3 +1351,35 @@ small {
     grid-column: 2;
   }
 }
+
+/* Constrain native Safari date controls to their grid columns. */
+.history-filter-form input[type="datetime-local"] {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  overflow: hidden;
+}
+.history-filter-form input[type="datetime-local"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+.history-filter-form input[type="datetime-local"]::-webkit-datetime-edit {
+  min-width: 0;
+  padding: 0;
+}
+@media (max-width: 600px) {
+  .history-filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .history-filter-form input[type="datetime-local"] {
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    min-height: 36px;
+    padding: 4px;
+  }
+}
