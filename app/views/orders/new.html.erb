@@ -1,13 +1,41 @@
-<p class="eyebrow"><%= @table.establishment.name %></p><h1>O que vai ser hoje?</h1>
-<div class="toolbar"><span class="badge">Mesa <%= @table.number %></span>
-  <%= link_to "Os meus pedidos (#{@active_count})", my_table_orders_path(@table), class: 'button secondary' %>
-  <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %>
+<% establishment = @table.establishment %>
+<% has_logo = establishment.logo.attached? %>
+<div class="customer-branding-shell" data-controller="customer-branding" data-customer-branding-enabled-value="<%= has_logo %>" data-customer-branding-key-value="establishment-<%= establishment.id %>">
+  <% if has_logo %>
+    <section class="customer-branding-loading" data-customer-branding-target="loading" hidden aria-label="A carregar o menu">
+      <%= image_tag establishment.logo, class: 'customer-branding-logo customer-branding-logo-loading', alt: establishment.name %>
+      <strong><%= establishment.name %></strong>
+      <p>A preparar o menu…</p>
+      <div class="customer-branding-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    </section>
+    <section class="customer-branding-entry panel" data-customer-branding-target="entry" hidden>
+      <%= image_tag establishment.logo, class: 'customer-branding-logo customer-branding-logo-entry', alt: establishment.name %>
+      <p class="eyebrow"><%= establishment.name %></p>
+      <h1>Bem-vindo</h1>
+      <p>Faça o seu pedido à mesa, de forma simples.</p>
+      <button type="button" data-action="customer-branding#enter">Ver menu</button>
+    </section>
+  <% end %>
+  <div class="customer-branding-content" data-customer-branding-target="content">
+    <% if has_logo %>
+      <div class="customer-establishment-header">
+        <%= image_tag establishment.logo, class: 'customer-establishment-logo', alt: establishment.name %>
+        <div><p class="eyebrow"><%= establishment.name %></p><strong>O que vai ser hoje?</strong></div>
+      </div>
+    <% else %>
+      <p class="eyebrow"><%= establishment.name %></p><h1>O que vai ser hoje?</h1>
+    <% end %>
+    <div class="toolbar"><span class="badge">Mesa <%= @table.number %></span>
+      <%= link_to "Os meus pedidos (#{@active_count})", my_table_orders_path(@table), class: 'button secondary' %>
+      <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %>
+    </div>
+    <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
+      <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>
+      <section class="panel">
+        <label for="order_note">Observações para a cozinha</label>
+        <%= text_area_tag 'order[note]', @cart_note, id: 'order_note', maxlength: 1000, placeholder: 'Por exemplo: sem tomate.' %>
+        <button type="submit">Rever pedido</button>
+      </section>
+    <% end %>
+  </div>
 </div>
-<%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
-  <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>
-  <section class="panel">
-    <label for="order_note">Observações para a cozinha</label>
-    <%= text_area_tag 'order[note]', @cart_note, id: 'order_note', maxlength: 1000, placeholder: 'Por exemplo: sem tomate.' %>
-    <button type="submit">Rever pedido</button>
-  </section>
-<% end %>
