@@ -24,6 +24,15 @@ class Staff::OrdersController < Staff::BaseController
     redirect_back fallback_location: staff_table_path(order.table), notice: 'Artigo marcado como pago.', status: :see_other
   end
 
+  def pay_selected
+    order = current_establishment.orders.find(params[:id])
+    order.pay_selected_items!(selected_items_params, current_user, payment_method: payment_method_param)
+    payment = order.payments.order(:created_at).last
+    AuditLogger.record(user: current_user, action: 'payment_received', record: order,
+                       metadata: { amount: payment.amount.to_s, payment_method: payment.payment_method })
+    redirect_back fallback_location: staff_table_path(order.table), notice: 'Artigos selecionados marcados como pagos.', status: :see_other
+  end
+
   def show
     @order = current_establishment.orders.includes(:table, order_items: :menu_item, payments: :user).find(params[:id])
   end
@@ -53,6 +62,10 @@ class Staff::OrdersController < Staff::BaseController
   end
 
   private
+
+  def selected_items_params
+    params.permit(:payment_method, items: {}).fetch(:items, {}).to_h
+  end
 
   def payment_method_param
     value = params[:payment_method].to_s
