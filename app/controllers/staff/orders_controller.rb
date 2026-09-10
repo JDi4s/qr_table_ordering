@@ -64,10 +64,25 @@ class Staff::OrdersController < Staff::BaseController
 
   def history
     @history_status = %w[served denied].include?(params[:status].to_s) ? params[:status].to_s : 'all'
-    @history_date = begin
-      Date.iso8601(params[:date].to_s) if params[:date].present?
-    rescue ArgumentError
-      nil
+    @history_period = %w[today yesterday last_7_days custom].include?(params[:period].to_s) ? params[:period].to_s : 'all'
+
+    now = Time.zone.now
+    case @history_period
+    when 'today'
+      @history_from = now.beginning_of_day
+      @history_to = now.end_of_day
+    when 'yesterday'
+      @history_from = 1.day.ago.beginning_of_day
+      @history_to = 1.day.ago.end_of_day
+    when 'last_7_days'
+      @history_from = 6.days.ago.beginning_of_day
+      @history_to = now.end_of_day
+    when 'custom'
+      @history_from = parse_history_time(params[:from])
+      @history_to = parse_history_time(params[:to])
+    else
+      @history_from = nil
+      @history_to = nil
     end
 
     scope = current_establishment.orders
@@ -75,9 +90,18 @@ class Staff::OrdersController < Staff::BaseController
       .where(status: %w[served denied])
 
     scope = scope.where(status: @history_status) unless @history_status == 'all'
-    scope = scope.where(created_at: @history_date.all_day) if @history_date
+    if @history_from && @history_to
+      from_time, to_time = [@history_from, @history_to].minmax
+      scope = scope.where(created_at: from_time..to_time)
+    elsif @history_from
+      scope = scope.where('created_at >= ?', @history_from)
+    elsif @history_to
+      scope = scope.where('created_at <= ?', @history_to)
+    end
 
-    @orders = scope.order(created_at: :desc).limit(200).to_a
+    @history_from_value = @history_from&.strftime('%Y-%m-%dT%H:%M')
+    @history_to_value = @history_to&.strftime('%Y-%m-%dT%H:%M')
+    @orders = scope.order(created_at: :desc).to_a
     @history_total = @orders.size
     @history_served = @orders.count(&:served?)
     @history_denied = @orders.count(&:denied?)
@@ -89,6 +113,14 @@ class Staff::OrdersController < Staff::BaseController
 
   def selected_items_params
     params.permit(:payment_method, items: {}).fetch(:items, {}).to_h
+  end
+
+  def parse_history_time(value)
+    return if value.blank?
+
+    Time.zone.strptime(value.to_s, '%Y-%m-%dT%H:%M')
+  rescue ArgumentError
+    nil
   end
 
   def payment_method_param
