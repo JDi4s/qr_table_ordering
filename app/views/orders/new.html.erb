@@ -20,7 +20,7 @@
     <% if has_logo %>
       <div class="customer-establishment-header">
         <%= image_tag establishment.logo, class: 'customer-establishment-logo', alt: establishment.name %>
-        <div><p class="eyebrow"><%= establishment.name %></p><strong>O que vai ser hoje?</strong></div>
+        <div><p class="eyebrow">MENU DE</p><strong class="customer-establishment-name"><%= establishment.name %></strong><span class="customer-menu-welcome">O que vai ser hoje?</span></div>
       </div>
     <% else %>
       <p class="eyebrow"><%= establishment.name %></p><h1>O que vai ser hoje?</h1>
