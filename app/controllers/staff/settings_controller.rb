@@ -2,7 +2,7 @@ class Staff::SettingsController < Staff::BaseController
   def edit; end
 
   def update
-    current_establishment.update!(establishment_params) if current_user.manager? && params[:establishment].present?
+    save_establishment_settings if current_user.manager? && params[:establishment].present?
 
     if params.dig(:user, :staff_sound_enabled).present?
       current_user.update!(staff_sound_enabled: params.dig(:user, :staff_sound_enabled) == '1')
@@ -18,5 +18,10 @@ class Staff::SettingsController < Staff::BaseController
 
   def establishment_params
     params.require(:establishment).permit(:logo)
+  end
+
+  def save_establishment_settings
+    logo = establishment_params[:logo]
+    current_establishment.update!(logo: logo) if logo.present?
   end
 end
