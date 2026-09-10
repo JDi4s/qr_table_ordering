@@ -5,8 +5,6 @@
   <div><h2>Mesa <%= @table.number %></h2><p><strong><%= @orders.count %></strong> pedido(s) em aberto</p><p><strong><%= euros(@orders.sum(&:outstanding_total)) %></strong> por pagar</p></div>
 </div>
 
-<div class="flash notice"><strong>Como pagar:</strong> abre o pedido, seleciona os artigos e paga tudo de uma vez no fim.</div>
-
 <div class="grid">
   <% @orders.each do |order| %>
     <%= render 'staff/tables/unpaid_order', order: order %>
