@@ -1583,7 +1583,9 @@ small {
 .report-period-dialog-form button { flex: 1; margin: 0; }
 
 @media (max-width: 600px) {
-  .report-choice-grid a, .report-choice-list a { align-items: flex-start; flex-direction: column; gap: 1px; }
+  .report-choice-grid a, .report-choice-list a { align-items: center; justify-content: center; flex-direction: column; gap: 1px; text-align: center; }
+  .report-choice-grid a { min-height: 42px; padding: 6px 5px; font-size: 11px; }
+  .report-choice-list a { min-height: 37px; padding: 5px 7px; font-size: 10px; }
   .report-choice-grid a small, .report-choice-list a small { font-size: 10px; }
   .report-chart-stage { min-height: 190px; padding-left: 35px; }
   .report-chart-stage .report-chart-scale { height: 143px; top: 10px; font-size: 9px; }
@@ -1594,6 +1596,11 @@ small {
   .report-chart-categorical .report-chart-column { flex-basis: 86px; min-width: 86px; }
   .report-chart-categorical .report-chart-label { max-width: 86px; font-size: 10px; }
   .report-period-dialog { width: 100%; max-height: 86vh; }
+  .report-period-nav { max-width: 270px; justify-content: center; gap: 8px; }
+  .report-period-button { min-width: 0; width: 154px; padding: 6px 8px; font-size: 15px; }
+  .report-period-button strong { display: block; width: 100%; text-align: center; white-space: nowrap; }
+  .report-period-button span { font-size: 16px; }
+  .report-arrow { flex: 0 0 28px; width: 28px; height: 28px; font-size: 21px; }
 }
 
 @media (max-width: 850px) {
