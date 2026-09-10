@@ -2,7 +2,7 @@
   <div class="history-heading">
     <div>
       <h1>Histórico</h1>
-      <p>Consulta os pedidos terminados de forma rápida. Até 200 registos são apresentados.</p>
+      <p>Consulta todos os pedidos terminados e filtra por período ou estado.</p>
     </div>
   </div>
 
@@ -22,16 +22,30 @@
   </div>
 
   <section class="panel history-filters">
+    <h2>Escolher período</h2>
+    <div class="history-quick-filters">
+      <%= link_to 'Todos', history_staff_orders_path(status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'all' ? 'is-active' : '') %>
+      <%= link_to 'Hoje', history_staff_orders_path(period: 'today', status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'today' ? 'is-active' : '') %>
+      <%= link_to 'Ontem', history_staff_orders_path(period: 'yesterday', status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'yesterday' ? 'is-active' : '') %>
+      <%= link_to 'Últimos 7 dias', history_staff_orders_path(period: 'last_7_days', status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'last_7_days' ? 'is-active' : '') %>
+      <%= link_to 'Personalizado', history_staff_orders_path(period: 'custom', from: @history_from_value, to: @history_to_value, status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'custom' ? 'is-active' : '') %>
+    </div>
+
     <%= form_with url: history_staff_orders_path, method: :get, class: 'history-filter-form' do %>
+      <%= hidden_field_tag :period, 'custom' %>
       <div>
-        <%= label_tag :date, 'Dia' %>
-        <%= date_field_tag :date, @history_date&.iso8601 %>
+        <%= label_tag :from, 'De' %>
+        <%= datetime_local_field_tag :from, @history_from_value %>
+      </div>
+      <div>
+        <%= label_tag :to, 'Até' %>
+        <%= datetime_local_field_tag :to, @history_to_value %>
       </div>
       <div>
         <%= label_tag :status, 'Estado' %>
         <%= select_tag :status, options_for_select([['Todos', 'all'], ['Servidos', 'served'], ['Cancelados', 'denied']], @history_status) %>
       </div>
-      <%= submit_tag 'Filtrar', class: 'secondary' %>
+      <%= submit_tag 'Aplicar intervalo', class: 'secondary' %>
       <%= link_to 'Limpar', history_staff_orders_path, class: 'button secondary history-clear-filter' %>
     <% end %>
   </section>
@@ -45,7 +59,7 @@
   <% else %>
     <section class="panel empty-state">
       <strong>Não existem pedidos neste filtro.</strong>
-      <p>Tenta escolher outro dia ou estado.</p>
+      <p>Tenta escolher outro período ou estado.</p>
     </section>
   <% end %>
 </div>
