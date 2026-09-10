@@ -606,6 +606,9 @@ small {
 .suggestion-quantity-value { display: grid; min-height: 28px; place-items: center; color: var(--green); font-size: 18px; line-height: 1; text-align: center; }
 .suggestion-dots { position: relative; width: 64px; height: 6px; margin: 2px auto 0; overflow: hidden; border-radius: 999px; background: #d8e4d8; }
 .suggestion-dots::after { content: ''; position: absolute; top: 0; left: var(--suggestion-dot-left, 0%); width: 33%; height: 100%; border-radius: inherit; background: var(--green); transition: left 160ms ease; }
+.order-note-panel { padding: 14px 16px; margin: 20px 0; border: 1px solid var(--line); border-radius: 12px; background: #f5f6f0; }
+.order-note-panel label { margin-top: 0; }
+.order-note-panel small { display: block; margin-top: 6px; }
 .staff-popup { position: fixed; z-index: 20; right: 24px; bottom: 24px; max-width: min(420px, calc(100vw - 32px)); background: #fff; border: 2px solid #d99b4b; border-radius: 12px; padding: 14px 16px; box-shadow: 0 8px 24px #20383228; }
 .staff-popup button { margin: 8px 0 0; }
 .push-status { color: var(--muted); min-height: 1.5em; }
@@ -691,7 +694,7 @@ small {
   }
 
   .staff-header { align-items: center; }
-  .staff-header > strong { align-self: center; flex: 1; min-width: 130px; line-height: 1.2; transform: translateY(6px); }
+  .staff-header > strong { align-self: center; flex: 1; min-width: 130px; line-height: 1.2; transform: none; }
   .staff-main-nav { order: 3; flex-basis: 100%; width: 100%; gap: 8px; overflow-x: auto; justify-content: flex-start; padding-bottom: 2px; scrollbar-width: none; }
   .staff-main-nav { flex-wrap: nowrap; }
   .staff-main-nav::-webkit-scrollbar { display: none; }
