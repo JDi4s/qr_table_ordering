@@ -1,0 +1,30 @@
+<p class="eyebrow">CONTROLO FINANCEIRO</p>
+<h1>Relatórios e caixa</h1>
+<div class="toolbar report-toolbar">
+  <%= form_with url: staff_reports_path, method: :get do |f| %>
+    <%= f.label :date, 'Dia' %><%= f.date_field :date, value: @start_date %>
+    <%= f.submit 'Ver dia', class: 'secondary' %>
+  <% end %>
+  <%= link_to 'Exportar CSV', export_staff_reports_path(date: @start_date), class: 'button secondary' %>
+  <%= link_to 'Ver atividade da equipa', staff_audit_events_path, class: 'button secondary' %>
+</div>
+
+<div class="staff-summary-grid">
+  <div class="staff-summary-card"><strong><%= euros(@total) %></strong><span>Total recebido</span></div>
+  <div class="staff-summary-card"><strong><%= @payments.size %></strong><span>Pagamentos</span></div>
+  <div class="staff-summary-card staff-summary-alert"><strong><%= @unpaid_tables.size %></strong><span>Mesas por pagar</span></div>
+</div>
+
+<section class="panel report-card"><div class="section-heading"><div><p class="eyebrow">FECHO DE CAIXA</p><h2><%= @start_date.strftime('%d/%m/%Y') %></h2></div><span class="badge"><%= @closure ? 'Fechado' : 'Aberto' %></span></div>
+  <% if @closure %><p>Fechado por <strong><%= @closure.user.name.presence || @closure.user.login_identifier %></strong> às <%= @closure.closed_at.strftime('%H:%M') %>.</p>
+  <% else %><p>Confirma o total recebido deste dia para impedir um segundo fecho.</p><%= button_to 'Fechar caixa deste dia', close_staff_reports_path(date: @start_date), method: :post, data: { confirmation_message: "Fechar o caixa de #{@start_date.strftime('%d/%m/%Y')}?" } %><% end %>
+</section>
+
+<div class="report-columns">
+  <section class="panel report-card"><h2>Por método</h2><ul><% @by_method.each do |method, amount| %><li class="line"><span><%= payment_method_label(method) %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% if @by_method.empty? %><p>Sem pagamentos neste dia.</p><% end %></section>
+  <section class="panel report-card"><h2>Por funcionário</h2><ul><% @staff_totals.each do |name, amount| %><li class="line"><span><%= name %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% if @staff_totals.empty? %><p>Sem pagamentos neste dia.</p><% end %></section>
+</div>
+
+<section class="panel report-card"><h2>Produtos mais pagos</h2><ul><% @product_totals.each do |name, amount| %><li class="line"><span><%= name %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% if @product_totals.empty? %><p>Sem artigos pagos neste dia.</p><% end %></section>
+
+<section class="panel report-card"><h2>Mesas ainda por pagar</h2><% if @unpaid_tables.any? %><p><%= @unpaid_tables.map { |table| "Mesa #{table.number}" }.join(' · ') %></p><% else %><p>Nenhuma mesa pendente.</p><% end %></section>

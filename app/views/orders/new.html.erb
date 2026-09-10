@@ -4,10 +4,10 @@
   <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %>
 </div>
 <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
-  <%= render 'menu', categories: @categories %>
+  <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>
   <section class="panel">
     <label for="order_note">Observações para a cozinha</label>
-    <%= text_area_tag 'order[note]', nil, id: 'order_note', maxlength: 1000, placeholder: 'Por exemplo: sem tomate.' %>
+    <%= text_area_tag 'order[note]', @cart_note, id: 'order_note', maxlength: 1000, placeholder: 'Por exemplo: sem tomate.' %>
     <button type="submit">Rever pedido</button>
   </section>
 <% end %>

@@ -1,0 +1,16 @@
+<% selected_ids = Array(local_assigns.fetch(:selected_ids, [])).map(&:to_i) %>
+<% excluded_id = local_assigns[:excluded_id]&.to_i %>
+<div class="recommendation-picker">
+  <div class="recommendation-picker-toolbar">
+    <%= search_field_tag 'recommendation_search', '', placeholder: 'Pesquisar produto...', autocomplete: 'off', data: { recommendation_options_target: 'search', action: 'input->recommendation-options#filter' } %>
+    <span data-recommendation-options-target="count">0 selecionadas</span>
+  </div>
+  <div class="recommendation-picker-options">
+    <% @recommendation_options.reject { |item| item.id == excluded_id }.each do |item| %>
+      <label class="recommendation-option" data-recommendation-options-target="option" data-search-text="<%= item.name.downcase %>">
+        <%= check_box_tag 'menu_item[recommended_menu_item_ids][]', item.id, selected_ids.include?(item.id), data: { action: 'change->recommendation-options#updateCount' } %>
+        <span><strong><%= item.name %></strong><small><%= item.category.name %></small></span>
+      </label>
+    <% end %>
+  </div>
+</div>

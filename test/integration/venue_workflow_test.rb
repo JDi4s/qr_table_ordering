@@ -21,7 +21,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     get qr_code_staff_table_path(@other_table)
     assert_response :not_found
     post staff_menu_items_path, params: { menu_item: { name: 'Intruso', price: 10, category_id: @other_product.category_id } }
-    assert_response :not_found
+    assert_response :unprocessable_entity
   end
 
   test 'staff cannot create tables manage users or alter contracts' do
@@ -32,6 +32,15 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
     get admin_establishments_path
     assert_response :forbidden
+  end
+
+  test 'staff can log in with username without an email' do
+    staff = venue_user(@venue, role: 'staff')
+    staff.update!(email: nil, username: 'balcao')
+
+    post login_path, params: { identifier: 'balcao', password: 'Test-password-123' }
+
+    assert_redirected_to staff_orders_path
   end
 
   test 'platform owner can create tenant and manager and manually upgrade' do
@@ -57,6 +66,10 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '2' }, note: 'Sem tomate' } }
     assert_response :success
     quote = css_select('input[name="quote"]').first['value']
+    get new_table_order_path(@table)
+    assert_response :success
+    assert_select "input[name='order[items][#{@product.id}]'][value='2']"
+    assert_select '#order_note', value: 'Sem tomate'
     assert_difference('Order.count', 1) { post table_orders_path(@table), params: { quote: quote } }
     order = @table.orders.last
     assert_equal 20, order.total
@@ -116,6 +129,18 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert order.reload.served?
   end
 
+  test 'staff accepts an order without leaving the current board' do
+    order = build_order(@table, @product)
+    sign_in(@manager)
+
+    patch staff_order_path(order),
+      params: { status: 'accepted' },
+      headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+
+    assert_response :no_content
+    assert order.reload.accepted?
+  end
+
   test 'suspension blocks existing staff session and customer endpoints' do
     sign_in(@manager)
     @venue.update!(active: false)
@@ -171,5 +196,39 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     get staff_table_path(@table)
     assert_response :success
     assert_includes response.body, "1 × #{@product.name}"
+  end
+
+  test 'active tables count only unpaid orders' do
+    paid_order = build_order(@table, @product)
+    paid_order.finalize_review!
+    unpaid_order = build_order(@table, @product, customer: 'customer-b')
+    unpaid_order.finalize_review!
+    sign_in(@manager)
+
+    patch mark_paid_staff_order_path(paid_order)
+    get active_staff_tables_path
+
+    assert_response :success
+    assert_select '.table-card p', text: /1 pedido\(s\) em aberto/
+    assert_not_includes response.body, '2 pedido(s) em aberto'
+  end
+
+  test 'customer can add more than one suggested item' do
+    suggestion = @venue.categories.create!(name: 'Bebidas', available: true).menu_items.create!(name: 'Café', price: 0.85, available: true)
+    MenuItemRecommendation.create!(menu_item: @product, recommended_menu_item: suggestion)
+
+    get new_table_order_path(@table)
+    post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '1' } } }
+    assert_response :success
+    quote = css_select('input[name="quote"]').first['value']
+
+    post table_orders_path(@table), params: {
+      quote: quote,
+      suggestion_quantities: { suggestion.id.to_s => '2' }
+    }
+
+    order = @table.orders.last
+    suggestion_item = order.order_items.find_by!(menu_item_id: suggestion.id)
+    assert_equal 2, suggestion_item.quantity
   end
 end

@@ -1,44 +1,45 @@
+<% active = local_assigns.fetch(:active, true) %>
+<% include_children = local_assigns.fetch(:include_children, true) %>
+<% cart_quantities = local_assigns.fetch(:cart_quantities, {}) %>
 <% if category.visible_to_customers? %>
-  <%= content_tag(level.zero? ? :h2 : :h3, category.name, class: "menu-category level-#{level}") %>
+  <section id="menu-category-<%= category.id %>" class="customer-menu-section menu-category level-<%= level %>" data-customer-menu-target="categoryPanel" <%= 'hidden' unless active %>>
+    <%= content_tag(level.zero? ? :h2 : :h3, category.name, class: "menu-category-title level-#{level}") %>
 
-  <% items = category.menu_items.select(&:available?) %>
+  <% items = category.menu_items.select(&:available?).sort_by(&:name) %>
 
-  <% unless items.empty? %>
-    <div class="grid">
-      <% items.each do |item| %>
-        <section class="panel product">
-          <% if item.image.attached? %>
-            <%= image_tag(
-              item.image,
-              alt: item.name,
-              class: 'product-image',
-              loading: 'lazy'
-            ) %>
-          <% end %>
+    <% unless items.empty? %>
+      <div class="customer-menu-grid">
+        <% items.each do |item| %>
+          <% quantity = cart_quantities[item.id.to_s].to_i %>
+          <article class="panel customer-product-card <%= 'is-added' if quantity.positive? %>" data-customer-menu-target="product" data-price="<%= item.price %>" data-price-cents="<%= (item.price * 100).round %>" data-search-text="<%= h([item.name, item.description].compact.join(' ').downcase) %>" role="button" tabindex="0" data-action="click->customer-menu#toggleProduct keydown->customer-menu#toggleProduct" aria-label="<%= quantity.positive? ? "Aumentar quantidade de #{item.name}" : "Adicionar #{item.name}" %>">
+            <div class="customer-product-media">
+              <% if item.image.attached? %>
+                <%= image_tag item.image, alt: item.name, class: 'product-image', loading: 'lazy' %>
+              <% else %>
+                <div class="product-image-placeholder" aria-hidden="true">Sem imagem</div>
+              <% end %>
+            </div>
 
-          <div>
-            <strong><%= item.name %></strong>
-            <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
-            <p><%= euros(item.price) %></p>
-          </div>
+            <div class="customer-product-content">
+              <strong><%= item.name %></strong>
+              <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
+              <p class="customer-product-price"><%= euros(item.price) %></p>
+              <%= number_field_tag "order[items][#{item.id}]", quantity, min: 0, max: 99, step: 1, id: "quantity_#{item.id}", class: 'customer-quantity-input', aria: { label: "Quantidade de #{item.name}" } %>
+              <button type="button" class="customer-remove-button" <%= 'hidden' unless quantity.positive? %> data-action="click->customer-menu#removeProduct:stop" aria-label="Remover uma unidade de <%= item.name %>">×</button>
+              <div class="customer-product-action-slot">
+                <button type="button" class="customer-add-button" <%= 'hidden' if quantity.positive? %> data-action="click->customer-menu#addProduct:stop" aria-label="Adicionar <%= item.name %>">Adicionar</button>
+                <strong class="quantity-value" <%= 'hidden' unless quantity.positive? %> aria-live="polite"><%= quantity %></strong>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% end %>
 
-          <div>
-            <label for="quantity_<%= item.id %>">Quantidade</label>
-            <%= number_field_tag(
-              "order[items][#{item.id}]",
-              0,
-              min: 0,
-              max: 99,
-              step: 1,
-              id: "quantity_#{item.id}"
-            ) %>
-          </div>
-        </section>
+    <% if include_children %>
+      <% category.children.order(:name).each do |child| %>
+        <%= render 'orders/category_menu', category: child, level: level + 1, cart_quantities: cart_quantities %>
       <% end %>
-    </div>
-  <% end %>
-
-  <% category.children.order(:name).each do |child| %>
-    <%= render 'orders/category_menu', category: child, level: level + 1 %>
-  <% end %>
+    <% end %>
+  </section>
 <% end %>

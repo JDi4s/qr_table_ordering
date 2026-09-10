@@ -1,17 +1,12 @@
 <p class="eyebrow">CONTROLO DE PAGAMENTOS</p>
-<h1>Mesas ativas</h1>
-<p>Estas são as mesas que têm pedidos ainda por pagar. Escolha uma mesa para consultar os pedidos individuais.</p>
+<h1>Mesas com consumo</h1>
+<p>Escolha uma mesa para consultar pedidos, estados e pagamentos individuais.</p>
 
-<div class="table-dashboard">
+<%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
+
+<div class="table-dashboard" data-controller="staff-live-refresh">
   <% @tables.each do |table| %>
-    <%= link_to staff_table_path(table), class: 'table-card' do %>
-      <%= table_svg(table) %>
-      <div>
-        <h2>Mesa <%= table.number %></h2>
-        <p><strong><%= table.orders.unpaid.count %></strong> pedido(s) por pagar</p>
-        <p><strong><%= euros(table.orders.unpaid.sum(&:outstanding_total)) %></strong> por pagar</p>
-      </div>
-    <% end %>
+    <%= render 'staff/tables/active_table', table: table %>
   <% end %>
 </div>
 

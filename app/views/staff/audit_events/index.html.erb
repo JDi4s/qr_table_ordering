@@ -1,0 +1,13 @@
+<p class="eyebrow">RASTREABILIDADE</p>
+<h1>Atividade da equipa</h1>
+<p class="settings-intro">Consulta quem fez cada alteração importante no estabelecimento.</p>
+<section class="panel audit-list">
+  <% if @events.any? %>
+    <% @events.each do |event| %>
+      <div class="line audit-row">
+        <div><strong><%= event.user&.name.presence || event.user&.login_identifier || 'Cliente' %></strong> <%= audit_action_label(event.action) %><% if event.auditable.present? %> <strong>#<%= event.auditable_id %></strong><% end %></div>
+        <time datetime="<%= event.created_at.iso8601 %>"><%= event.created_at.strftime('%d/%m/%Y %H:%M') %></time>
+      </div>
+    <% end %>
+  <% else %><p>Ainda não existem ações registadas.</p><% end %>
+</section>

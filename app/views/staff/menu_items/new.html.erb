@@ -1,38 +1,39 @@
-<h1>Produto</h1>
-
-<section class="panel">
-  <%= render 'shared/errors', record: @menu_item %>
-
-  <%= form_with model: [:staff, @menu_item], html: { multipart: true } do |f| %>
-    <%= f.label :name, 'Nome' %>
-    <%= f.text_field :name, required: true %>
-
-    <%= f.label :description, 'Descrição (opcional)' %>
-    <%= f.text_area :description, maxlength: 500, placeholder: 'Por exemplo: pão artesanal, queijo e molho da casa' %>
-
-    <%= f.label :category_id, 'Categoria' %>
-    <%= f.select :category_id,
-      options_for_select(category_options(current_establishment.categories.to_a), @menu_item.category_id),
-      {},
-      required: true %>
-
-    <%= f.label :price, 'Preço (€)' %>
-    <%= f.number_field :price, min: 0, step: '0.01', required: true %>
-
-    <%= f.label :image, 'Imagem do produto (opcional)' %>
-    <%= f.file_field :image, accept: 'image/png,image/jpeg,image/webp' %>
-
-    <%= f.label :recommended_menu_item_ids, 'Sugestões quando este produto for pedido (opcional)' %>
-    <%= f.collection_select :recommended_menu_item_ids, @recommendation_options.reject { |item| item.id == @menu_item.id }, :id, :name, {}, multiple: true %>
-    <small>Selecione os produtos que costumam acompanhar este produto.</small>
-
-    <label>
-      <%= f.check_box :available %>
-      Disponível
-    </label>
-
-    <%= f.submit 'Guardar' %>
-  <% end %>
-</section>
-
-<p><%= link_to 'Voltar', staff_menu_path %></p>
+<p class="eyebrow">GESTÃO DO MENU</p><h1>Novo produto</h1>
+<%= render 'shared/errors', record: @menu_item %>
+<%= form_with model: [:staff, @menu_item], html: { multipart: true, class: 'menu-form', data: { controller: 'recommendation-options image-preview', action: 'submit->image-preview#prepare' } } do |f| %>
+  <div class="menu-form-grid">
+    <section class="panel menu-form-card">
+      <h2>Informação do produto</h2>
+      <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true, autofocus: true, placeholder: 'Ex.: Pastel de nata' %>
+      <%= f.label :description, 'Descrição (opcional)' %><%= f.text_area :description, maxlength: 500, placeholder: 'Ex.: massa folhada e creme de nata' %>
+    </section>
+    <section class="panel menu-form-card">
+      <h2>Preço e organização</h2>
+      <%= f.label :category_id, 'Categoria' %><%= f.select :category_id, options_for_select(category_options(current_establishment.categories.not_archived.to_a), @menu_item.category_id), { prompt: 'Escolhe uma categoria' }, required: true, data: { recommendation_options_target: 'category', action: 'change->recommendation-options#filter' } %>
+      <%= f.label :price, 'Preço (€)' %><%= f.number_field :price, min: 0, step: '0.01', required: true, placeholder: '0,00' %>
+      <% if current_establishment.production_areas_enabled? %><%= f.label :production_area_id, 'Área de produção' %><%= f.select :production_area_id, options_from_collection_for_select(@production_areas, :id, :name, @menu_item.production_area_id), { prompt: 'Escolher área' } %><% end %>
+      <label class="form-check"><%= f.check_box :available %> Disponível no menu</label>
+    </section>
+    <section class="panel menu-form-card image-form-card">
+      <h2>Imagem</h2>
+      <div class="image-preview" data-image-preview-target="preview">Pré-visualização</div>
+      <div class="image-crop-stage" data-image-preview-target="stage" data-action="pointerdown->image-preview#pointerDown" hidden>
+        <img data-image-preview-target="image" alt="Recorte da imagem">
+        <span class="image-crop-grid" aria-hidden="true"></span>
+      </div>
+      <div class="image-crop-controls" data-image-preview-target="controls" hidden>
+        <label>Zoom <input type="range" min="1" max="3" step="0.01" value="1" data-image-preview-target="zoom" data-action="input->image-preview#zoomChanged"></label>
+        <button type="button" class="button secondary" data-action="click->image-preview#reset">Recentrar</button>
+        <small data-image-preview-target="hint">Arrasta a imagem para a centrar e ajusta o zoom.</small>
+      </div>
+      <%= f.label :image, 'Escolher imagem (opcional)' %><%= f.file_field :image, accept: 'image/png,image/jpeg,image/webp', data: { image_preview_target: 'input', action: 'change->image-preview#preview' } %>
+      <small>O recorte quadrado será o mesmo que aparece no menu.</small>
+    </section>
+    <section class="panel menu-form-card">
+      <h2>Sugestões</h2><%= f.label :recommended_menu_item_ids, 'Produtos sugeridos quando este for pedido' %>
+      <%= render 'recommendation_picker', selected_ids: [] %>
+      <small>Escolhe vários produtos com um toque. Podes pesquisar pelo nome ou deixar a aplicação sugerir automaticamente.</small>
+    </section>
+  </div>
+  <div class="menu-form-actions"><%= f.submit 'Guardar produto' %><%= link_to 'Cancelar', staff_menu_path, class: 'button secondary' %></div>
+<% end %>

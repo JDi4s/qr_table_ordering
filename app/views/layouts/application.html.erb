@@ -15,5 +15,6 @@
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
     <%= yield %>
   </main>
+  <%= render 'shared/confirmation_modal' %>
 </body>
 </html>

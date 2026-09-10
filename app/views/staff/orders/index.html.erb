@@ -1,15 +1,32 @@
-<p class="eyebrow">SERVIÇO EM TEMPO REAL</p><h1>Pedidos e chamadas</h1>
-<p>Mantenha esta página aberta durante o serviço.</p>
-<div class="toolbar">
-  <button type="button" class="secondary" data-action="staff-orders#enableAudio">Ativar / testar som</button>
-  <button type="button" class="secondary" data-action="staff-orders#enableNotifications">Ativar notificações no dispositivo</button>
-</div>
-<p class="push-status" data-staff-orders-target="pushStatus"></p>
-<p><%= link_to 'Ver Mesas ativas e pedidos por pagar', active_staff_tables_path, class: 'button' %></p>
-<%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
-<h2>Chamadas à mesa</h2><div id="service_calls" class="grid empty-list">
-  <% @service_calls.each do |service_call| %><%= render 'staff/service_calls/call', service_call: service_call %><% end %>
-</div>
-<h2>Pedidos em curso</h2><div id="staff_orders_live" class="grid empty-list">
-  <% @orders.each do |order| %><%= render 'order_row', order: order %><% end %>
+<div data-controller="staff-board">
+  <p class="eyebrow">SERVIÇO EM TEMPO REAL</p><h1>Pedidos</h1>
+  <div class="staff-page-intro"><p>Mantenha esta página aberta durante o serviço.</p><%= link_to 'Ver mesas com consumo', active_staff_tables_path, class: 'button secondary' %></div>
+  <%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
+  <div class="staff-summary-grid">
+    <div class="staff-summary-card"><strong data-staff-board-target="pendingCount"><%= @orders.count(&:pending?) %></strong><span>Pedidos novos</span></div>
+    <div class="staff-summary-card"><strong data-staff-board-target="acceptedCount"><%= @orders.count(&:accepted?) %></strong><span>Em preparação</span></div>
+    <div class="staff-summary-card staff-summary-alert"><strong data-staff-board-target="callsCount"><%= @service_calls.count(&:pending?) %></strong><span>Chamadas pendentes</span></div>
+  </div>
+  <% if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.empty? %><div class="flash alert">Ainda não tens áreas atribuídas. Por segurança, estás a ver todos os pedidos até o gerente configurar a tua equipa.</div><% end %>
+
+  <nav class="staff-board-tabs" aria-label="Filtrar serviço">
+    <button type="button" class="staff-board-tab is-active" data-staff-board-target="tab" data-board-filter="all" data-action="staff-board#select" aria-selected="true">Todos <span data-staff-board-target="allCount"><%= @orders.size + @service_calls.size %></span></button>
+    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="pending" data-action="staff-board#select" aria-selected="false">Novos <span data-staff-board-target="pendingCount"><%= @orders.count(&:pending?) %></span></button>
+    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="accepted" data-action="staff-board#select" aria-selected="false">Em preparação <span data-staff-board-target="acceptedCount"><%= @orders.count(&:accepted?) %></span></button>
+    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="calls" data-action="staff-board#select" aria-selected="false">Chamadas <span data-staff-board-target="allCallsCount"><%= @service_calls.size %></span></button>
+  </nav>
+
+  <section class="staff-board-section staff-call-section" data-staff-board-target="calls" hidden>
+    <div class="section-heading"><div><p class="eyebrow">ATENÇÃO IMEDIATA</p><h2>Chamadas à mesa</h2></div><span class="badge" data-staff-board-target="allCallsCount"><%= @service_calls.size %></span></div>
+    <div id="service_calls" class="grid empty-list">
+      <% @service_calls.each do |service_call| %><%= render 'staff/service_calls/call', service_call: service_call %><% end %>
+    </div>
+  </section>
+
+  <section class="staff-board-section" data-staff-board-target="ordersSection">
+    <div class="section-heading"><div><p class="eyebrow">PEDIDOS EM TEMPO REAL</p><h2>Pedidos em curso</h2></div><span class="badge" data-staff-board-target="allOrdersCount"><%= @orders.size %></span></div>
+    <div id="staff_orders_live" class="grid empty-list">
+      <% @orders.each do |order| %><%= render 'order_row', order: order %><% end %>
+    </div>
+  </section>
 </div>

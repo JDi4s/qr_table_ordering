@@ -1,5 +1,5 @@
-<article class="panel call" id="<%= dom_id(service_call) %>">
-  <h3>Mesa <%= service_call.table.number %> — assistência</h3>
+<article class="panel call staff-call-card" id="<%= dom_id(service_call) %>" data-call-status="<%= service_call.status %>">
+  <div class="staff-call-heading"><div><p class="eyebrow">CHAMADA À MESA</p><h3>Mesa <%= service_call.table.number %> — assistência</h3></div><span class="call-icon" aria-hidden="true">!</span></div>
   <p>Chamada às <%= service_call.created_at.strftime('%H:%M') %></p>
   <% if service_call.pending? %>
     <%= button_to 'Assumir chamada', staff_service_call_path(service_call, status: 'claimed'), method: :patch %>

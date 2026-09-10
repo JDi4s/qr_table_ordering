@@ -3,30 +3,56 @@ class StaffPushNotifier
     new.notify_service_call(service_call)
   end
 
-  def notify_service_call(service_call)
-    return unless configured?
+  def self.notify_order(order)
+    new.notify_order(order)
+  end
 
-    User.where(establishment_id: service_call.table.establishment_id, active: true)
-      .where(role: %w[staff manager])
-      .includes(:staff_push_subscription)
-      .filter_map(&:staff_push_subscription)
-      .each { |subscription| send_notification(subscription, service_call) }
+  def notify_service_call(service_call)
+    notify_staff_devices(service_call.table.establishment_id) do |subscription|
+      send_notification(
+        subscription,
+        title: 'Chamada de cliente',
+        body: "Mesa #{service_call.table.number} pediu assistência.",
+        tag: "service-call-#{service_call.id}"
+      )
+    end
+  end
+
+  def notify_order(order)
+    notify_staff_devices(order.table.establishment_id) do |subscription|
+      send_notification(
+        subscription,
+        title: 'Novo pedido',
+        body: "Mesa #{order.table.number} enviou um novo pedido.",
+        tag: "order-#{order.id}"
+      )
+    end
   end
 
   private
+
+  def notify_staff_devices(establishment_id)
+    return unless configured?
+
+    User.where(establishment_id: establishment_id, active: true)
+      .where(role: %w[staff manager])
+      .includes(:staff_push_subscription)
+      .filter_map(&:staff_push_subscription)
+      .each { |subscription| yield subscription }
+  end
 
   def configured?
     ENV['VAPID_PUBLIC_KEY'].present? && ENV['VAPID_PRIVATE_KEY'].present? && ENV['VAPID_SUBJECT'].present?
   end
 
-  def send_notification(subscription, service_call)
+  def send_notification(subscription, title:, body:, tag:)
     WebPush.payload_send(
       message: JSON.generate(
-        title: 'Chamada de cliente',
-        body: "Mesa #{service_call.table.number} pediu assistência.",
+        title: title,
+        body: body,
         icon: '/icon.svg',
         url: '/staff/orders',
-        tag: "service-call-#{service_call.id}"
+        tag: tag
       ),
       endpoint: subscription.endpoint,
       p256dh: subscription.p256dh,

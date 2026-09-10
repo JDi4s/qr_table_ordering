@@ -1,4 +1,33 @@
-<h1>Preferências</h1><section class="panel">
-<%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
-  <label><%= f.check_box :staff_sound_enabled %> Aviso sonoro de novos pedidos e chamadas</label><%= f.submit 'Guardar' %>
-<% end %><p>Depois de guardar, ative o som e as notificações na página dos pedidos, em cada dispositivo autorizado.</p></section>
+<p class="eyebrow">CONFIGURAÇÃO DO SERVIÇO</p><h1>Definições</h1>
+<p class="settings-intro">As preferências da conta e deste dispositivo são independentes. Guarda o som da conta e ativa as notificações em cada dispositivo usado pelo funcionário.</p>
+<section class="panel settings-card">
+  <% if current_user.must_change_password? %>
+    <div class="flash alert"><strong>Altera a palavra-passe temporária antes de continuar.</strong></div>
+    <h2>Nova palavra-passe</h2>
+    <%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
+      <%= f.label :password, 'Nova palavra-passe (mínimo 12 caracteres)' %>
+      <%= f.password_field :password, required: true, minlength: 12, autocomplete: 'new-password' %>
+      <%= f.submit 'Guardar nova palavra-passe' %>
+    <% end %>
+  <% end %>
+</section>
+<section class="panel settings-card">
+  <p class="eyebrow">PREFERÊNCIA DA CONTA</p>
+  <h2>Som dos avisos</h2>
+  <%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
+    <label><%= f.check_box :staff_sound_enabled %> Permitir som para novos pedidos e chamadas</label>
+    <%= f.submit 'Guardar' %>
+  <% end %>
+</section>
+<section class="panel settings-card">
+  <p class="eyebrow">NESTE DISPOSITIVO</p><h2>Som</h2>
+  <p>O navegador só permite som depois de uma interação. Testa-o uma vez neste dispositivo.</p>
+  <p class="push-status" data-staff-orders-target="soundStatus"><%= current_user.staff_sound_enabled? ? 'Som ativo nas definições.' : 'Som desativado nas definições.' %></p>
+  <button type="button" class="secondary" data-action="staff-orders#enableAudio">Testar som</button>
+</section>
+<section class="panel settings-card">
+  <p class="eyebrow">NESTE DISPOSITIVO</p><h2>Notificações</h2>
+  <p>Cada funcionário pode ter apenas um dispositivo associado. Se ativares noutro, este será substituído.</p>
+  <p class="push-status" data-staff-orders-target="pushStatus"></p>
+  <button type="button" class="secondary" data-staff-orders-target="pushButton" data-action="staff-orders#enableNotifications">Ativar notificações neste dispositivo</button>
+</section>

@@ -1,9 +1,11 @@
 <p class="eyebrow">MESA <%= @table.number %></p>
-<h1>Pedidos por pagar</h1>
+<h1>Consumo da mesa</h1>
 <div class="table-show-header panel">
   <%= table_svg(@table) %>
-  <div><h2>Mesa <%= @table.number %></h2><p><strong><%= @orders.count %></strong> pedido(s) por pagar</p><p><strong><%= euros(@orders.sum(&:outstanding_total)) %></strong> por pagar</p></div>
+  <div><h2>Mesa <%= @table.number %></h2><p><strong><%= @orders.count %></strong> pedido(s) em aberto</p><p><strong><%= euros(@orders.sum(&:outstanding_total)) %></strong> por pagar</p></div>
 </div>
+
+<div class="flash notice"><strong>Como pagar:</strong> abre cada pedido para pagar tudo ou usa o pagamento individual para dividir a conta.</div>
 
 <div class="grid">
   <% @orders.each do |order| %>

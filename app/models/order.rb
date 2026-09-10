@@ -5,12 +5,14 @@ class Order < ApplicationRecord
   belongs_to :paid_by_user, class_name: 'User', optional: true
   has_one :establishment, through: :table
   has_many :order_items, dependent: :destroy
+  has_many :payments, dependent: :restrict_with_error
   has_many :menu_items, through: :order_items
   enum status: { pending: 'pending', accepted: 'accepted', needs_customer_action: 'needs_customer_action', denied: 'denied', served: 'served' }
   scope :unpaid, -> { where(paid_at: nil).where.not(status: 'denied') }
   validates :note, length: { maximum: 1000 }
   validates :customer_token, presence: true
   after_create_commit :broadcast_created
+  after_create_commit :notify_staff_devices
   after_update_commit :broadcast_updated
 
   def customer_stream
@@ -66,10 +68,12 @@ class Order < ApplicationRecord
   def reject!(reason, customer: false)
     with_lock do
       ensure_state!('pending', 'needs_customer_action')
+      raise InvalidTransition, 'O prazo para cancelar este pedido terminou.' if customer && !cancellable_by_customer?
       reason = customer ? 'Cancelado pelo cliente.' : reason.to_s.strip
       raise InvalidTransition, 'Indique o motivo da rejeição.' if reason.blank?
       order_items.update_all(status: 'denied', denial_reason: reason, updated_at: Time.current)
-      update!(status: 'denied', denial_reason: reason, total: 0)
+      update!(status: 'denied', denial_reason: customer ? nil : reason,
+              cancellation_reason: customer ? reason : nil, cancelled_at: customer ? Time.current : nil, total: 0)
     end
   end
 
@@ -92,6 +96,10 @@ class Order < ApplicationRecord
     payable_total - outstanding_total
   end
 
+  def cancellable_by_customer?
+    (pending? && created_at >= 3.minutes.ago) || needs_customer_action?
+  end
+
   def outstanding_total
     order_items.reject(&:denied?).sum(&:outstanding_total)
   end
@@ -104,23 +112,28 @@ class Order < ApplicationRecord
     paid_at.present?
   end
 
-  def mark_paid!(user)
+  def mark_paid!(user, payment_method: 'cash')
     with_lock do
       ensure_payment_state!
+      ensure_cash_open!
       raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
 
-      order_items.where.not(status: 'denied').find_each do |item|
+      items = remaining_payment_items
+      items.each do |entry|
+        item = entry[:order_item]
         item.update!(paid_quantity: item.quantity)
       end
+      create_payment!(user, items, payment_method: payment_method)
       complete_payment!(user)
     end
   end
 
-  def pay_item!(item_id, quantity, user)
+  def pay_item!(item_id, quantity, user, payment_method: 'cash')
     quantity = Integer(quantity)
 
     with_lock do
       ensure_payment_state!
+      ensure_cash_open!
       raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
       raise InvalidTransition, 'Indique uma quantidade válida.' if quantity <= 0
 
@@ -128,8 +141,14 @@ class Order < ApplicationRecord
       raise InvalidTransition, 'Este artigo não pode ser pago.' unless item.accepted?
       raise InvalidTransition, 'A quantidade indicada é superior ao que falta pagar.' if quantity > item.remaining_quantity
 
+      entry = { order_item: item, quantity: quantity, unit_price: item.unit_price, amount: item.unit_price * quantity }
       item.update!(paid_quantity: item.paid_quantity + quantity)
-      complete_payment!(user) if fully_paid?
+      create_payment!(user, [entry], payment_method: payment_method)
+      if fully_paid?
+        complete_payment!(user)
+      else
+        touch
+      end
     end
   rescue ArgumentError
     raise InvalidTransition, 'Indique uma quantidade válida.'
@@ -141,10 +160,39 @@ class Order < ApplicationRecord
     raise InvalidTransition, 'O pedido tem de ser aceite antes de ser pago.' unless accepted? || served?
   end
 
+  def ensure_cash_open!
+    raise InvalidTransition, 'O caixa deste dia já foi fechado.' if establishment.cash_closures.exists?(business_date: Time.current.to_date)
+  end
+
   def complete_payment!(user)
     return unless fully_paid?
 
     update!(paid_at: Time.current, paid_by_user: user)
+  end
+
+  def remaining_payment_items
+    order_items.where.not(status: 'denied').filter_map do |item|
+      next if item.remaining_quantity.zero?
+
+      { order_item: item, quantity: item.remaining_quantity, unit_price: item.unit_price,
+        amount: item.outstanding_total }
+    end
+  end
+
+  def create_payment!(user, items, payment_method: 'cash')
+    unless Payment.payment_methods.key?(payment_method.to_s)
+      raise InvalidTransition, 'Método de pagamento inválido.'
+    end
+
+    amount = items.sum { |item| item[:amount].to_d }
+    return if amount.zero?
+
+    payment = payments.create!(user: user, payment_method: payment_method, amount: amount, paid_at: Time.current)
+    items.each do |item|
+      payment.payment_items.create!(order_item: item[:order_item], quantity: item[:quantity],
+                                    unit_price: item[:unit_price], amount: item[:amount])
+    end
+    payment
   end
 
   def ensure_state!(*allowed)
@@ -153,6 +201,11 @@ class Order < ApplicationRecord
 
   def broadcast_created
     broadcast_append_to(establishment.staff_stream, target: 'staff_orders_live', partial: 'staff/orders/order_row', locals: { order: self })
+    broadcast_active_table
+  end
+
+  def notify_staff_devices
+    StaffPushNotifier.notify_order(self)
   end
 
   def broadcast_updated
@@ -163,5 +216,14 @@ class Order < ApplicationRecord
       broadcast_replace_to(establishment.staff_stream, target: dom_id(self), partial: 'staff/orders/order_row', locals: { order: self })
     end
     broadcast_replace_to(establishment.staff_stream, target: "order_detail_#{id}", partial: 'staff/orders/detail', locals: { order: self })
+    broadcast_active_table
+  end
+
+  def broadcast_active_table
+    if table.unpaid_orders.exists?
+      broadcast_replace_to(establishment.staff_stream, target: dom_id(table), partial: 'staff/tables/active_table', locals: { table: table })
+    else
+      broadcast_remove_to(establishment.staff_stream, target: dom_id(table))
+    end
   end
 end

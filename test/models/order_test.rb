@@ -103,6 +103,15 @@ class OrderTest < ActiveSupport::TestCase
     assert_raises(Order::InvalidTransition) { @order.mark_paid!(cashier) }
   end
 
+  test 'full payment broadcasts removal of the table from active tables' do
+    cashier = venue_user(@venue, role: 'staff')
+    @order.finalize_review!
+
+    messages = capture_broadcasts(@venue.staff_stream) { @order.mark_paid!(cashier) }
+
+    assert messages.any? { |message| message.include?('action="remove"') && message.include?("table_#{@table.id}") }
+  end
+
   test 'accepted order supports paying only part of an item quantity' do
     cashier = venue_user(@venue, role: 'staff')
     @order.finalize_review!
@@ -121,5 +130,28 @@ class OrderTest < ActiveSupport::TestCase
     @order.mark_paid!(cashier)
     assert @order.reload.paid?
     assert_equal 0, @order.outstanding_total
+  end
+
+  test 'payments keep an item-level movement and method' do
+    cashier = venue_user(@venue, role: 'staff')
+    @order.finalize_review!
+
+    @order.pay_item!(@order.order_items.first.id, 1, cashier, payment_method: 'card')
+
+    payment = @order.payments.order(:created_at).last
+    assert_equal 'card', payment.payment_method
+    assert_equal BigDecimal('10'), payment.amount
+    assert_equal 1, payment.payment_items.first.quantity
+    assert_equal cashier, payment.user
+  end
+
+  test 'customer cancellation is allowed for three minutes and then expires' do
+    assert @order.cancellable_by_customer?
+
+    travel 4.minutes do
+      assert_raises(Order::InvalidTransition) { @order.reject!(nil, customer: true) }
+    end
+
+    assert @order.reload.pending?
   end
 end

@@ -15,8 +15,9 @@
     <div class="flash notice"><strong>O seu pedido tem alterações.</strong> Confirme os produtos, as alterações e o novo total antes de continuar.</div>
     <%= button_to 'Aceitar este pedido atualizado', accept_remaining_table_order_path(order.table, order) %>
   <% end %>
-  <% if order.pending? || order.needs_customer_action? %>
-    <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary', data: { turbo_confirm: 'Cancelar todo o pedido?' } %>
+  <% if order.pending? && order.created_at < 3.minutes.ago %><p class="danger">O prazo de 3 minutos para cancelar terminou.</p><% end %>
+  <% if order.cancellable_by_customer? %>
+    <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary', data: { confirmation_message: 'Cancelar todo o pedido?' } %>
   <% end %>
-  <% if order.denied? %><p><%= order.denial_reason %></p><% end %>
+  <% if order.denied? %><p><%= order.cancellation_reason.presence || order.denial_reason %></p><% end %>
 </section>

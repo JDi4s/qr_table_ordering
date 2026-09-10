@@ -11,7 +11,7 @@ class Staff::TablesController < Staff::BaseController
       .joins(:orders)
       .merge(Order.unpaid)
       .distinct
-      .includes(orders: { order_items: :menu_item })
+      .includes(orders: [{ order_items: :menu_item }, { payments: :user }])
       .order(:number)
   end
 
@@ -19,7 +19,7 @@ class Staff::TablesController < Staff::BaseController
     @table = current_establishment.tables.find_by!(qr_token: params[:id])
     @orders = @table.orders
       .unpaid
-      .includes(order_items: :menu_item)
+      .includes(order_items: :menu_item, payments: :user)
       .order(:created_at)
   end
 

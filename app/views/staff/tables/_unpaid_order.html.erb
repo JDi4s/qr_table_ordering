@@ -1,6 +1,12 @@
 <article class="panel unpaid-order">
-  <div class="line"><h2>Pedido #<%= order.id %></h2><span class="badge"><%= state_label(order.status) %></span></div>
-  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
+  <div class="line"><div><p class="eyebrow">PEDIDO #<%= order.id %></p><h2><%= order.created_at.strftime('%H:%M') %></h2></div><span class="badge order-status order-status-<%= order.status %>"><%= state_label(order.status) %></span></div>
+  <p><strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
+  <% if order.payments.any? %>
+    <details class="payment-history"><summary><%= order.payments.size %> pagamento(s) registado(s)</summary>
+      <ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul>
+    </details>
+  <% end %>
+  <% unless order.accepted? || order.served? %><p class="table-warning">Este pedido ainda não está disponível para pagamento.</p><% end %>
   <ul>
     <% order.order_items.each do |item| %>
       <li class="payment-line">
@@ -17,8 +23,9 @@
         <% if item.unpaid? && item.accepted? %>
           <%= form_with url: pay_item_staff_order_path(order), method: :patch, class: 'payment-form' do %>
             <%= hidden_field_tag :order_item_id, item.id %>
-            <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true %>
-            <%= submit_tag 'Pagar', data: { turbo_confirm: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name}?" } %>
+            <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true, aria: { label: "Quantidade de #{item.display_name} a pagar" } %>
+            <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
+            <%= submit_tag 'Confirmar', data: { confirmation_message: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name} — #{euros(item.outstanding_total)}?" } %>
           <% end %>
         <% end %>
       </li>
@@ -26,6 +33,11 @@
   </ul>
   <div class="toolbar">
     <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button secondary' %>
-    <% if order.accepted? || order.served? %><%= button_to 'Pagar pedido completo', mark_paid_staff_order_path(order), method: :patch, data: { turbo_confirm: "Confirmar pagamento do pedido ##{order.id}?" } %><% end %>
+    <% if order.accepted? || order.served? %>
+      <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
+        <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
+        <%= submit_tag 'Pagar pedido completo', data: { confirmation_message: "Confirmar pagamento do pedido ##{order.id}?" } %>
+      <% end %>
+    <% end %>
   </div>
 </article>

@@ -1,13 +1,13 @@
 <h1>Mesas e QR codes</h1>
-<p><strong><%= @tables.where(active: true).count %> / <%= current_establishment.table_limit %></strong> mesas ativas. Pode voltar a descarregar um código sem consumir outra mesa.</p>
-<p><%= link_to 'Abrir Mesas ativas', active_staff_tables_path, class: 'button' %></p>
+<p><strong><%= @tables.where(active: true).count %> / <%= current_establishment.table_limit %></strong> mesas ativas. Os QR codes existentes podem ser descarregados novamente.</p>
+<p><%= link_to 'Ver mesas com consumo', active_staff_tables_path, class: 'button' %></p>
 <% if current_user.manager? %><section class="panel"><h2>Criar mesa</h2>
   <%= form_with model: [:staff, @table] do |f| %><%= f.label :number, 'Número da mesa' %><%= f.number_field :number, min: 1, required: true %><%= f.submit 'Criar mesa e QR' %><% end %>
 </section><% end %>
 <div class="grid"><% @tables.each do |table| %><section class="panel">
-  <h2>Mesa <%= table.number %> <small><%= table.active? ? 'Ativa' : 'Desativada' %></small></h2>
+  <h2>Mesa <%= table.number %> <small class="category-status <%= table.active? ? 'is-available' : 'is-unavailable' %>"><%= table.active? ? 'Ativa' : 'Desativada' %></small></h2>
   <% if table.active? %>
-    <p><%= link_to 'Abrir QR grande', qr_code_staff_table_path(table), target: '_blank', rel: 'noopener', data: { turbo: false } %> · <%= link_to 'Descarregar QR (PNG)', qr_code_staff_table_path(table, download: 1), data: { turbo: false } %> · <%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener' %></p>
+    <div class="table-actions"><%= link_to 'Ver QR', qr_code_staff_table_path(table), target: '_blank', rel: 'noopener', data: { turbo: false }, class: 'button secondary compact-action' %><%= link_to 'Descarregar', qr_code_staff_table_path(table, download: 1), data: { turbo: false }, class: 'button secondary compact-action' %><%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener', class: 'button secondary compact-action' %></div>
   <% end %>
   <% if current_user.manager? %><%= form_with model: [:staff, table] do |f| %>
     <%= f.label :number, 'Número' %><%= f.number_field :number, min: 1, required: true %>

@@ -1,3 +1,61 @@
-<% categories.select(&:root?).sort_by(&:name).each do |category| %>
-  <%= render 'orders/category_menu', category: category, level: 0 %>
-<% end %>
+<% preferred_order = { 'Comidas' => 0, 'Bebidas' => 1 } %>
+<% subcategory_order = {
+  'Cafetaria' => 0, 'Águas' => 1, 'Sumos' => 2, 'Cerveja' => 3, 'Vinhos' => 4, 'Bebidas brancas' => 5,
+  'Padaria' => 0, 'Pastelaria' => 1, 'Sandes' => 2
+} %>
+<% cart_quantities = local_assigns.fetch(:cart_quantities, {}) %>
+<% roots = categories.select(&:root?).sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
+<div class="customer-menu" data-controller="customer-menu">
+  <div class="customer-menu-sticky">
+    <div class="customer-menu-toolbar">
+      <nav class="menu-root-tabs" aria-label="Categorias principais">
+        <% roots.each_with_index do |category, index| %>
+          <button type="button" class="menu-root-tab <%= 'is-active' if index.zero? %>" data-action="customer-menu#selectRoot" data-root-id="menu-root-<%= category.id %>" aria-selected="<%= index.zero? %>">
+            <%= category.name %>
+          </button>
+        <% end %>
+      </nav>
+    </div>
+
+    <div class="customer-menu-subcategory-bar">
+      <% roots.each_with_index do |root, root_index| %>
+        <% children = root.children.select(&:visible_to_customers?).sort_by { |category| [subcategory_order.fetch(category.name, 99), category.name] } %>
+        <% if children.any? %>
+          <nav class="menu-subcategory-tabs" data-customer-menu-target="subcategoryNav" data-root-id="menu-root-<%= root.id %>" aria-label="Subcategorias de <%= root.name %>" <%= 'hidden' unless root_index.zero? %>>
+            <% children.each_with_index do |category, category_index| %>
+              <button type="button" class="menu-subcategory-tab <%= 'is-active' if category_index.zero? %>" data-action="customer-menu#selectCategory" data-root-id="menu-root-<%= root.id %>" data-category-id="menu-category-<%= category.id %>" aria-selected="<%= category_index.zero? %>">
+                <%= category.name %>
+              </button>
+            <% end %>
+          </nav>
+        <% end %>
+      <% end %>
+    </div>
+
+    <label class="menu-search">
+      <span class="sr-only">Pesquisar no menu</span>
+      <input type="search" placeholder="Pesquisar no menu" data-customer-menu-target="search" data-action="input->customer-menu#filter">
+    </label>
+  </div>
+
+  <p class="menu-search-empty" data-customer-menu-target="empty" hidden>Não encontrámos produtos com essa pesquisa.</p>
+
+  <% roots.each_with_index do |root, root_index| %>
+    <% children = root.children.select(&:visible_to_customers?).sort_by { |category| [subcategory_order.fetch(category.name, 99), category.name] } %>
+    <section id="menu-root-<%= root.id %>" class="customer-root-panel" data-customer-menu-target="rootPanel" <%= 'hidden' unless root_index.zero? %>>
+      <% if root.menu_items.any? %>
+        <%= render 'orders/category_menu', category: root, level: 0, active: children.empty?, include_children: false, cart_quantities: cart_quantities %>
+      <% end %>
+
+      <% children.each_with_index do |category, category_index| %>
+        <%= render 'orders/category_menu', category: category, level: 1, active: category_index.zero?, cart_quantities: cart_quantities %>
+      <% end %>
+    </section>
+  <% end %>
+
+  <div class="customer-cart-bar" data-customer-menu-target="cartBar" hidden>
+    <span><strong data-customer-menu-target="cartCount">0 artigos</strong><small data-customer-menu-target="cartTotal">0,00 €</small></span>
+    <button type="submit">Rever pedido</button>
+  </div>
+  <div class="customer-menu-toast" data-customer-menu-target="toast" role="status" aria-live="polite" hidden></div>
+</div>

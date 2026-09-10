@@ -41,6 +41,10 @@ Rails.application.routes.draw do
     end
     resource :push_subscription, only: [:create, :destroy], controller: 'push_subscriptions'
     resource :settings, only: [:edit, :update]
+    resources :reports, only: [:index] do
+      collection { get :export; post :close }
+    end
+    resources :audit_events, only: [:index]
   end
   root 'sessions#new'
 end

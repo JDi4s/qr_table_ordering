@@ -1,28 +1,62 @@
-<section class="panel category-panel category-level-<%= level %>">
-  <h2>
-    <%= category.name %>
-    <small><%= category.archived? ? 'Arquivada' : (category.available? ? 'Disponível' : 'Indisponível') %></small>
-  </h2>
-
-  <div class="toolbar">
+<% status = local_assigns.fetch(:status, 'all') %>
+<% children = category.children.order(:name).to_a %>
+<% matching_children = children.select do |child|
+  case status
+  when 'active' then !child.archived? && child.available?
+  when 'unavailable' then !child.archived? && !child.available?
+  when 'archived' then child.archived?
+  else true
+  end
+end %>
+<% items = category.menu_items.order(:name).to_a.select do |item|
+  case status
+  when 'active' then !item.archived? && item.available?
+  when 'unavailable' then !item.archived? && !item.available?
+  when 'archived' then item.archived?
+  else true
+  end
+end %>
+<% matches = if status == 'active'
+  !category.archived? && category.available?
+elsif status == 'unavailable'
+  !category.archived? && !category.available?
+elsif status == 'archived'
+  category.archived? || items.any? || matching_children.any?
+else
+  true
+end %>
+<% if matches %>
+<section id="category-<%= category.id %>" class="panel category-panel category-level-<%= level %>">
+  <div class="category-heading">
+    <div class="category-title">
+      <h2><%= category.name %></h2>
+      <small class="category-status <%= category.archived? ? 'is-archived' : (category.available? ? 'is-available' : 'is-unavailable') %>"><%= category.archived? ? 'Arquivada' : (category.available? ? 'Disponível' : 'Indisponível') %></small>
+    </div>
+  <div class="category-actions">
     <% unless category.archived? %>
-      <%= button_to 'Alterar disponibilidade da categoria',
+      <%= button_to (category.available? ? 'Desativar' : 'Ativar'),
         toggle_availability_staff_category_path(category),
         method: :patch,
-        class: 'secondary' %>
+        class: 'secondary compact-action',
+        title: category.available? ? 'Tornar categoria indisponível' : 'Tornar categoria disponível' %>
     <% end %>
 
     <% if current_user.manager? %>
-      <%= link_to 'Editar categoria', edit_staff_category_path(category) %>
+      <%= link_to 'Editar', edit_staff_category_path(category), class: 'compact-action' %>
       <% if category.archived? %>
-        <%= button_to 'Restaurar categoria', restore_staff_category_path(category), method: :patch, class: 'secondary' %>
+        <%= button_to 'Restaurar', restore_staff_category_path(category), method: :patch, class: 'secondary compact-action' %>
       <% else %>
-        <%= button_to 'Arquivar categoria', staff_category_path(category), method: :delete, class: 'secondary', data: { turbo_confirm: 'Arquivar esta categoria? Os produtos deixam de aparecer no menu.' } %>
+        <%= button_to 'Arquivar', staff_category_path(category), method: :delete, class: 'secondary compact-action', data: { confirmation_message: 'Arquivar esta categoria? Os produtos deixam de aparecer no menu.' } %>
       <% end %>
     <% end %>
   </div>
+  </div>
 
-  <% category.menu_items.order(:name).each do |item| %>
+  <details class="staff-category-details">
+    <summary><%= items.count %> produtos · ver categoria</summary>
+    <div class="staff-category-content">
+
+  <% items.each do |item| %>
     <div class="line">
       <div>
         <strong><%= item.name %></strong>
@@ -32,25 +66,29 @@
 
       <div>
         <% unless item.archived? %>
-          <%= button_to 'Alterar disponibilidade',
+          <%= button_to (item.available? ? 'Desativar' : 'Ativar'),
             toggle_availability_staff_menu_item_path(item),
             method: :patch,
-            class: 'secondary' %>
+            class: 'secondary compact-action',
+            title: item.available? ? 'Tornar produto indisponível' : 'Tornar produto disponível' %>
         <% end %>
 
         <% if current_user.manager? %>
-          <%= link_to 'Editar', edit_staff_menu_item_path(item) %>
+          <%= link_to 'Editar', edit_staff_menu_item_path(item), class: 'compact-action' %>
           <% if item.archived? %>
-            <%= button_to 'Restaurar', restore_staff_menu_item_path(item), method: :patch, class: 'secondary' %>
+            <%= button_to 'Restaurar', restore_staff_menu_item_path(item), method: :patch, class: 'secondary compact-action' %>
           <% else %>
-            <%= button_to 'Arquivar', staff_menu_item_path(item), method: :delete, class: 'secondary', data: { turbo_confirm: 'Arquivar este produto? Deixará de aparecer no menu.' } %>
+            <%= button_to 'Arquivar', staff_menu_item_path(item), method: :delete, class: 'secondary compact-action', data: { confirmation_message: 'Arquivar este produto? Deixará de aparecer no menu.' } %>
           <% end %>
         <% end %>
       </div>
     </div>
   <% end %>
 
-  <% category.children.order(:name).each do |child| %>
-    <%= render 'staff/menu/category', category: child, level: level + 1 %>
-  <% end %>
+      <% matching_children.each do |child| %>
+        <%= render 'staff/menu/category', category: child, level: level + 1, status: status %>
+      <% end %>
+    </div>
+  </details>
 </section>
+<% end %>

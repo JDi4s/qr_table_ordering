@@ -4,10 +4,14 @@ class Establishment < ApplicationRecord
   has_many :menu_items, through: :categories
   has_many :users, dependent: :restrict_with_error
   has_many :orders, through: :tables
+  has_many :payments, through: :orders
   has_many :service_calls, through: :tables
+  has_many :production_areas, dependent: :destroy
+  has_many :audit_events, dependent: :destroy
+  has_many :cash_closures, dependent: :destroy
   validates :name, presence: true, length: { maximum: 120 }
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ }
-  validates :table_limit, :monthly_fee_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :table_limit, :monthly_fee_cents, :production_areas_limit, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validate :limit_covers_active_tables
 
   def monthly_fee
@@ -23,6 +27,20 @@ class Establishment < ApplicationRecord
 
   def staff_stream
     "establishment_#{id}_staff"
+  end
+
+  def production_areas_enabled?
+    production_areas_limit.to_i.positive?
+  end
+
+  def available_production_areas
+    production_areas.where(active: true).order(:position, :name).limit(production_areas_limit)
+  end
+
+  def ensure_default_production_areas!
+    %w[Balcão Bar Cozinha Sobremesas].each_with_index do |name, index|
+      production_areas.find_or_create_by!(name: name) { |area| area.position = index }
+    end
   end
 
   private

@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["pushStatus"]
+  static targets = ["pushStatus", "pushButton", "soundStatus"]
 
   connect() {
     this.handler = (event) => {
@@ -16,30 +16,81 @@ export default class extends Controller {
       }
     }
     document.addEventListener("turbo:before-stream-render", this.handler)
+    this.audioActivationHandler = () => {
+      this.prepareAudio().then((ready) => {
+        if (!ready) return
+        this.setSoundStatus("Som pronto neste dispositivo.")
+        this.removeAudioActivationListeners()
+      }).catch(() => {})
+    }
+    document.addEventListener("pointerdown", this.audioActivationHandler, { passive: true })
+    document.addEventListener("keydown", this.audioActivationHandler)
     this.registerServiceWorker()
   }
   disconnect() {
     document.removeEventListener("turbo:before-stream-render", this.handler)
+    this.removeAudioActivationListeners()
     this.audio?.close()
   }
   async enableAudio() {
-    const Audio = window.AudioContext || window.webkitAudioContext
-    if (!Audio) return
-    this.audio ||= new Audio()
-    await this.audio.resume()
-    this.beep("test", true)
+    if (this.element.dataset.staffSoundEnabled !== "1") {
+      this.setSoundStatus("Som desativado nas Preferências.", true)
+      return
+    }
+
+    const ready = await this.prepareAudio()
+    if (!ready || !(await this.beep("test"))) {
+      this.setSoundStatus("Não foi possível ativar o som neste dispositivo.", true)
+      return
+    }
+    this.removeAudioActivationListeners()
+    this.setSoundStatus("Som ativo e testado neste dispositivo.")
   }
-  beep(kind = "order", test = false) {
-    if ((!test && this.element.dataset.staffSoundEnabled !== "1") || this.audio?.state !== "running") return
-    const oscillator = this.audio.createOscillator()
-    const gain = this.audio.createGain()
-    oscillator.frequency.value = kind === "call" ? 520 : 880
-    gain.gain.value = 0.08
-    oscillator.connect(gain)
-    gain.connect(this.audio.destination)
-    oscillator.start()
-    oscillator.stop(this.audio.currentTime + 0.18)
-    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect() }
+  async beep(kind = "order") {
+    if (this.element.dataset.staffSoundEnabled !== "1") return false
+    try {
+      if (!(await this.prepareAudio())) return false
+    } catch (_) {
+      return false
+    }
+
+    const frequencies = kind === "call" ? [520, 700] : [880]
+    const startedAt = this.audio.currentTime
+
+    frequencies.forEach((frequency, index) => {
+      const start = startedAt + (index * 0.18)
+      const oscillator = this.audio.createOscillator()
+      const gain = this.audio.createGain()
+      oscillator.frequency.value = frequency
+      oscillator.type = "sine"
+      gain.gain.setValueAtTime(0.001, start)
+      gain.gain.exponentialRampToValueAtTime(kind === "call" ? 0.22 : 0.18, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.16)
+      oscillator.connect(gain)
+      gain.connect(this.audio.destination)
+      oscillator.start(start)
+      oscillator.stop(start + 0.17)
+      oscillator.onended = () => { oscillator.disconnect(); gain.disconnect() }
+    })
+    return true
+  }
+
+  async prepareAudio() {
+    if (this.element.dataset.staffSoundEnabled !== "1") return false
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
+    if (!AudioContextClass) return false
+
+    this.audio ||= new AudioContextClass()
+    if (this.audio.state !== "running") await this.audio.resume()
+    return this.audio.state === "running"
+  }
+
+  removeAudioActivationListeners() {
+    if (!this.audioActivationHandler) return
+    document.removeEventListener("pointerdown", this.audioActivationHandler)
+    document.removeEventListener("keydown", this.audioActivationHandler)
+    this.audioActivationHandler = null
   }
 
   showCallPopup(stream) {
@@ -76,7 +127,10 @@ export default class extends Controller {
     try {
       const registration = await navigator.serviceWorker.register("/staff-service-worker.js")
       const subscription = await registration.pushManager?.getSubscription()
-      if (subscription) await this.saveSubscription(subscription)
+      if (subscription) {
+        const response = await this.saveSubscription(subscription)
+        if (response.ok) this.markNotificationsActive()
+      }
       return registration
     } catch (error) {
       console.warn("Não foi possível registar as notificações.", error)
@@ -84,6 +138,15 @@ export default class extends Controller {
   }
 
   async enableNotifications() {
+    try {
+      await this.enableNotificationsNow()
+    } catch (error) {
+      console.error("Não foi possível ativar as notificações.", error)
+      this.setPushStatus(`Falha ao ativar notificações (${error.message}).`, true)
+    }
+  }
+
+  async enableNotificationsNow() {
     const publicKey = this.element.dataset.vapidPublicKey
     if (!publicKey) {
       this.setPushStatus("As notificações ainda não estão configuradas no servidor.", true)
@@ -113,8 +176,8 @@ export default class extends Controller {
 
     const response = await this.saveSubscription(subscription)
 
-    if (!response.ok) throw new Error("subscription failed")
-    this.setPushStatus("Notificações ativas neste dispositivo.")
+    if (!response.ok) throw new Error(`servidor respondeu ${response.status}`)
+    this.markNotificationsActive()
   }
 
   async saveSubscription(subscription) {
@@ -133,6 +196,17 @@ export default class extends Controller {
     if (!this.hasPushStatusTarget) return
     this.pushStatusTarget.textContent = message
     this.pushStatusTarget.classList.toggle("alert", error)
+  }
+
+  markNotificationsActive() {
+    if (this.hasPushButtonTarget) this.pushButtonTarget.hidden = true
+    this.setPushStatus("Notificações ativas neste dispositivo.")
+  }
+
+  setSoundStatus(message, error = false) {
+    if (!this.hasSoundStatusTarget) return
+    this.soundStatusTarget.textContent = message
+    this.soundStatusTarget.classList.toggle("alert", error)
   }
 
   urlBase64ToUint8Array(value) {

@@ -1,43 +1,54 @@
-<section id="order_detail_<%= order.id %>">
+<section id="order_detail_<%= order.id %>" class="staff-order-detail">
   <p class="eyebrow">MESA <%= order.table.number %></p><h1>Pedido #<%= order.id %></h1>
   <p><span class="badge"><%= state_label(order.status) %></span> · Total: <strong><%= euros(order.total) %></strong> · Por pagar: <strong><%= euros(order.outstanding_total) %></strong></p>
   <% if order.note.present? %><div class="flash notice">Observações do cliente: <%= order.note %></div><% end %>
   <% order.order_items.each do |item| %>
-    <article class="panel">
+    <article class="panel order-item-detail">
       <h2><%= item.quantity %> × <%= item.display_name %></h2><p><%= state_label(item.status) %> · <%= euros(item.unit_price) %> / unidade</p>
       <% unless item.denied? %><p><%= item.paid_quantity %> paga(s) · <%= item.remaining_quantity %> por pagar</p><% end %>
       <% if item.denial_reason.present? %><p>Motivo: <%= item.denial_reason %></p><% end %>
       <% if item.proposed_description.present? %><p>Proposta: <%= item.proposed_description %></p><% end %>
       <% if order.pending? %>
         <%= form_with model: [:staff, item] do |f| %>
-          <%= f.label :status, 'Decisão para este produto' %><%= f.select :status, [['Aceitar / propor alteração', 'accepted'], ['Rejeitar', 'denied']] %>
-          <%= f.label :denial_reason, 'Motivo da rejeição' %><%= f.text_field :denial_reason, maxlength: 300 %>
-          <%= f.label :proposed_description, 'Alteração a confirmar pelo cliente (opcional)' %><%= f.text_field :proposed_description, placeholder: 'Por exemplo: hambúrguer sem queijo', maxlength: 300 %>
-          <%= f.label :unit_price, 'Preço por unidade (€)' %><%= f.number_field :unit_price, step: '0.01', min: 0, required: true %>
-          <%= f.submit 'Guardar decisão' %>
+          <fieldset class="order-decision-form"><legend>Decisão deste artigo</legend>
+            <%= f.label :status, 'O que queres fazer?' %><%= f.select :status, [['Aceitar', 'accepted'], ['Rejeitar', 'denied']] %>
+            <%= f.label :denial_reason, 'Motivo da rejeição (obrigatório se rejeitares)' %><%= f.text_field :denial_reason, maxlength: 300, placeholder: 'Por exemplo: produto esgotado' %>
+            <details class="order-advanced-fields"><summary>Alterar descrição ou preço</summary>
+              <%= f.label :proposed_description, 'Alteração a confirmar pelo cliente' %><%= f.text_field :proposed_description, placeholder: 'Por exemplo: sem queijo', maxlength: 300 %>
+              <%= f.label :unit_price, 'Novo preço por unidade (€)' %><%= f.number_field :unit_price, step: '0.01', min: 0, required: true %>
+            </details>
+            <%= f.submit 'Guardar decisão' %>
+          </fieldset>
         <% end %>
       <% end %>
       <% if (order.accepted? || order.served?) && item.unpaid? %>
         <%= form_with url: pay_item_staff_order_path(order), method: :patch, class: 'payment-form' do %>
           <%= hidden_field_tag :order_item_id, item.id %>
           <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true %>
-          <%= submit_tag 'Pagar artigo', data: { turbo_confirm: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name}?" } %>
+          <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
+          <%= submit_tag 'Pagar artigo', data: { confirmation_message: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name}?" } %>
         <% end %>
       <% end %>
     </article>
   <% end %>
   <% if order.pending? %>
-    <section class="panel"><h2>Concluir avaliação</h2><p>Os artigos ainda em avaliação serão aceites como pedidos. Se houver rejeições ou propostas, o cliente terá de confirmar.</p>
+    <section class="panel order-next-step"><p class="eyebrow">PRÓXIMO PASSO</p><h2>Concluir avaliação</h2><p>Os artigos ainda em avaliação serão aceites. Se houver rejeições ou alterações, o cliente terá de confirmar antes da preparação.</p>
       <%= button_to 'Concluir avaliação e avisar cliente', staff_order_path(order, status: 'accepted'), method: :patch %>
     </section>
   <% end %>
   <% if order.pending? || order.needs_customer_action? %>
-    <section class="panel"><%= form_with url: staff_order_path(order), method: :patch do |f| %>
+    <section class="panel danger-panel"><%= form_with url: staff_order_path(order), method: :patch do |f| %>
       <%= hidden_field_tag :status, 'denied' %><%= f.label :denial_reason, 'Rejeitar o pedido completo — motivo' %>
       <%= f.text_field :denial_reason, required: true, maxlength: 300 %><%= f.submit 'Rejeitar pedido', class: 'secondary' %>
     <% end %></section>
   <% end %>
   <% if order.needs_customer_action? %><div class="flash notice">Aguarde a confirmação do cliente antes de preparar o pedido.</div><% end %>
   <% if order.accepted? %><%= button_to 'Marcar como servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
-  <% if (order.accepted? || order.served?) && !order.paid? %><%= button_to 'Pagar pedido completo', mark_paid_staff_order_path(order), method: :patch, class: 'secondary', data: { turbo_confirm: "Confirmar pagamento do pedido ##{order.id}?" } %><% end %>
+  <% if (order.accepted? || order.served?) && !order.paid? %>
+    <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
+      <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
+      <%= submit_tag 'Pagar pedido completo', class: 'secondary', data: { confirmation_message: "Confirmar pagamento do pedido ##{order.id}?" } %>
+    <% end %>
+  <% end %>
+  <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul></details><% end %>
 </section>

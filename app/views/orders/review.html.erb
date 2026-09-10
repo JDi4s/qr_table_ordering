@@ -1,18 +1,36 @@
 <p class="eyebrow">MESA <%= @table.number %></p><h1>Confirme o seu pedido</h1>
-<%= form_with url: table_orders_path(@table), data: { controller: 'order-review', 'order-review-base-total-value-value': @review_total.to_f } do %>
+<%= form_with url: table_orders_path(@table), data: { controller: 'order-review', 'order-review-base-total-value': @review_total.to_f } do %>
 <section class="panel">
   <% @review_items.each do |item| %><div class="line"><span><%= item[:quantity] %> × <%= item[:name] %></span><strong><%= euros(item[:line_total]) %></strong></div><% end %>
   <% unless @review_suggestions.empty? %>
-    <section class="suggestions panel">
-      <p class="eyebrow">TAMBÉM COSTUMAM PEDIR</p>
-      <p>Estas sugestões combinam bem com o seu pedido. Pode ignorar.</p>
-      <% @review_suggestions.each do |suggestion| %>
-        <label class="suggestion-line" data-order-review-target="suggestion" data-price="<%= suggestion.price %>">
-          <%= check_box_tag 'suggestion_ids[]', suggestion.id, false, data: { action: 'order-review#updateTotal' } %>
-          <span><%= suggestion.name %></span>
-          <strong><%= euros(suggestion.price) %></strong>
-        </label>
-      <% end %>
+    <section class="suggestions panel" data-controller="suggestions-carousel">
+      <div class="suggestions-heading">
+        <div>
+          <p class="eyebrow">TAMBÉM PODE COMBINAR</p>
+          <p class="suggestions-intro">Escolhas que combinam bem com o seu pedido.</p>
+        </div>
+        <span class="suggestions-hint">Deslize para ver mais <span aria-hidden="true">→</span></span>
+      </div>
+      <div class="suggestions-carousel-shell">
+      <div class="suggestion-carousel" data-suggestions-carousel-target="track">
+        <% @review_suggestions.each do |suggestion| %>
+          <article class="suggestion-card" data-order-review-target="suggestion" data-price="<%= suggestion.price %>" role="button" tabindex="0" data-action="click->order-review#toggleSuggestion keydown->order-review#toggleSuggestion suggestions-carousel#toggle" aria-label="Adicionar <%= suggestion.name %>">
+            <%= hidden_field_tag "suggestion_quantities[#{suggestion.id}]", 0, class: 'suggestion-quantity-input' %>
+            <button type="button" class="suggestion-remove-button" hidden data-action="click->order-review#removeSuggestion:stop click->suggestions-carousel#toggle" aria-label="Remover <%= suggestion.name %>">×</button>
+            <div class="suggestion-image"><%= suggestion.image.attached? ? image_tag(suggestion.image, alt: suggestion.name) : '＋' %></div>
+            <div class="suggestion-card-content">
+              <strong class="suggestion-name"><%= suggestion.name %></strong>
+              <span><%= euros(suggestion.price) %></span>
+              <div class="suggestion-card-action-slot">
+                <span class="suggestion-card-action">Adicionar</span>
+                <strong class="suggestion-quantity-value" hidden aria-live="polite">0</strong>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      </div>
+      </div>
+      <div class="suggestion-dots" data-suggestions-carousel-target="dots" aria-hidden="true"></div>
     </section>
   <% end %>
   <div class="line"><strong>Total</strong><strong data-order-review-target="total"><%= euros(@review_total) %></strong></div>

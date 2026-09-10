@@ -1,7 +1,14 @@
-<article class="panel" id="<%= dom_id(order) %>">
-  <div class="line"><h2>Mesa <%= order.table.number %></h2><span>#<%= order.id %></span></div>
-  <p><span class="badge"><%= state_label(order.status) %></span></p>
-  <p><%= order.created_at.strftime('%H:%M') %> · <strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
-  <ul><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul>
-  <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button' %>
+<article class="panel staff-order-card" id="<%= dom_id(order) %>" data-staff-board-target="order" data-board-status="<%= order.status %>">
+  <div class="staff-order-card-heading">
+    <div><p class="eyebrow">PEDIDO #<%= order.id %></p><h2>Mesa <%= order.table.number %></h2></div>
+    <span class="badge order-status order-status-<%= order.status %>"><%= state_label(order.status) %></span>
+  </div>
+  <div class="staff-order-meta"><span><%= order.created_at.strftime('%H:%M') %></span><span><%= order.order_items.sum(&:quantity) %> artigos</span><strong><%= euros(order.outstanding_total) %></strong></div>
+  <% if order.note.present? %><p class="staff-order-note">Nota: <%= truncate(order.note, length: 90) %></p><% end %>
+  <ul class="staff-order-items"><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %> <%= "· #{item.menu_item.production_area.name}" if item.menu_item.production_area.present? %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul>
+  <div class="staff-card-actions">
+    <%= link_to(order.pending? ? 'Avaliar pedido' : 'Abrir pedido', staff_order_path(order), class: 'button secondary') %>
+    <% if order.pending? %><%= button_to 'Aceitar sem alterações', staff_order_path(order, status: 'accepted'), method: :patch, data: { confirmation_message: "Aceitar todos os artigos do pedido ##{order.id} sem alterações?" } %><% end %>
+    <% if order.accepted? %><%= button_to 'Marcar servido', staff_order_path(order, status: 'served'), method: :patch, data: { confirmation_message: "Marcar o pedido ##{order.id} como servido?" } %><% end %>
+  </div>
 </article>

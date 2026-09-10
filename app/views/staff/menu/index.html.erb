@@ -1,12 +1,31 @@
-<h1>Menu</h1>
+<p class="eyebrow">GESTÃO DO MENU</p><h1>Menu</h1>
 
 <% if current_user.manager? %>
-  <div class="toolbar">
+  <div class="toolbar menu-actions">
     <%= link_to 'Criar categoria', new_staff_category_path, class: 'button' %>
     <%= link_to 'Criar produto', new_staff_menu_item_path, class: 'button secondary' %>
   </div>
 <% end %>
 
-<% @categories.select(&:root?).sort_by(&:name).each do |category| %>
-  <%= render 'staff/menu/category', category: category, level: 0 %>
-<% end %>
+<div class="panel menu-help"><strong>Organização rápida</strong><span>As categorias estão agrupadas. Abre apenas a secção que queres editar.</span></div>
+
+<% roots = @categories.select(&:root?).sort_by(&:name) %>
+<% available_count = @categories.count { |category| !category.archived? && category.available? } %>
+<% unavailable_count = @categories.count { |category| !category.archived? && !category.available? } %>
+<% archived_count = @categories.count(&:archived?) %>
+<div class="staff-menu-status" data-controller="staff-menu">
+  <div class="staff-menu-status-tabs" role="tablist" aria-label="Estado do menu">
+    <button type="button" class="staff-menu-status-tab is-active" data-staff-menu-target="tab" data-menu-status="active" data-action="staff-menu#select" aria-selected="true">Ativas <span><%= available_count %></span></button>
+    <button type="button" class="staff-menu-status-tab" data-staff-menu-target="tab" data-menu-status="unavailable" data-action="staff-menu#select" aria-selected="false">Indisponíveis <span><%= unavailable_count %></span></button>
+    <button type="button" class="staff-menu-status-tab" data-staff-menu-target="tab" data-menu-status="archived" data-action="staff-menu#select" aria-selected="false">Arquivadas <span><%= archived_count %></span></button>
+  </div>
+  <section data-staff-menu-target="panel" data-menu-status="active">
+    <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'active' %><% end %>
+  </section>
+  <section data-staff-menu-target="panel" data-menu-status="unavailable" hidden>
+    <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'unavailable' %><% end %>
+  </section>
+  <section data-staff-menu-target="panel" data-menu-status="archived" hidden>
+    <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'archived' %><% end %>
+  </section>
+</div>

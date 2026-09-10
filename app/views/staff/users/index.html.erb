@@ -1,14 +1,19 @@
-<h1>Equipa</h1><section class="panel"><h2>Criar acesso</h2>
+<h1>Equipa</h1><p class="settings-intro">Gere quem pode atender pedidos e chamadas neste estabelecimento.</p><section class="panel"><h2>Criar acesso</h2>
 <%= form_with model: [:staff, @user] do |f| %>
   <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true %>
-  <%= f.label :email, 'Email' %><%= f.email_field :email, required: true %>
+  <%= f.label :username, 'Username do funcionário' %><%= f.text_field :username, required: true, pattern: '[a-z0-9][a-z0-9_.-]{2,30}', placeholder: 'ex.: joao' %>
+  <%= f.label :email, 'Email (obrigatório apenas para gerente)' %><%= f.email_field :email %>
   <%= f.label :password, 'Palavra-passe (mínimo 12 caracteres)' %><%= f.password_field :password, minlength: 12, required: true, autocomplete: 'new-password' %>
   <%= f.label :role, 'Perfil' %><%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']] %><%= f.submit 'Criar utilizador' %>
+  <% if current_establishment.production_areas_enabled? %><fieldset><legend>Áreas do funcionário</legend><% @production_areas.each do |area| %><label><%= check_box_tag 'user[production_area_ids][]', area.id %> <%= area.name %></label><% end %></fieldset><% end %>
 <% end %></section>
-<% @users.each do |user| %><section class="panel"><h2><%= user.name.presence || user.email %></h2><p><%= user.email %> · <%= user.role %> · <%= user.active? ? 'Ativo' : 'Desativado' %></p>
+<% @users.each do |user| %><section class="panel team-card"><div class="staff-order-card-heading"><div><h2><%= user.name.presence || user.login_identifier %></h2><p>Username: <strong><%= user.username.presence || 'não definido' %></strong><% if user.email.present? %> · <%= user.email %><% end %></p></div><span class="badge"><%= user.manager? ? 'Gerente' : 'Funcionário' %> · <%= user.active? ? 'Ativo' : 'Desativado' %></span></div>
   <% if user != current_user %><%= form_with model: [:staff, user] do |f| %>
     <label><%= f.check_box :active %> Acesso ativo</label>
+    <%= f.label :username, 'Username' %><%= f.text_field :username, required: user.staff?, pattern: '[a-z0-9][a-z0-9_.-]{2,30}' %>
+    <%= f.label :email, 'Email (gerente)' %><%= f.email_field :email %>
     <%= f.label :role, 'Perfil' %><%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']] %>
+    <% if current_establishment.production_areas_enabled? %><fieldset><legend>Áreas do funcionário</legend><% @production_areas.each do |area| %><label><%= check_box_tag 'user[production_area_ids][]', area.id, user.production_area_ids.include?(area.id) %> <%= area.name %></label><% end %></fieldset><% end %>
     <%= f.label :password, 'Nova palavra-passe (deixe vazio para manter)' %><%= f.password_field :password, minlength: 12, autocomplete: 'new-password' %>
     <%= f.submit 'Guardar', class: 'secondary' %>
   <% end %><% end %></section><% end %>

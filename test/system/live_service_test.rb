@@ -8,7 +8,7 @@ class LiveServiceTest < ApplicationSystemTestCase
       fill_in 'Email', with: manager.email
       fill_in 'Palavra-passe', with: 'Test-password-123'
       click_on 'Entrar'
-      assert_text 'Pedidos e chamadas'
+      assert_text 'Pedidos'
       assert_selector 'turbo-cable-stream-source[connected]', visible: :all
     end
     Capybara.using_session(:customer) do
@@ -23,9 +23,10 @@ class LiveServiceTest < ApplicationSystemTestCase
     order = table.orders.last
     Capybara.using_session(:staff) do
       assert_selector "#order_#{order.id}", text: product.name
-      click_on 'Abrir pedido'
-      fill_in 'Alteração a confirmar pelo cliente (opcional)', with: 'Sem queijo'
-      fill_in 'Preço por unidade (€)', with: '8.50'
+      click_on 'Avaliar pedido'
+      click_on 'Alterar descrição ou preço'
+      fill_in 'Alteração a confirmar pelo cliente', with: 'Sem queijo'
+      fill_in 'Novo preço por unidade (€)', with: '8.50'
       click_on 'Guardar decisão'
       assert_text 'Decisão guardada'
       click_on 'Concluir avaliação e avisar cliente'

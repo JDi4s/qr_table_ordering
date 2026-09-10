@@ -2,6 +2,7 @@ class Staff::MenuItemsController < Staff::BaseController
   before_action :require_manager, except: [:index, :show, :toggle_availability]
   before_action :set_menu_item, only: [:edit, :update, :destroy, :toggle_availability, :restore]
   before_action :load_recommendation_options, only: [:new, :create, :edit, :update]
+  before_action :load_production_area_options, only: [:new, :create, :edit, :update]
 
   def index
     redirect_to staff_menu_path
@@ -16,11 +17,12 @@ class Staff::MenuItemsController < Staff::BaseController
   end
 
   def create
-    @menu_item = MenuItem.new(menu_item_params)
+    @menu_item = MenuItem.new
+    @menu_item.assign_attributes(menu_item_params)
 
-    if @menu_item.save
+    if @menu_item.errors.empty? && @menu_item.save
       sync_recommendations!
-      redirect_to staff_menu_path, notice: 'Produto criado.'
+      redirect_to staff_menu_path(anchor: "category-#{@menu_item.category_id}"), notice: 'Produto criado.'
     else
       render :new, status: :unprocessable_entity
     end
@@ -30,9 +32,10 @@ class Staff::MenuItemsController < Staff::BaseController
   end
 
   def update
-    if @menu_item.update(menu_item_params)
+    attributes = menu_item_params
+    if @menu_item.errors.empty? && @menu_item.update(attributes)
       sync_recommendations!
-      redirect_to staff_menu_path, notice: 'Produto atualizado.'
+      redirect_to staff_menu_path(anchor: "category-#{@menu_item.category_id}"), notice: 'Produto atualizado.'
     else
       render :edit, status: :unprocessable_entity
     end
@@ -67,18 +70,33 @@ class Staff::MenuItemsController < Staff::BaseController
       :description,
       :price,
       :category_id,
+      :production_area_id,
       :available,
       :image,
       recommended_menu_item_ids: []
     )
     values.delete(:recommended_menu_item_ids)
-    category = current_establishment.categories.not_archived.find(values[:category_id]) if values[:category_id].present?
-    raise ActiveRecord::RecordNotFound unless category
+    category = current_establishment.categories.not_archived.find_by(id: values[:category_id]) if values[:category_id].present?
+    unless category
+      @menu_item.errors.add(:category, 'tem de ser uma categoria disponível')
+      values.delete(:category_id)
+    end
+    area = current_establishment.available_production_areas.find_by(id: values[:production_area_id]) if values[:production_area_id].present?
+    if current_establishment.production_areas_enabled? && values[:production_area_id].present? && !area
+      @menu_item.errors.add(:production_area, 'não está disponível para este estabelecimento')
+      values.delete(:production_area_id)
+    elsif !current_establishment.production_areas_enabled?
+      values.delete(:production_area_id)
+    end
     values
   end
 
   def load_recommendation_options
-    @recommendation_options = current_establishment.menu_items.not_archived.order(:name)
+    @recommendation_options = current_establishment.menu_items.not_archived.includes(:category).order(:name)
+  end
+
+  def load_production_area_options
+    @production_areas = current_establishment.available_production_areas
   end
 
   def sync_recommendations!

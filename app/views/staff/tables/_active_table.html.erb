@@ -1,0 +1,13 @@
+<% table_orders = table.unpaid_orders.to_a %>
+<% waiting_orders = table_orders.count { |order| order.pending? || order.needs_customer_action? } %>
+<% payable_orders = table_orders.count { |order| order.accepted? || order.served? } %>
+<%= link_to staff_table_path(table), class: 'table-card', id: dom_id(table) do %>
+  <%= table_svg(table) %>
+  <div>
+    <h2>Mesa <%= table.number %></h2>
+    <p><strong><%= table_orders.size %></strong> pedido(s) em aberto</p>
+    <% if waiting_orders.positive? %><p class="table-warning"><strong><%= waiting_orders %></strong> a aguardar confirmação</p><% end %>
+    <p><strong><%= payable_orders %></strong> pronto(s) para pagamento</p>
+    <p><strong><%= euros(table_orders.sum(&:outstanding_total)) %></strong> por pagar</p>
+  </div>
+<% end %>

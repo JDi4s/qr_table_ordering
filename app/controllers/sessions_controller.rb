@@ -2,13 +2,14 @@ class SessionsController < ApplicationController
   def new; end
 
   def create
-    user = User.find_by(email: params[:email].to_s.strip.downcase)
+    identifier = (params[:identifier].presence || params[:email]).to_s.strip.downcase
+    user = User.where('lower(email) = :identifier OR lower(username) = :identifier', identifier: identifier).first
     if user&.active? && user.authenticate(params[:password]) && (user.platform_admin? || user.venue_access?)
       reset_session
       session[:user_id] = user.id
-      redirect_to(user.platform_admin? ? admin_establishments_path : staff_orders_path)
+      redirect_to(user.platform_admin? ? admin_establishments_path : (user.must_change_password? ? edit_staff_settings_path : staff_orders_path))
     else
-      flash.now[:alert] = 'Email ou palavra-passe inválidos, ou conta suspensa.'
+      flash.now[:alert] = 'Utilizador/email ou palavra-passe inválidos, ou conta suspensa.'
       render :new, status: :unprocessable_entity
     end
   end

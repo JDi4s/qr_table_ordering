@@ -1,5 +1,6 @@
 class MenuItem < ApplicationRecord
   belongs_to :category
+  belongs_to :production_area, optional: true
   has_one :establishment, through: :category
   has_one_attached :image
   has_many :order_items, dependent: :restrict_with_error
