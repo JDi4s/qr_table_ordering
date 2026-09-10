@@ -256,6 +256,12 @@ input[type="submit"]:hover {
 }
 
 .staff-page-intro { display: flex; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+
+/* Na página de pedidos, manter apenas o título principal e a ação. */
+div[data-controller="staff-board"] > .eyebrow,
+div[data-controller="staff-board"] .staff-page-intro p { display: none; }
+div[data-controller="staff-board"] > h1 { margin-top: 0; }
+div[data-controller="staff-board"] .staff-page-intro { justify-content: flex-start; margin-bottom: 14px; }
 .staff-page-intro p { margin: 0; color: var(--muted); }
 .staff-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 20px 0 28px; }
 .staff-summary-card { display: flex; gap: 10px; align-items: baseline; padding: 16px 18px; background: white; border: 1px solid var(--line); border-radius: 12px; }
