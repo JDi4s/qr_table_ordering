@@ -1,16 +1,53 @@
 <h1>Mesas e QR codes</h1>
 <p><strong><%= @tables.where(active: true).count %> / <%= current_establishment.table_limit %></strong> mesas ativas. Os QR codes existentes podem ser descarregados novamente.</p>
-<p><%= link_to 'Ver mesas com consumo', active_staff_tables_path, class: 'button' %></p>
-<% if current_user.manager? %><section class="panel"><h2>Criar mesa</h2>
-  <%= form_with model: [:staff, @table] do |f| %><%= f.label :number, 'Número da mesa' %><%= f.number_field :number, min: 1, required: true %><%= f.submit 'Criar mesa e QR' %><% end %>
-</section><% end %>
-<div class="grid"><% @tables.each do |table| %><section class="panel">
-  <h2>Mesa <%= table.number %> <small class="category-status <%= table.active? ? 'is-available' : 'is-unavailable' %>"><%= table.active? ? 'Ativa' : 'Desativada' %></small></h2>
-  <% if table.active? %>
-    <div class="table-actions"><%= link_to 'Ver QR', qr_code_staff_table_path(table), target: '_blank', rel: 'noopener', data: { turbo: false }, class: 'button secondary compact-action' %><%= link_to 'Descarregar', qr_code_staff_table_path(table, download: 1), data: { turbo: false }, class: 'button secondary compact-action' %><%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener', class: 'button secondary compact-action' %></div>
+<p><%= link_to "Ver mesas com consumo (#{@tables_with_consumption_count})", active_staff_tables_path, class: 'button' %></p>
+
+<% if current_user.manager? %>
+  <section class="panel">
+    <h2>Criar mesa</h2>
+    <%= form_with model: [:staff, @table] do |f| %>
+      <%= f.label :number, 'Número da mesa' %>
+      <%= f.number_field :number, min: 1, required: true %>
+      <%= f.submit 'Criar mesa e QR' %>
+    <% end %>
+  </section>
+<% end %>
+
+<div class="grid">
+  <% @tables.each do |table| %>
+    <section class="panel table-admin-card">
+      <div class="table-admin-heading">
+        <h2>Mesa <%= table.number %></h2>
+        <small class="category-status <%= table.active? ? 'is-available' : 'is-unavailable' %>"><%= table.active? ? 'Ativa' : 'Desativada' %></small>
+      </div>
+
+      <% if table.active? %>
+        <%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener', class: 'button table-primary-action' %>
+
+        <div class="table-admin-dropdowns">
+          <details class="table-admin-details">
+            <summary>QR code</summary>
+            <div class="table-admin-details-content">
+              <%= link_to 'Ver QR', qr_code_staff_table_path(table), target: '_blank', rel: 'noopener', data: { turbo: false }, class: 'button secondary compact-action' %>
+              <%= link_to 'Descarregar', qr_code_staff_table_path(table, download: 1), data: { turbo: false }, class: 'button secondary compact-action' %>
+            </div>
+          </details>
+        </div>
+      <% end %>
+
+      <% if current_user.manager? %>
+        <details class="table-admin-details">
+          <summary>Editar mesa</summary>
+          <div class="table-admin-details-content">
+            <%= form_with model: [:staff, table], class: 'table-admin-form' do |f| %>
+              <%= f.label :number, 'Número' %>
+              <%= f.number_field :number, min: 1, required: true %>
+              <label><%= f.check_box :active %> Mesa ativa</label>
+              <%= f.submit 'Guardar', class: 'secondary' %>
+            <% end %>
+          </div>
+        </details>
+      <% end %>
+    </section>
   <% end %>
-  <% if current_user.manager? %><%= form_with model: [:staff, table] do |f| %>
-    <%= f.label :number, 'Número' %><%= f.number_field :number, min: 1, required: true %>
-    <label><%= f.check_box :active %> Mesa ativa</label><%= f.submit 'Guardar', class: 'secondary' %>
-  <% end %><% end %>
-</section><% end %></div>
+</div>
