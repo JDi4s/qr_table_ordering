@@ -63,7 +63,26 @@ class Staff::OrdersController < Staff::BaseController
   end
 
   def history
-    @orders = current_establishment.orders.includes(:table, order_items: :menu_item).where(status: %w[served denied]).order(created_at: :desc).limit(200)
+    @history_status = %w[served denied].include?(params[:status].to_s) ? params[:status].to_s : 'all'
+    @history_date = begin
+      Date.iso8601(params[:date].to_s) if params[:date].present?
+    rescue ArgumentError
+      nil
+    end
+
+    scope = current_establishment.orders
+      .includes(:table, :payments, order_items: :menu_item)
+      .where(status: %w[served denied])
+
+    scope = scope.where(status: @history_status) unless @history_status == 'all'
+    scope = scope.where(created_at: @history_date.all_day) if @history_date
+
+    @orders = scope.order(created_at: :desc).limit(200).to_a
+    @history_total = @orders.size
+    @history_served = @orders.count(&:served?)
+    @history_denied = @orders.count(&:denied?)
+    @history_tables = @orders.map(&:table_id).uniq.size
+    @history_received = @orders.sum { |order| order.payments.sum { |payment| payment.amount.to_d } }
   end
 
   private
