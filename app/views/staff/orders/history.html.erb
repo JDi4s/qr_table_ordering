@@ -35,11 +35,17 @@
       <%= hidden_field_tag :period, 'custom' %>
       <div>
         <%= label_tag :from, 'De' %>
-        <%= datetime_local_field_tag :from, @history_from_value %>
+        <div class="history-date-control" data-controller="history-date">
+          <%= datetime_local_field_tag :from, @history_from_value, data: { history_date_target: 'input', action: 'input->history-date#update change->history-date#update' } %>
+          <span class="history-date-display" data-history-date-target="display" aria-hidden="true"></span>
+        </div>
       </div>
       <div>
         <%= label_tag :to, 'Até' %>
-        <%= datetime_local_field_tag :to, @history_to_value %>
+        <div class="history-date-control" data-controller="history-date">
+          <%= datetime_local_field_tag :to, @history_to_value, data: { history_date_target: 'input', action: 'input->history-date#update change->history-date#update' } %>
+          <span class="history-date-display" data-history-date-target="display" aria-hidden="true"></span>
+        </div>
       </div>
       <div>
         <%= label_tag :status, 'Estado' %>
