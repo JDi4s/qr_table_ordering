@@ -154,6 +154,42 @@ class Order < ApplicationRecord
     raise InvalidTransition, 'Indique uma quantidade válida.'
   end
 
+  def pay_selected_items!(selections, user, payment_method: 'cash')
+    with_lock do
+      ensure_payment_state!
+      ensure_cash_open!
+      raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
+
+      entries = selections.each_with_object([]) do |(item_id, raw_quantity), selected|
+        quantity = Integer(raw_quantity)
+        next if quantity.zero?
+        raise InvalidTransition, 'Indique uma quantidade válida.' if quantity.negative?
+
+        item = order_items.find_by(id: item_id)
+        raise InvalidTransition, 'Este artigo não pode ser pago.' unless item&.accepted?
+        raise InvalidTransition, 'A quantidade indicada é superior ao que falta pagar.' if quantity > item.remaining_quantity
+
+        selected << { order_item: item, quantity: quantity, unit_price: item.unit_price,
+                      amount: item.unit_price * quantity }
+      end
+
+      raise InvalidTransition, 'Selecione pelo menos um artigo.' if entries.empty?
+
+      entries.each do |entry|
+        item = entry[:order_item]
+        item.update!(paid_quantity: item.paid_quantity + entry[:quantity])
+      end
+      create_payment!(user, entries, payment_method: payment_method)
+      if fully_paid?
+        complete_payment!(user)
+      else
+        touch
+      end
+    end
+  rescue ArgumentError, TypeError
+    raise InvalidTransition, 'Indique uma quantidade válida.'
+  end
+
   private
 
   def ensure_payment_state!
