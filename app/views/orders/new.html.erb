@@ -31,9 +31,6 @@
     </div>
     <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
       <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>
-      <section class="panel">
-        <button type="submit">Rever pedido</button>
-      </section>
     <% end %>
   </div>
 </div>
