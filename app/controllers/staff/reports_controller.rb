@@ -60,10 +60,10 @@ class Staff::ReportsController < Staff::BaseController
     load_employee
     @statistics = ReportStatistics.new(report_payments(@period.from, @period.to, employee: @employee))
     @previous = @period.comparing? ? ReportStatistics.new(report_payments(@period.compare_from, @period.compare_to, employee: @employee)) : nil
+    load_analysis_data
     @series = @statistics.series(@period.from, @period.to, @period.view)
     @previous_series = @previous&.series(@period.compare_from, @period.compare_to, @period.view) || []
-    @chart_rows = @series.each_with_index.map { |point, index| point.merge(previous: @previous_series[index]&.fetch(:amount, 0.to_d)) }
-    load_analysis_data
+    @chart_rows = analysis_series
     @filter_params = @period.to_params.merge(tab: 'statistics', analysis: @analysis, metric: @metric, employee_id: @employee&.id)
   end
 
@@ -77,6 +77,24 @@ class Staff::ReportsController < Staff::BaseController
     @table_staff_rows = staff_table_rows
     @call_rows = service_call_rows
     @order_rows = order_rows
+  end
+
+  def analysis_series
+    case @analysis
+    when 'products'
+      @product_rows.map { |row| { label: row[:name], amount: @metric == 'revenue' ? row[:amount] : row[:quantity] } }
+    when 'revenue'
+      return @series if @metric == 'total' || @metric == 'average'
+      rows = @metric == 'tables' ? @table_rows : @employee_rows
+      rows.map { |row| { label: row.is_a?(Hash) ? row[:name] : "Mesa #{row[0]}", amount: row.is_a?(Hash) ? row[:amount] : row[1] } }
+    when 'orders'
+      [['total', 'Todos'], ['served', 'Servidos'], ['cancelled', 'Cancelados']].map { |key, label| { label: label, amount: @order_rows[key.to_sym] } }
+    when 'employees'
+      return @series if @metric == 'sales'
+      @metric == 'calls' ? @call_rows.map { |row| { label: row[:name], amount: row[:count] } } : @table_staff_rows.map { |row| { label: row[:name], amount: row[:value] } }
+    else
+      @series
+    end
   end
 
   def statistics_by_table
