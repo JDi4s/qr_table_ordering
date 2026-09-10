@@ -34,7 +34,11 @@
     </section>
   <% end %>
   <div class="line"><strong>Total</strong><strong data-order-review-target="total"><%= euros(@review_total) %></strong></div>
-  <% if @review_note.present? %><p>Observações: <%= @review_note %></p><% end %>
+  <section class="order-note-panel">
+    <label for="order_note">Observações para o pedido (opcional)</label>
+    <%= text_area_tag 'order[note]', @review_note, id: 'order_note', maxlength: 1000, placeholder: 'Ex.: cola com gelo e limão, sem gelo, trazer talheres…' %>
+    <small>Indica qualquer pedido especial para este pedido.</small>
+  </section>
   <p>O estabelecimento irá confirmar a disponibilidade. O pagamento é feito no estabelecimento.</p>
   <%= hidden_field_tag :quote, @quote %><button type="submit">Enviar pedido</button>
 </section>
