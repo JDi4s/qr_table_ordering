@@ -269,6 +269,10 @@ input[type="submit"]:hover {
 .staff-board-tab.is-active { background: var(--green); color: white; border-color: var(--green); }
 .staff-board-tab.is-active span { background: #ffffff33; color: white; }
 .staff-board-section { margin: 30px 0; }
+
+/* No estado vazio não reservamos espaço para secções sem cartões.
+   Assim que Turbo inserir um pedido ou chamada, a secção reaparece. */
+.staff-board-section:has(.empty-list):not(:has(.empty-list > *)) { display: none; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .section-heading h2 { margin: 0 0 4px; }
 .section-heading .eyebrow { margin-bottom: 4px; }
@@ -750,8 +754,10 @@ small {
   .customer-cart-bar { bottom: 8px; }
   .customer-menu-toast { bottom: 76px; }
   .staff-page-intro { align-items: flex-start; flex-direction: column; }
-  .staff-summary-grid { grid-template-columns: 1fr; gap: 8px; }
-  .staff-summary-card { padding: 12px 14px; }
+  .staff-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0 18px; }
+  .staff-summary-card { min-width: 0; min-height: 64px; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px; }
+  .staff-summary-card strong { font-size: 24px; line-height: 1; }
+  .staff-summary-card span { font-size: 11px; line-height: 1.2; }
   .staff-board-tabs { margin: 16px 0; }
   .staff-order-meta strong { margin-left: 0; }
   .staff-order-card-heading, .staff-call-heading { gap: 8px; }
