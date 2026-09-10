@@ -487,10 +487,11 @@ small {
 .customer-branding-entry h1 { margin: 0 0 8px; }
 .customer-branding-entry p:not(.eyebrow) { margin: 0 0 18px; color: var(--muted); }
 .customer-branding-entry button { min-width: min(100%, 260px); }
-.customer-establishment-header { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
-.customer-establishment-logo { flex: 0 0 auto; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 11px; object-fit: contain; background: white; }
-.customer-establishment-header .eyebrow { margin: 0 0 1px; }
-.customer-establishment-header strong { display: block; font-size: 18px; line-height: 1.15; }
+.customer-establishment-header { display: flex; align-items: center; gap: 16px; padding: 16px 18px; margin: 0 0 16px; border: 1px solid var(--line); border-radius: 18px; background: white; box-shadow: 0 6px 18px #2038320b; }
+.customer-establishment-logo { flex: 0 0 auto; width: 72px; height: 72px; border: 1px solid var(--line); border-radius: 18px; object-fit: contain; background: white; }
+.customer-establishment-header .eyebrow { margin: 0 0 3px; font-size: 10px; letter-spacing: 1.8px; }
+.customer-establishment-name { display: block; max-width: 100%; overflow-wrap: anywhere; font-size: clamp(21px, 3vw, 28px); line-height: 1.08; }
+.customer-menu-welcome { display: block; margin-top: 4px; color: var(--muted); font-size: 14px; }
 
 .branding-upload-row { display: flex; align-items: end; justify-content: space-between; gap: 18px; }
 .branding-upload-row > div { min-width: 0; flex: 1; }
@@ -693,6 +694,10 @@ small {
   }
 
   .customer-menu-toolbar { padding: 4px 0 6px; }
+  .customer-establishment-header { gap: 12px; padding: 13px 14px; border-radius: 15px; }
+  .customer-establishment-logo { width: 58px; height: 58px; border-radius: 15px; }
+  .customer-establishment-name { font-size: 21px; }
+  .customer-menu-welcome { font-size: 13px; }
   .menu-subcategory-tabs { padding-bottom: 6px; }
   .customer-menu-grid { gap: 10px; }
   .customer-product-media .product-image,
