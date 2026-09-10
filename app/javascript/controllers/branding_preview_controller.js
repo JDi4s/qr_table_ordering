@@ -30,15 +30,11 @@ export default class extends Controller {
       image.src = source
       image.hidden = false
     })
-    this.emptyTargets().forEach((placeholder) => { placeholder.hidden = true })
+    this.emptyTargets.forEach((placeholder) => { placeholder.hidden = true })
   }
 
   imageTargets() {
     return [this.loadingImageTarget, this.entryImageTarget, this.headerImageTarget]
-  }
-
-  emptyTargets() {
-    return this.hasEmptyTarget ? [this.emptyTarget] : []
   }
 
   revokeObjectUrl() {
