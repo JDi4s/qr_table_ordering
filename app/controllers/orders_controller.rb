@@ -33,11 +33,16 @@ class OrdersController < ApplicationController
       raise Order::InvalidTransition, 'A revisão expirou. Reveja o pedido novamente.'
     end
 
+    note = params.dig(:order, :note)
+    note = quote[:note] if note.nil?
+    note = note.to_s.strip
+    raise Order::InvalidTransition, 'As observações não podem ultrapassar 1000 caracteres.' if note.length > 1000
+
     @table.with_lock do
       raise Order::InvalidTransition, 'Esta mesa está desativada.' unless @table.active? && @table.establishment.reload.active?
 
       unless customer_orders.exists?(submission_token: quote[:nonce])
-        order = @table.orders.new(note: quote[:note], customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
+        order = @table.orders.new(note: note, customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
 
         items = quote[:items].dup
         suggestion_items = valid_suggestion_items(quote[:items].map(&:first), params[:suggestion_quantities], params[:suggestion_ids])
