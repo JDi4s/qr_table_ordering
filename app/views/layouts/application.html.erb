@@ -8,11 +8,7 @@
   <%= javascript_importmap_tags %>
 </head>
 <body>
-  <header>
-    <div class="site-identity">
-      <span class="brand">Mesa<span> • </span></span>
-      <span>Pedidos, à sua mesa.</span>
-    </div>
+  <header><span class="brand">Mesa<span> • </span></span><span>Pedidos, à sua mesa.</span>
     <% if current_user %><%= button_to 'Sair', logout_path, method: :delete, class: 'secondary' %><% end %>
   </header>
   <main>
