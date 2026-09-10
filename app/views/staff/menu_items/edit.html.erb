@@ -1,6 +1,6 @@
 <p class="eyebrow">GESTÃO DO MENU</p><h1>Editar produto</h1>
 <%= render 'shared/errors', record: @menu_item %>
-<%= form_with model: [:staff, @menu_item], html: { multipart: true, class: 'menu-form', data: { controller: 'recommendation-options image-preview', action: 'submit->image-preview#prepare' } } do |f| %>
+<%= form_with model: [:staff, @menu_item], html: { multipart: true, class: 'menu-form', data: { controller: 'recommendation-options image-preview menu-item-preview', action: 'submit->image-preview#prepare' } } do |f| %>
   <div class="menu-form-grid">
     <section class="panel menu-form-card">
       <h2>Informação do produto</h2>
@@ -35,5 +35,6 @@
       <small>Escolhe vários produtos com um toque. Podes pesquisar pelo nome ou deixar a aplicação sugerir automaticamente.</small>
     </section>
   </div>
-  <div class="menu-form-actions"><%= f.submit 'Guardar alterações' %><%= link_to 'Cancelar', staff_menu_path, class: 'button secondary' %></div>
+  <div class="menu-form-actions"><button type="button" class="secondary" data-action="menu-item-preview#open">Pré-visualizar cartão</button><%= f.submit 'Guardar alterações' %><%= link_to 'Cancelar', staff_menu_path, class: 'button secondary' %></div>
+  <%= render 'preview_modal' %>
 <% end %>

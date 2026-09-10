@@ -17,7 +17,7 @@
   <% end %>
   <% if order.pending? && order.created_at < 3.minutes.ago %><p class="danger">O prazo de 3 minutos para cancelar terminou.</p><% end %>
   <% if order.cancellable_by_customer? %>
-    <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary', data: { confirmation_message: 'Cancelar todo o pedido?' } %>
+    <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary' %>
   <% end %>
   <% if order.denied? %><p><%= order.cancellation_reason.presence || order.denial_reason %></p><% end %>
 </section>

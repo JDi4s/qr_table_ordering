@@ -26,7 +26,7 @@
           <%= hidden_field_tag :order_item_id, item.id %>
           <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true %>
           <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
-          <%= submit_tag 'Pagar artigo', data: { confirmation_message: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name}?" } %>
+              <%= submit_tag 'Pagar artigo' %>
         <% end %>
       <% end %>
     </article>
@@ -47,7 +47,7 @@
   <% if (order.accepted? || order.served?) && !order.paid? %>
     <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
       <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
-      <%= submit_tag 'Pagar pedido completo', class: 'secondary', data: { confirmation_message: "Confirmar pagamento do pedido ##{order.id}?" } %>
+          <%= submit_tag 'Pagar pedido completo', class: 'secondary' %>
     <% end %>
   <% end %>
   <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul></details><% end %>

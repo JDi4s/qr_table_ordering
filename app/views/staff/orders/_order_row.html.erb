@@ -8,7 +8,7 @@
   <ul class="staff-order-items"><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %> <%= "· #{item.menu_item.production_area.name}" if item.menu_item.production_area.present? %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul>
   <div class="staff-card-actions">
     <%= link_to(order.pending? ? 'Avaliar pedido' : 'Abrir pedido', staff_order_path(order), class: 'button secondary') %>
-    <% if order.pending? %><%= button_to 'Aceitar sem alterações', staff_order_path(order, status: 'accepted'), method: :patch, data: { confirmation_message: "Aceitar todos os artigos do pedido ##{order.id} sem alterações?" } %><% end %>
-    <% if order.accepted? %><%= button_to 'Marcar servido', staff_order_path(order, status: 'served'), method: :patch, data: { confirmation_message: "Marcar o pedido ##{order.id} como servido?" } %><% end %>
+    <% if order.pending? %><%= button_to 'Aceitar sem alterações', staff_order_path(order, status: 'accepted'), method: :patch %><% end %>
+    <% if order.accepted? %><%= button_to 'Marcar servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
   </div>
 </article>

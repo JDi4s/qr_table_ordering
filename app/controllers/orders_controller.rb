@@ -10,6 +10,11 @@ class OrdersController < ApplicationController
   end
 
   def review
+    if request.get?
+      redirect_to new_table_order_path(@table), status: :see_other
+      return
+    end
+
     @review_note = params.dig(:order, :note).to_s.strip
     @review_items = selected_items
     save_draft(@review_items, @review_note)

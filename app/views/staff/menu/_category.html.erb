@@ -46,7 +46,7 @@ end %>
       <% if category.archived? %>
         <%= button_to 'Restaurar', restore_staff_category_path(category), method: :patch, class: 'secondary compact-action' %>
       <% else %>
-        <%= button_to 'Arquivar', staff_category_path(category), method: :delete, class: 'secondary compact-action', data: { confirmation_message: 'Arquivar esta categoria? Os produtos deixam de aparecer no menu.' } %>
+            <%= button_to 'Arquivar', staff_category_path(category), method: :delete, class: 'secondary compact-action' %>
       <% end %>
     <% end %>
   </div>
@@ -78,7 +78,7 @@ end %>
           <% if item.archived? %>
             <%= button_to 'Restaurar', restore_staff_menu_item_path(item), method: :patch, class: 'secondary compact-action' %>
           <% else %>
-            <%= button_to 'Arquivar', staff_menu_item_path(item), method: :delete, class: 'secondary compact-action', data: { confirmation_message: 'Arquivar este produto? Deixará de aparecer no menu.' } %>
+            <%= button_to 'Arquivar', staff_menu_item_path(item), method: :delete, class: 'secondary compact-action' %>
           <% end %>
         <% end %>
       </div>

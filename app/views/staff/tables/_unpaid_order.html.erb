@@ -25,7 +25,7 @@
             <%= hidden_field_tag :order_item_id, item.id %>
             <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true, aria: { label: "Quantidade de #{item.display_name} a pagar" } %>
             <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
-            <%= submit_tag 'Confirmar', data: { confirmation_message: "Confirmar pagamento de #{item.remaining_quantity} × #{item.display_name} — #{euros(item.outstanding_total)}?" } %>
+            <%= submit_tag 'Confirmar' %>
           <% end %>
         <% end %>
       </li>
@@ -36,7 +36,7 @@
     <% if order.accepted? || order.served? %>
       <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
         <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
-        <%= submit_tag 'Pagar pedido completo', data: { confirmation_message: "Confirmar pagamento do pedido ##{order.id}?" } %>
+        <%= submit_tag 'Pagar pedido completo' %>
       <% end %>
     <% end %>
   </div>

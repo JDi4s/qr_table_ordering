@@ -17,7 +17,7 @@
 
 <section class="panel report-card"><div class="section-heading"><div><p class="eyebrow">FECHO DE CAIXA</p><h2><%= @start_date.strftime('%d/%m/%Y') %></h2></div><span class="badge"><%= @closure ? 'Fechado' : 'Aberto' %></span></div>
   <% if @closure %><p>Fechado por <strong><%= @closure.user.name.presence || @closure.user.login_identifier %></strong> às <%= @closure.closed_at.strftime('%H:%M') %>.</p>
-  <% else %><p>Confirma o total recebido deste dia para impedir um segundo fecho.</p><%= button_to 'Fechar caixa deste dia', close_staff_reports_path(date: @start_date), method: :post, data: { confirmation_message: "Fechar o caixa de #{@start_date.strftime('%d/%m/%Y')}?" } %><% end %>
+  <% else %><p>Confirma o total recebido deste dia para impedir um segundo fecho.</p><%= button_to 'Fechar caixa deste dia', close_staff_reports_path(date: @start_date), method: :post %><% end %>
 </section>
 
 <div class="report-columns">

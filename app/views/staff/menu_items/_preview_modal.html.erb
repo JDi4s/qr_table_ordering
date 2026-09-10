@@ -1,0 +1,20 @@
+<div class="menu-item-preview-modal" data-menu-item-preview-target="modal" hidden>
+  <div class="menu-item-preview-backdrop" data-action="click->menu-item-preview#close"></div>
+  <section class="menu-item-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="menu-item-preview-title">
+    <button type="button" class="secondary menu-item-preview-close" data-action="click->menu-item-preview#close" aria-label="Fechar pré-visualização">×</button>
+    <p class="eyebrow">PRÉ-VISUALIZAÇÃO</p>
+    <h2 id="menu-item-preview-title">Assim ficará no menu</h2>
+    <article class="panel menu-item-preview-card">
+      <div class="menu-item-preview-media">
+        <img data-menu-item-preview-target="image" alt="Pré-visualização do produto" hidden>
+        <span data-menu-item-preview-target="imagePlaceholder">Sem imagem</span>
+      </div>
+      <div class="menu-item-preview-content">
+        <strong data-menu-item-preview-target="name">Nome do produto</strong>
+        <p class="menu-item-preview-description" data-menu-item-preview-target="description" hidden></p>
+        <p class="menu-item-preview-price" data-menu-item-preview-target="price">0,00 €</p>
+        <span class="menu-item-preview-action">Adicionar</span>
+      </div>
+    </article>
+  </section>
+</div>
