@@ -1316,7 +1316,7 @@ small {
     min-width: 0;
   }
 
-  .history-filter-form > div:nth-child(3) {
+  .history-filter-form > div:nth-of-type(3) {
     grid-column: 1 / -1;
   }
 
