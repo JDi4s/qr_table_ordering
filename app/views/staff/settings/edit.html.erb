@@ -1,7 +1,8 @@
 <p class="eyebrow">CONFIGURAÇÃO DO SERVIÇO</p><h1>Definições</h1>
-<p class="settings-intro">As preferências da conta e deste dispositivo são independentes. Guarda o som da conta e ativa as notificações em cada dispositivo usado pelo funcionário.</p>
-<section class="panel settings-card">
-  <% if current_user.must_change_password? %>
+<p class="settings-intro">Organiza aqui a empresa, o menu e as preferências deste dispositivo.</p>
+
+<% if current_user.must_change_password? %>
+  <section class="panel settings-card settings-section">
     <div class="flash alert"><strong>Altera a palavra-passe temporária antes de continuar.</strong></div>
     <h2>Nova palavra-passe</h2>
     <%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
@@ -9,66 +10,74 @@
       <%= f.password_field :password, required: true, minlength: 12, autocomplete: 'new-password' %>
       <%= f.submit 'Guardar nova palavra-passe' %>
     <% end %>
-  <% end %>
-</section>
-<section class="panel settings-card">
-  <p class="eyebrow">PREFERÊNCIA DA CONTA</p>
-  <h2>Som dos avisos</h2>
-  <%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
-    <label><%= f.check_box :staff_sound_enabled %> Permitir som para novos pedidos e chamadas</label>
-    <%= f.submit 'Guardar' %>
-  <% end %>
-</section>
-<% if current_user.manager? %>
-  <section class="panel settings-card branding-settings" data-controller="branding-preview">
-    <p class="eyebrow">PERSONALIZAÇÃO DO MENU</p>
-    <h2>Logotipo do estabelecimento</h2>
-    <p>Carrega uma única imagem. A Mesa adapta-a automaticamente para o loading, para a entrada do menu e para o cabeçalho, sem cortar nem esticar.</p>
-    <%= form_with model: current_establishment, url: staff_settings_path, method: :patch, html: { multipart: true } do |f| %>
-      <div class="branding-upload-row">
-        <div>
-          <%= f.label :logo, 'Escolher logotipo' %>
-          <%= f.file_field :logo, accept: 'image/png,image/jpeg,image/webp', data: { branding_preview_target: 'input', action: 'change->branding-preview#preview' } %>
-          <small>PNG, JPG ou WebP até 5 MB. O ideal é carregar a imagem com a maior resolução disponível.</small>
-        </div>
-        <%= f.submit 'Guardar logotipo' %>
-      </div>
-    <% end %>
-    <div class="branding-preview-grid" aria-label="Pré-visualização do logotipo nos três formatos">
-      <article class="branding-preview-card">
-        <p class="eyebrow">LOADING</p>
-        <div class="branding-preview-loading">
-          <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'loadingImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'loadingImage' } %><% end %>
-        </div>
-        <small>Adaptado automaticamente</small>
-      </article>
-      <article class="branding-preview-card">
-        <p class="eyebrow">ENTRADA DO MENU</p>
-        <div class="branding-preview-entry">
-          <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'entryImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'entryImage' } %><% end %>
-        </div>
-        <small>Adaptado automaticamente</small>
-      </article>
-      <article class="branding-preview-card">
-        <p class="eyebrow">CABEÇALHO</p>
-        <div class="branding-preview-header">
-          <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'headerImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'headerImage' } %><% end %>
-          <strong><%= current_establishment.name %></strong>
-        </div>
-        <small>Adaptado automaticamente</small>
-      </article>
-    </div>
   </section>
 <% end %>
-<section class="panel settings-card">
-  <p class="eyebrow">NESTE DISPOSITIVO</p><h2>Som</h2>
-  <p>O navegador só permite som depois de uma interação. Testa-o uma vez neste dispositivo.</p>
-  <p class="push-status" data-staff-orders-target="soundStatus"><%= current_user.staff_sound_enabled? ? 'Som ativo nas definições.' : 'Som desativado nas definições.' %></p>
-  <button type="button" class="secondary" data-action="staff-orders#enableAudio">Testar som</button>
-</section>
-<section class="panel settings-card">
-  <p class="eyebrow">NESTE DISPOSITIVO</p><h2>Notificações</h2>
-  <p>Cada funcionário pode ter apenas um dispositivo associado. Se ativares noutro, este será substituído.</p>
-  <p class="push-status" data-staff-orders-target="pushStatus"></p>
-  <button type="button" class="secondary" data-staff-orders-target="pushButton" data-action="staff-orders#enableNotifications">Ativar notificações neste dispositivo</button>
+
+<% if current_user.manager? %>
+  <section class="panel settings-card settings-section branding-settings" data-controller="branding-preview">
+    <details class="settings-accordion" open>
+      <summary><span><span class="eyebrow">EMPRESA E MARCA</span><strong>Logotipo do estabelecimento</strong></span><small>3 formatos</small></summary>
+      <div class="settings-accordion-content">
+        <p>Carrega uma única imagem. A Mesa adapta-a automaticamente para o loading, a entrada e o cabeçalho, sem cortar nem esticar.</p>
+        <%= form_with model: current_establishment, url: staff_settings_path, method: :patch, html: { multipart: true } do |f| %>
+          <div class="branding-upload-row">
+            <div>
+              <%= f.label :logo, 'Escolher logotipo' %>
+              <%= f.file_field :logo, accept: 'image/png,image/jpeg,image/webp', data: { branding_preview_target: 'input', action: 'change->branding-preview#preview' } %>
+              <small>PNG, JPG ou WebP até 5 MB.</small>
+            </div>
+            <%= f.submit 'Guardar logotipo' %>
+          </div>
+        <% end %>
+        <div class="branding-preview-grid" aria-label="Pré-visualização do logotipo nos três formatos">
+          <article class="branding-preview-card">
+            <p class="eyebrow">LOADING</p>
+            <div class="branding-preview-loading">
+              <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'loadingImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'loadingImage' } %><% end %>
+            </div>
+            <small>Adaptado automaticamente</small>
+          </article>
+          <article class="branding-preview-card">
+            <p class="eyebrow">ENTRADA DO MENU</p>
+            <div class="branding-preview-entry">
+              <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'entryImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'entryImage' } %><% end %>
+            </div>
+            <small>Adaptado automaticamente</small>
+          </article>
+          <article class="branding-preview-card">
+            <p class="eyebrow">CABEÇALHO</p>
+            <div class="branding-preview-header">
+              <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'headerImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'headerImage' } %><% end %>
+              <strong><%= current_establishment.name %></strong>
+            </div>
+            <small>Adaptado automaticamente</small>
+          </article>
+        </div>
+      </div>
+    </details>
+  </section>
+<% end %>
+
+<section class="panel settings-card settings-section">
+  <details class="settings-accordion" open>
+    <summary><span><span class="eyebrow">NESTE DISPOSITIVO</span><strong>Alertas</strong></span><small>Som e notificações</small></summary>
+    <div class="settings-accordion-content">
+      <div class="settings-subsection">
+        <h3>Som dos pedidos</h3>
+        <%= form_with model: current_user, url: staff_settings_path, method: :patch do |f| %>
+          <label><%= f.check_box :staff_sound_enabled %> Permitir som para novos pedidos e chamadas</label>
+          <%= f.submit 'Guardar preferência' %>
+        <% end %>
+        <p>O navegador só permite som depois de uma interação. Testa-o uma vez neste dispositivo.</p>
+        <p class="push-status" data-staff-orders-target="soundStatus"><%= current_user.staff_sound_enabled? ? 'Som pronto neste dispositivo.' : 'Som desativado nas definições.' %></p>
+        <button type="button" class="secondary" data-action="staff-orders#enableAudio">Testar som</button>
+      </div>
+      <div class="settings-subsection">
+        <h3>Notificações</h3>
+        <p>Cada funcionário pode ter apenas um dispositivo associado. Se ativares noutro, este será substituído.</p>
+        <p class="push-status" data-staff-orders-target="pushStatus"></p>
+        <button type="button" class="secondary" data-staff-orders-target="pushButton" data-action="staff-orders#enableNotifications">Ativar notificações neste dispositivo</button>
+      </div>
+    </div>
+  </details>
 </section>
