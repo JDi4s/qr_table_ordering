@@ -1,4 +1,4 @@
-<details class="panel unpaid-order">
+<details id="order-<%= order.id %>" class="panel unpaid-order" <%= 'open' if params[:open_order].to_s == order.id.to_s %>>
   <summary class="unpaid-order-summary">
     <div class="unpaid-order-heading">
       <div>
