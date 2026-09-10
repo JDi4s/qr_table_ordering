@@ -1,2 +1,51 @@
-<h1>Histórico</h1><p>Últimos 200 pedidos terminados. Os registos são preservados.</p>
-<div class="grid"><% @orders.each do |order| %><%= render 'order_row', order: order %><% end %></div>
+<div class="history-page">
+  <div class="history-heading">
+    <div>
+      <h1>Histórico</h1>
+      <p>Consulta os pedidos terminados de forma rápida. Até 200 registos são apresentados.</p>
+    </div>
+  </div>
+
+  <div class="history-summary-grid">
+    <div class="history-summary-card">
+      <strong><%= @history_total %></strong>
+      <span>Pedidos encontrados</span>
+    </div>
+    <div class="history-summary-card">
+      <strong><%= euros(@history_received) %></strong>
+      <span>Total recebido</span>
+    </div>
+    <div class="history-summary-card">
+      <strong><%= @history_tables %></strong>
+      <span>Mesas utilizadas</span>
+    </div>
+  </div>
+
+  <section class="panel history-filters">
+    <%= form_with url: history_staff_orders_path, method: :get, class: 'history-filter-form' do %>
+      <div>
+        <%= label_tag :date, 'Dia' %>
+        <%= date_field_tag :date, @history_date&.iso8601 %>
+      </div>
+      <div>
+        <%= label_tag :status, 'Estado' %>
+        <%= select_tag :status, options_for_select([['Todos', 'all'], ['Servidos', 'served'], ['Cancelados', 'denied']], @history_status) %>
+      </div>
+      <%= submit_tag 'Filtrar', class: 'secondary' %>
+      <%= link_to 'Limpar', history_staff_orders_path, class: 'button secondary history-clear-filter' %>
+    <% end %>
+  </section>
+
+  <% if @orders.any? %>
+    <div class="history-list">
+      <% @orders.each do |order| %>
+        <%= render 'history_order', order: order %>
+      <% end %>
+    </div>
+  <% else %>
+    <section class="panel empty-state">
+      <strong>Não existem pedidos neste filtro.</strong>
+      <p>Tenta escolher outro dia ou estado.</p>
+    </section>
+  <% end %>
+</div>
