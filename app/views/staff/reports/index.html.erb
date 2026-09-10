@@ -5,12 +5,15 @@
   <% if @report_tab == 'statistics' %>
     <section class="panel report-filter report-explorer">
       <p class="eyebrow">ANÁLISE</p><h2>O que queres analisar?</h2>
-      <div class="report-choice-grid"><% [['employees','Funcionários'],['products','Produtos'],['revenue','Receita'],['orders','Pedidos']].each do |value, label| %><%= link_to label, staff_reports_path(@filter_params.to_h.merge(analysis: value, metric: nil)), class: (@analysis == value ? 'is-active' : '') %><% end %></div>
+      <% analysis_values = { 'employees' => "#{@employees.size} pessoas", 'products' => "#{@statistics.products.size} artigos", 'revenue' => euros(@statistics.total), 'orders' => "#{@statistics.orders_count} pedidos" } %>
+      <div class="report-choice-grid"><% [['employees','Funcionários'],['products','Produtos'],['revenue','Receita'],['orders','Pedidos']].each do |value, label| %><%= link_to staff_reports_path(@filter_params.to_h.merge(analysis: value, metric: nil)), class: (@analysis == value ? 'is-active' : '') do %><span><%= label %></span><small><%= analysis_values[value] %></small><% end %><% end %></div>
       <p class="report-field-label">Indicador</p>
-      <div class="report-choice-list"><% labels = { 'employees' => [['calls','Chamadas'],['tables','Mesas atendidas'],['sales','Vendas']], 'products' => [['top','Mais vendidos'],['bottom','Menos vendidos'],['revenue','Receita por produto']], 'revenue' => [['total','Total recebido'],['tables','Receita por mesa'],['employees','Receita por funcionário'],['average','Ticket médio']], 'orders' => [['total','Todos os pedidos'],['served','Servidos'],['cancelled','Cancelados']] } %><% labels.fetch(@analysis).each do |value, label| %><%= link_to label, staff_reports_path(@filter_params.to_h.merge(metric: value)), class: (@metric == value ? 'is-active' : '') %><% end %></div>
+      <% labels = { 'employees' => [['calls','Chamadas'],['tables','Mesas atendidas'],['sales','Vendas']], 'products' => [['top','Mais vendidos'],['bottom','Menos vendidos'],['revenue','Receita por produto']], 'revenue' => [['total','Total recebido'],['tables','Receita por mesa'],['employees','Receita por funcionário'],['average','Ticket médio']], 'orders' => [['total','Todos os pedidos'],['served','Servidos'],['cancelled','Cancelados']] } %>
+      <% metric_values = { 'calls' => "#{@call_rows.sum { |row| row[:count] }} chamadas", 'tables' => "#{@table_staff_rows.sum { |row| row[:value] }} mesas", 'sales' => euros(@statistics.total), 'top' => "#{@statistics.products.values.sum { |row| row[:quantity] }} un.", 'bottom' => "#{@statistics.products.values.sum { |row| row[:quantity] }} un.", 'revenue' => euros(@statistics.total), 'total' => euros(@statistics.total), 'average' => euros(@statistics.average), 'served' => "#{@order_rows[:served]} pedidos", 'cancelled' => "#{@order_rows[:cancelled]} pedidos" } %>
+      <div class="report-choice-list"><% labels.fetch(@analysis).each do |value, label| %><%= link_to staff_reports_path(@filter_params.to_h.merge(metric: value)), class: (@metric == value ? 'is-active' : '') do %><span><%= label %></span><small><%= metric_values[value] %></small><% end %><% end %></div>
       <p class="report-field-label">Período</p>
       <div class="report-period-switch"><% [['day','Dia'],['month','Mês'],['year','Ano'],['lifetime','Tempo total']].each do |value, label| %><%= link_to label, staff_reports_path(@filter_params.to_h.merge(view: value)), class: (@period.view == value ? 'is-active' : '') %><% end %></div>
-      <div class="report-period-nav"><% if @period.view != 'lifetime' %><% previous = @period.from - (@period.view == 'day' ? 1 : @period.view == 'month' ? 1.month : 1.year) %><% next_period = @period.from + (@period.view == 'day' ? 1 : @period.view == 'month' ? 1.month : 1.year) %><%= link_to '‹', staff_reports_path(@filter_params.to_h.merge(view: @period.view, date: previous.iso8601, month: previous.strftime('%Y-%m'), year: previous.year)), class: 'report-arrow', aria_label: 'Período anterior' %><% end %><strong><%= @period.label %></strong><% if @period.view != 'lifetime' && @period.to < Date.current %><%= link_to '›', staff_reports_path(@filter_params.to_h.merge(view: @period.view, date: next_period.iso8601, month: next_period.strftime('%Y-%m'), year: next_period.year)), class: 'report-arrow', aria_label: 'Período seguinte' %><% end %></div>
+      <div class="report-period-nav"><% if @period.view != 'lifetime' %><% previous = @period.from - (@period.view == 'day' ? 1 : @period.view == 'month' ? 1.month : 1.year) %><% next_period = @period.from + (@period.view == 'day' ? 1 : @period.view == 'month' ? 1.month : 1.year) %><%= link_to '‹', staff_reports_path(@filter_params.to_h.merge(view: @period.view, date: previous.iso8601, month: previous.strftime('%Y-%m'), year: previous.year)), class: 'report-arrow', aria_label: 'Período anterior' %><% end %><button type="button" class="report-period-button" data-period-dialog-open><strong><%= @period.label %></strong><span>⌄</span></button><% if @period.view != 'lifetime' && @period.to < Date.current %><%= link_to '›', staff_reports_path(@filter_params.to_h.merge(view: @period.view, date: next_period.iso8601, month: next_period.strftime('%Y-%m'), year: next_period.year)), class: 'report-arrow', aria_label: 'Período seguinte' %><% end %></div>
       <% if @analysis == 'employees' %><%= form_with url: staff_reports_path, method: :get, class: 'report-employee-filter' do %><%= hidden_field_tag :tab, 'statistics' %><%= hidden_field_tag :analysis, @analysis %><%= hidden_field_tag :metric, @metric %><%= hidden_field_tag :view, @period.view %><%= hidden_field_tag :date, @period.from.iso8601 %><%= select_tag :employee_id, options_for_select([['Todos os funcionários','']] + @employees.map { |employee| [employee.name.presence || employee.login_identifier, employee.id] }, @employee&.id), onchange: 'this.form.submit()', aria: { label: 'Escolher funcionário' } %><% end %><% end %>
     </section>
 
@@ -18,8 +21,8 @@
 
     <section class="panel report-card report-chart-card report-focus-card">
       <div class="report-chart-heading"><div><p class="eyebrow">EVOLUÇÃO</p><h2><%= labels.fetch(@analysis).find { |pair| pair[0] == @metric }&.last || 'Resultados' %></h2><span class="report-period-label"><%= @period.label %></span></div><div class="report-chart-kpis"><span><small>Total</small><strong><%= euros(@statistics.total) %></strong></span><span><small>Máximo</small><strong><%= euros(@chart_rows.map { |r| r[:amount] }.max.to_d) %></strong></span></div></div>
-      <% max_chart = [@chart_rows.map { |row| row[:amount].to_d }.max.to_d, 1.to_d].max %>
-      <% if @chart_rows.any? %><div class="report-chart-scale"><span><%= euros(max_chart) %></span><span>0 €</span></div><div class="report-chart-scroll"><div class="report-chart report-chart-<%= @period.view %>" role="img" aria-label="Evolução no período"><% @chart_rows.each do |row| %><div class="report-chart-column" tabindex="0" aria-label="<%= row[:label] %>: <%= euros(row[:amount]) %>"><div class="report-chart-bars"><span class="report-bar current" style="height:<%= (row[:amount].to_d / max_chart * 100).round(2) %>%"></span></div><small class="report-chart-label"><%= row[:label] %></small></div><% end %></div></div><div class="report-legend"><span><i class="current"></i>Período escolhido</span></div><% else %><div class="report-chart-empty">Sem dados para este período.</div><% end %>
+      <% max_chart = [@chart_rows.map { |row| row[:amount].to_d }.max.to_d, 1.to_d].max %><% count_chart = @analysis == 'orders' || (@analysis == 'employees' && %w[calls tables].include?(@metric)) || (@analysis == 'products' && @metric != 'revenue') %><% chart_value = ->(value) { count_chart ? value.to_i.to_s : euros(value) } %>
+      <% if @chart_rows.any? %><div class="report-chart-stage"><div class="report-chart-scale"><span><%= chart_value.call(max_chart) %></span><span>0<%= count_chart ? '' : ' €' %></span></div><div class="report-chart-scroll"><div class="report-chart report-chart-<%= @period.view %>" role="img" aria-label="Evolução no período"><% @chart_rows.each do |row| %><div class="report-chart-column" tabindex="0" aria-label="<%= row[:label] %>: <%= chart_value.call(row[:amount]) %>"><div class="report-chart-bars"><span class="report-bar current" style="height:<%= (row[:amount].to_d / max_chart * 100).round(2) %>%"></span></div><small class="report-chart-label"><%= row[:label] %></small></div><% end %></div></div></div><div class="report-legend"><span><i class="current"></i>Período escolhido</span></div><% else %><div class="report-chart-empty">Sem dados para este período.</div><% end %>
     </section>
 
     <% if @analysis == 'employees' %><section class="panel report-card"><h2><%= @metric == 'calls' ? 'Chamadas por funcionário' : @metric == 'tables' ? 'Mesas atendidas' : 'Vendas por funcionário' %></h2><p class="report-note">Os valores correspondem ao indicador escolhido.</p><% rows = @metric == 'calls' ? @call_rows.map { |r| { name: r[:name], value: r[:count], label: 'chamadas' } } : @metric == 'tables' ? @table_staff_rows : @staff_rows.map { |r| { name: r[:name], value: r[:amount], label: 'pagamentos' } } %><%= render 'report_rows', rows: rows %></section>
@@ -33,3 +36,57 @@
     <div class="report-columns"><section class="panel report-card"><h2>Por método</h2><%= render 'report_rows', rows: @statistics.by_method.sort_by { |_, amount| -amount }.map { |key, value| { name: payment_method_label(key), value: value, label: '€' } } %></section><section class="panel report-card"><h2>Mesas ainda por pagar</h2><p><%= @unpaid_tables.any? ? @unpaid_tables.map { |table| "Mesa #{table.number}" }.join(' · ') : 'Nenhuma mesa pendente.' %></p></section></div>
   <% end %>
 </div>
+
+<% if @report_tab == 'statistics' %>
+<dialog class="report-period-dialog" data-period-dialog>
+  <div class="report-period-sheet">
+    <div class="report-period-dialog-head"><div><p class="eyebrow">ESCOLHER PERÍODO</p><h2 data-period-dialog-title>Escolher data</h2></div><button type="button" class="report-dialog-close" data-period-dialog-close aria-label="Fechar">×</button></div>
+    <div class="report-calendar-toolbar"><button type="button" data-calendar-prev aria-label="Anterior">‹</button><strong data-calendar-label></strong><button type="button" data-calendar-next aria-label="Seguinte">›</button></div>
+    <div class="report-calendar-weekdays"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
+    <div class="report-calendar-grid" data-calendar-grid></div>
+    <%= form_with url: staff_reports_path, method: :get, class: 'report-period-dialog-form', data: { period_form: true } do %>
+      <%= hidden_field_tag :tab, 'statistics' %><%= hidden_field_tag :analysis, @analysis %><%= hidden_field_tag :metric, @metric %><%= hidden_field_tag :view, @period.view, data: { period_view: true } %><%= hidden_field_tag :date, @period.from.iso8601, data: { period_date: true } %><%= hidden_field_tag :month, @period.from.strftime('%Y-%m'), data: { period_month: true } %><%= hidden_field_tag :year, @period.from.year, data: { period_year: true } %><%= hidden_field_tag :employee_id, @employee&.id %>
+      <button type="submit" class="button" data-period-confirm>Confirmar período</button><button type="button" class="button secondary" data-period-dialog-close>Cancelar</button>
+    <% end %>
+  </div>
+</dialog>
+
+<script>
+  (() => {
+    const dialog = document.querySelector('[data-period-dialog]');
+    const open = document.querySelector('[data-period-dialog-open]');
+    if (!dialog || !open) return;
+    const grid = dialog.querySelector('[data-calendar-grid]');
+    const label = dialog.querySelector('[data-calendar-label]');
+    const view = dialog.querySelector('[data-period-view]');
+    const date = dialog.querySelector('[data-period-date]');
+    const month = dialog.querySelector('[data-period-month]');
+    const year = dialog.querySelector('[data-period-year]');
+    let selected = new Date(`${date.value}T00:00:00`);
+    let cursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
+    const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const pad = value => String(value).padStart(2, '0');
+    const iso = value => `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+    const render = () => {
+      grid.innerHTML = '';
+      label.textContent = `${monthNames[cursor.getMonth()]} ${cursor.getFullYear()}`;
+      const firstDay = (new Date(cursor.getFullYear(), cursor.getMonth(), 1).getDay() + 6) % 7;
+      for (let i = 0; i < firstDay; i += 1) grid.appendChild(document.createElement('span'));
+      const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+      for (let day = 1; day <= days; day += 1) {
+        const button = document.createElement('button');
+        button.type = 'button'; button.textContent = day;
+        const value = new Date(cursor.getFullYear(), cursor.getMonth(), day);
+        if (value.toDateString() === selected.toDateString()) button.classList.add('is-selected');
+        button.addEventListener('click', () => { selected = value; date.value = iso(value); month.value = `${value.getFullYear()}-${pad(value.getMonth() + 1)}`; year.value = value.getFullYear(); render(); });
+        grid.appendChild(button);
+      }
+    };
+    open.addEventListener('click', () => { dialog.showModal(); render(); });
+    dialog.querySelectorAll('[data-period-dialog-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
+    dialog.querySelector('[data-calendar-prev]').addEventListener('click', () => { cursor.setMonth(cursor.getMonth() - 1); render(); });
+    dialog.querySelector('[data-calendar-next]').addEventListener('click', () => { cursor.setMonth(cursor.getMonth() + 1); render(); });
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  })();
+</script>
+<% end %>
