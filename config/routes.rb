@@ -23,7 +23,7 @@ Rails.application.routes.draw do
   end
   namespace :staff do
     resources :orders, only: [:index, :show, :update] do
-      member { patch :mark_paid; patch :pay_item }
+      member { patch :mark_paid; patch :pay_item; patch :pay_selected }
       collection { get :history }
     end
     resources :order_items, only: :update
