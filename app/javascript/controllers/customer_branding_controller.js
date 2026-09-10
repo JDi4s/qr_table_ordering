@@ -9,7 +9,7 @@ export default class extends Controller {
 
     this.contentTarget.hidden = true
     this.loadingTarget.hidden = false
-    this.entryTimer = window.setTimeout(() => this.showEntry(), 650)
+    this.entryTimer = window.setTimeout(() => this.showEntry(), 1600)
   }
 
   disconnect() {
