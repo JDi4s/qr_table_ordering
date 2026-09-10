@@ -7,7 +7,13 @@
   </div>
 <% end %>
 
-<div class="panel menu-help"><strong>Organização rápida</strong><span>As categorias estão agrupadas. Abre apenas a secção que queres editar.</span></div>
+<div class="panel menu-help" data-controller="dismissible" data-dismissible-key-value="staff-menu-organization-help" data-dismissible-duration-value="86400000">
+  <div>
+    <strong>Organização rápida</strong>
+    <span>As categorias estão agrupadas. Abre apenas a secção que queres editar.</span>
+  </div>
+  <%= button_tag '×', type: 'button', class: 'menu-help-close', data: { action: 'dismissible#close' }, aria: { label: 'Fechar ajuda' } %>
+</div>
 
 <% roots = @categories.select(&:root?).sort_by(&:name) %>
 <% available_count = @categories.count { |category| !category.archived? && category.available? } %>
