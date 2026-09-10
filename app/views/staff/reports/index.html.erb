@@ -22,7 +22,8 @@
     <section class="panel report-card report-chart-card report-focus-card">
       <div class="report-chart-heading"><div><p class="eyebrow">EVOLUÇÃO</p><h2><%= labels.fetch(@analysis).find { |pair| pair[0] == @metric }&.last || 'Resultados' %></h2><span class="report-period-label"><%= @period.label %></span></div><div class="report-chart-kpis"><span><small>Total</small><strong><%= euros(@statistics.total) %></strong></span><span><small>Máximo</small><strong><%= euros(@chart_rows.map { |r| r[:amount] }.max.to_d) %></strong></span></div></div>
       <% max_chart = [@chart_rows.map { |row| row[:amount].to_d }.max.to_d, 1.to_d].max %><% count_chart = @analysis == 'orders' || (@analysis == 'employees' && %w[calls tables].include?(@metric)) || (@analysis == 'products' && @metric != 'revenue') %><% chart_value = ->(value) { count_chart ? value.to_i.to_s : euros(value) } %>
-      <% if @chart_rows.any? %><div class="report-chart-stage"><div class="report-chart-scale"><span><%= chart_value.call(max_chart) %></span><span>0<%= count_chart ? '' : ' €' %></span></div><div class="report-chart-scroll"><div class="report-chart report-chart-<%= @period.view %>" role="img" aria-label="Evolução no período"><% @chart_rows.each do |row| %><div class="report-chart-column" tabindex="0" aria-label="<%= row[:label] %>: <%= chart_value.call(row[:amount]) %>"><div class="report-chart-bars"><span class="report-bar current" style="height:<%= (row[:amount].to_d / max_chart * 100).round(2) %>%"></span></div><small class="report-chart-label"><%= row[:label] %></small></div><% end %></div></div></div><div class="report-legend"><span><i class="current"></i>Período escolhido</span></div><% else %><div class="report-chart-empty">Sem dados para este período.</div><% end %>
+      <% chart_categorical = %w[products employees orders].include?(@analysis) && !(@analysis == 'employees' && @metric == 'sales') %>
+      <% if @chart_rows.any? %><div class="report-chart-stage"><div class="report-chart-scale"><span><%= chart_value.call(max_chart) %></span><span>0<%= count_chart ? '' : ' €' %></span></div><div class="report-chart-scroll"><div class="report-chart report-chart-<%= @period.view %> <%= 'report-chart-categorical' if chart_categorical %>" data-report-chart role="img" aria-label="Evolução no período"><% @chart_rows.each do |row| %><div class="report-chart-column" tabindex="0" data-chart-label="<%= row[:label] %>" data-chart-value="<%= chart_value.call(row[:amount]) %>" aria-label="<%= row[:label] %>: <%= chart_value.call(row[:amount]) %>"><div class="report-chart-bars"><span class="report-bar current" style="height:<%= (row[:amount].to_d / max_chart * 100).round(2) %>%"></span></div><small class="report-chart-label"><%= row[:label] %></small></div><% end %></div></div><div class="report-chart-tooltip" data-chart-tooltip hidden><strong data-tooltip-label></strong><span><i></i><b data-tooltip-value></b></span></div></div><div class="report-legend"><span><i class="current"></i>Período escolhido</span></div><% else %><div class="report-chart-empty">Sem dados para este período.</div><% end %>
     </section>
 
     <% if @analysis == 'employees' %><section class="panel report-card"><h2><%= @metric == 'calls' ? 'Chamadas por funcionário' : @metric == 'tables' ? 'Mesas atendidas' : 'Vendas por funcionário' %></h2><p class="report-note">Os valores correspondem ao indicador escolhido.</p><% rows = @metric == 'calls' ? @call_rows.map { |r| { name: r[:name], value: r[:count], label: 'chamadas' } } : @metric == 'tables' ? @table_staff_rows : @staff_rows.map { |r| { name: r[:name], value: r[:amount], label: 'pagamentos' } } %><%= render 'report_rows', rows: rows %></section>
@@ -87,6 +88,35 @@
     dialog.querySelector('[data-calendar-prev]').addEventListener('click', () => { cursor.setMonth(cursor.getMonth() - 1); render(); });
     dialog.querySelector('[data-calendar-next]').addEventListener('click', () => { cursor.setMonth(cursor.getMonth() + 1); render(); });
     dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+
+    document.querySelectorAll('[data-report-chart]').forEach(chart => {
+      const tooltip = chart.closest('.report-chart-stage').querySelector('[data-chart-tooltip]');
+      const tooltipLabel = tooltip.querySelector('[data-tooltip-label]');
+      const tooltipValue = tooltip.querySelector('[data-tooltip-value]');
+      const hideTooltip = () => { tooltip.hidden = true; chart.querySelectorAll('.is-chart-selected').forEach(item => item.classList.remove('is-chart-selected')); };
+      const showTooltip = column => {
+        chart.querySelectorAll('.is-chart-selected').forEach(item => item.classList.remove('is-chart-selected'));
+        column.classList.add('is-chart-selected');
+        tooltipLabel.textContent = column.dataset.chartLabel;
+        tooltipValue.textContent = column.dataset.chartValue;
+        tooltip.hidden = false;
+        const chartBox = chart.getBoundingClientRect();
+        const columnBox = column.getBoundingClientRect();
+        const tooltipWidth = Math.min(190, chartBox.width - 16);
+        tooltip.style.width = `${tooltipWidth}px`;
+        let left = columnBox.left - chartBox.left + (columnBox.width / 2) - (tooltipWidth / 2);
+        left = Math.max(8, Math.min(left, chartBox.width - tooltipWidth - 8));
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${Math.max(8, columnBox.top - chartBox.top - 74)}px`;
+      };
+      chart.querySelectorAll('.report-chart-column').forEach(column => {
+        column.addEventListener('click', event => { event.stopPropagation(); showTooltip(column); });
+        column.addEventListener('mouseenter', () => showTooltip(column));
+        column.addEventListener('focus', () => showTooltip(column));
+      });
+      chart.addEventListener('click', event => { if (!event.target.closest('.report-chart-column')) hideTooltip(); });
+      document.addEventListener('click', event => { if (!event.target.closest('[data-report-chart]')) hideTooltip(); }, { passive: true });
+    });
   })();
 </script>
 <% end %>
