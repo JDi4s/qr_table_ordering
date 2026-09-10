@@ -29,16 +29,18 @@ header {
 }
 
 .brand {
-  display: inline-flex;
-  align-items: center;
   font-size: 28px;
   font-weight: 800;
-  line-height: 1;
   letter-spacing: -1px;
 }
 
 .brand span {
   color: #d99b4b;
+}
+
+header > span:not(.brand) {
+  position: relative;
+  top: 1px;
 }
 
 nav,
@@ -57,27 +59,9 @@ header form {
   margin: 0;
 }
 
-.site-identity {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  min-width: 0;
-}
-
-.site-identity > span:not(.brand) {
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-}
-
 .staff-header { gap: 14px 20px; }
 .staff-identity { display: flex; gap: 20px; align-items: center; min-width: 0; }
-.staff-identity .brand,
-.staff-identity > strong {
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-}
+.staff-identity > strong { line-height: 1.2; transform: translateY(1px); }
 .staff-main-nav { display: flex; flex: 1; justify-content: space-between; gap: 18px; min-width: 0; }
 .staff-nav-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .staff-main-nav a { padding: 8px 10px; border-radius: 8px; color: var(--green); text-decoration: none; white-space: nowrap; }
