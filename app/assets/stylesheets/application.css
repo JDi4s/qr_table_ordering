@@ -1383,3 +1383,42 @@ small {
     padding: 4px;
   }
 }
+
+/* Same centered date display and empty hint across native date pickers. */
+.history-date-control { position: relative; min-width: 0; }
+.history-date-display { display: none; }
+.history-date-control.is-enhanced {
+  border: 1px solid #a7b8ad;
+  border-radius: 7px;
+  background: white;
+}
+.history-date-control.is-enhanced input[type="datetime-local"] {
+  opacity: 0;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  margin: 0;
+  border: 0;
+}
+.history-date-control.is-enhanced .history-date-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  pointer-events: none;
+  color: var(--ink);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.history-date-display.is-empty { color: var(--muted) !important; }
+.history-date-control:focus-within {
+  outline: 3px solid #d99b4b;
+  outline-offset: 2px;
+}
+/* Desktop keyboard editing retains the native segmented field. */
+@media (hover: hover) and (pointer: fine) {
+  .history-date-control.is-enhanced:focus-within input { opacity: 1; }
+  .history-date-control.is-enhanced:focus-within .history-date-display { visibility: hidden; }
+}
