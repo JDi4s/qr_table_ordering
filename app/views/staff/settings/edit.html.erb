@@ -19,6 +19,47 @@
     <%= f.submit 'Guardar' %>
   <% end %>
 </section>
+<% if current_user.manager? %>
+  <section class="panel settings-card branding-settings" data-controller="branding-preview">
+    <p class="eyebrow">PERSONALIZAÇÃO DO MENU</p>
+    <h2>Logotipo do estabelecimento</h2>
+    <p>Carrega uma única imagem. A Mesa adapta-a automaticamente para o loading, para a entrada do menu e para o cabeçalho, sem cortar nem esticar.</p>
+    <%= form_with model: current_establishment, url: staff_settings_path, method: :patch, html: { multipart: true } do |f| %>
+      <div class="branding-upload-row">
+        <div>
+          <%= f.label :logo, 'Escolher logotipo' %>
+          <%= f.file_field :logo, accept: 'image/png,image/jpeg,image/webp', data: { branding_preview_target: 'input', action: 'change->branding-preview#preview' } %>
+          <small>PNG, JPG ou WebP até 5 MB. O ideal é carregar a imagem com a maior resolução disponível.</small>
+        </div>
+        <%= f.submit 'Guardar logotipo' %>
+      </div>
+    <% end %>
+    <div class="branding-preview-grid" aria-label="Pré-visualização do logotipo nos três formatos">
+      <article class="branding-preview-card">
+        <p class="eyebrow">LOADING</p>
+        <div class="branding-preview-loading">
+          <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'loadingImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'loadingImage' } %><% end %>
+        </div>
+        <small>Adaptado automaticamente</small>
+      </article>
+      <article class="branding-preview-card">
+        <p class="eyebrow">ENTRADA DO MENU</p>
+        <div class="branding-preview-entry">
+          <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'entryImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'entryImage' } %><% end %>
+        </div>
+        <small>Adaptado automaticamente</small>
+      </article>
+      <article class="branding-preview-card">
+        <p class="eyebrow">CABEÇALHO</p>
+        <div class="branding-preview-header">
+          <% if current_establishment.logo.attached? %><%= image_tag current_establishment.logo, alt: "Logotipo", data: { branding_preview_target: 'headerImage' } %><% else %><span data-branding-preview-target="empty">Sem logotipo</span><%= image_tag '', alt: "", hidden: true, data: { branding_preview_target: 'headerImage' } %><% end %>
+          <strong><%= current_establishment.name %></strong>
+        </div>
+        <small>Adaptado automaticamente</small>
+      </article>
+    </div>
+  </section>
+<% end %>
 <section class="panel settings-card">
   <p class="eyebrow">NESTE DISPOSITIVO</p><h2>Som</h2>
   <p>O navegador só permite som depois de uma interação. Testa-o uma vez neste dispositivo.</p>
