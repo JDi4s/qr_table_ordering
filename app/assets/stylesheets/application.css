@@ -906,3 +906,83 @@ small {
   .payment-selection-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
   .payment-selection-actions select, .payment-selection-actions input[type="submit"] { width: 100%; min-width: 0; }
 }
+
+/* Cartões compactos da gestão de mesas */
+.table-admin-card {
+  display: grid;
+  gap: 12px;
+}
+
+.table-admin-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.table-admin-heading h2 {
+  margin: 0;
+}
+
+.table-primary-action {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+.table-admin-dropdowns {
+  display: grid;
+  gap: 8px;
+}
+
+.table-admin-details {
+  border-top: 1px solid var(--line);
+}
+
+.table-admin-details > summary {
+  padding: 10px 0 2px;
+  color: var(--green);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.table-admin-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.table-admin-details > summary::after {
+  content: '⌄';
+  float: right;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.table-admin-details[open] > summary::after {
+  content: '⌃';
+}
+
+.table-admin-details-content {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.table-admin-details-content .button {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+.table-admin-form {
+  padding-top: 2px;
+}
+
+.table-admin-form label {
+  margin-top: 8px;
+}
+
+.table-admin-form input[type="submit"] {
+  width: 100%;
+  margin: 12px 0 0;
+}
