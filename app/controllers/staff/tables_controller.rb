@@ -3,6 +3,7 @@ class Staff::TablesController < Staff::BaseController
 
   def index
     @tables = current_establishment.tables.order(:number)
+    @tables_with_consumption_count = current_establishment.tables.joins(:orders).merge(Order.unpaid).distinct.count
     @table = current_establishment.tables.new
   end
 
