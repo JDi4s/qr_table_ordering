@@ -680,6 +680,11 @@ small {
   .category-panel .line { align-items: flex-start; flex-direction: column; }
   .category-panel .line > div:last-child { width: 100%; justify-content: flex-start; }
   .menu-form-actions { bottom: 0; background: #f5f6f0ee; }
+  .menu-form-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .menu-form-actions > button:first-child { grid-column: 1 / -1; }
+  .menu-form-actions button,
+  .menu-form-actions input,
+  .menu-form-actions .button { width: 100%; min-width: 0; margin: 0; padding: 9px 8px; font-size: 14px; text-align: center; }
   .menu-help { align-items: flex-start; flex-direction: column; }
   .staff-menu-status-tabs { overflow-x: auto; }
   .staff-menu-status-tab { flex: 0 0 auto; }
