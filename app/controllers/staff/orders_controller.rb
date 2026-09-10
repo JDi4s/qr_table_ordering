@@ -30,7 +30,7 @@ class Staff::OrdersController < Staff::BaseController
     payment = order.payments.order(:created_at).last
     AuditLogger.record(user: current_user, action: 'payment_received', record: order,
                        metadata: { amount: payment.amount.to_s, payment_method: payment.payment_method })
-    redirect_back fallback_location: staff_table_path(order.table), notice: 'Artigos selecionados marcados como pagos.', status: :see_other
+    redirect_to staff_table_path(order.table), notice: 'Artigos selecionados marcados como pagos.', status: :see_other
   end
 
   def show
