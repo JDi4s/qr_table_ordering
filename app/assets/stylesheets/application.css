@@ -765,7 +765,12 @@ small {
 .staff-category-details summary { padding: 12px 0; color: var(--green); font-weight: 650; cursor: pointer; }
 .staff-category-content { padding-top: 4px; }
 .category-level-1 { border-left: 4px solid #eaf1e8; }
-.menu-help { display: flex; gap: 8px; align-items: baseline; color: var(--muted); }
+.menu-help { position: relative; display: flex; gap: 8px; align-items: flex-start; padding-right: 44px; color: var(--muted); }
+.menu-help > div { display: grid; gap: 4px; }
+.menu-help > div strong { color: var(--ink); }
+.menu-help-close { position: absolute; top: 8px; right: 8px; display: grid; width: 28px; height: 28px; place-items: center; padding: 0; margin: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 22px; line-height: 1; }
+.menu-help-close:hover { background: #eaf1e8; color: var(--ink); filter: none; }
+.menu-help[hidden] { display: none; }
 .menu-help strong { color: var(--ink); }
 .staff-menu-status-tabs { display: flex; gap: 10px; margin: 20px 0; }
 .staff-menu-status-tab { margin: 0; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--green); }
