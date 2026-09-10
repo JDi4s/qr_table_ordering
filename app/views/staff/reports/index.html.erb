@@ -1,30 +1,83 @@
-<p class="eyebrow">CONTROLO FINANCEIRO</p>
-<h1>Relatórios e caixa</h1>
-<div class="toolbar report-toolbar">
-  <%= form_with url: staff_reports_path, method: :get do |f| %>
-    <%= f.label :date, 'Dia' %><%= f.date_field :date, value: @start_date %>
-    <%= f.submit 'Ver dia', class: 'secondary' %>
+<div class="report-dashboard">
+  <div class="report-heading">
+    <div><p class="eyebrow">CONTROLO FINANCEIRO</p><h1>Relatórios e caixa</h1></div>
+    <%= link_to 'Exportar CSV', export_staff_reports_path(@report_tab == 'cash' ? { tab: 'cash', date: @date } : @filter_params), class: 'button secondary report-export' %>
+  </div>
+
+  <nav class="report-tabs" aria-label="Área financeira">
+    <%= link_to 'Estatísticas', staff_reports_path(tab: 'statistics'), class: (@report_tab == 'statistics' ? 'is-active' : '') %>
+    <%= link_to 'Caixa', staff_reports_path(tab: 'cash', date: (@date || Date.current)), class: (@report_tab == 'cash' ? 'is-active' : '') %>
+  </nav>
+
+  <% if @report_tab == 'statistics' %>
+    <section class="report-filter panel">
+      <div class="report-section-title"><div><p class="eyebrow">ANÁLISE</p><h2>Estatísticas</h2></div><span class="report-muted">Por pagamentos recebidos</span></div>
+      <div class="report-preset-list">
+        <% [['today','Hoje'],['week','Últimos 7 dias'],['month','Este mês'],['year','Este ano'],['custom','Personalizado']].each do |value, label| %>
+          <%= link_to label, staff_reports_path(@filter_params.to_h.merge(period: value)), class: (@period.period == value ? 'is-active' : '') %>
+        <% end %>
+      </div>
+      <%= form_with url: staff_reports_path, method: :get, class: 'report-form' do |f| %>
+        <%= hidden_field_tag :tab, 'statistics' %><%= hidden_field_tag :period, 'custom' %>
+        <div><%= f.label :from, 'De' %><%= f.date_field :from, value: @period.from, required: true %></div>
+        <div><%= f.label :to, 'Até' %><%= f.date_field :to, value: @period.to, required: true %></div>
+        <div><%= f.label :compare, 'Comparar com' %><%= f.select :compare, [['Período anterior equivalente','previous'],['Outro período','custom'],['Sem comparação','none']], selected: @period.comparison %></div>
+        <div class="report-custom-comparison"><%= f.label :compare_from, 'Comparação: de' %><%= f.date_field :compare_from, value: @period.compare_from %></div>
+        <div class="report-custom-comparison"><%= f.label :compare_to, 'Comparação: até' %><%= f.date_field :compare_to, value: @period.compare_to %></div>
+        <div><%= f.label :group, 'Mostrar por' %><%= f.select :group, [['Horas','hour'],['Dias','day'],['Meses','month']], selected: @period.group %></div>
+        <div><%= f.label :employee_id, 'Funcionário' %><%= f.select :employee_id, [['Todos','']] + @employees.map { |employee| [employee.name.presence || employee.login_identifier, employee.id] }, selected: @employee&.id %></div>
+        <div class="report-form-actions"><%= f.submit 'Aplicar filtros' %><%= link_to 'Limpar', staff_reports_path(tab: 'statistics'), class: 'button secondary' %></div>
+      <% end %>
+    </section>
+
+    <div class="report-stat-grid">
+      <% [['Total recebido', euros(@statistics.total)],['Pagamentos', @statistics.payments_count],['Pedidos com recebimentos', @statistics.orders_count],['Média por pedido', euros(@statistics.average)]].each do |label, value| %>
+        <div class="report-stat"><strong><%= value %></strong><span><%= label %></span></div>
+      <% end %>
+    </div>
+
+    <section class="panel report-card report-chart-card">
+      <% show_comparison = @period.comparing? && @previous.total.positive? %>
+      <% chart_values = @chart_rows.flat_map { |row| [row[:current]&.fetch(:amount, 0.to_d), show_comparison ? row[:previous]&.fetch(:amount, 0.to_d) : nil] }.compact %>
+      <% max_chart = [chart_values.max.to_d, 1.to_d].max %>
+      <% peak = @chart_rows.filter_map { |row| row[:current] }.max_by { |point| point[:amount] } %>
+      <div class="report-chart-heading">
+        <div><p class="eyebrow">EVOLUÇÃO</p><h2>Recebimentos ao longo do tempo</h2><span class="report-period-label"><%= @period.from.strftime('%d/%m/%Y') %> — <%= @period.to.strftime('%d/%m/%Y') %></span></div>
+        <div class="report-chart-kpis"><span><small>Total</small><strong><%= euros(@statistics.total) %></strong></span><span><small>Pico</small><strong><%= peak ? euros(peak[:amount]) : euros(0) %></strong></span></div>
+      </div>
+      <% if @statistics.total.positive? || show_comparison %>
+        <div class="report-chart-scale"><span><%= euros(max_chart) %></span><span><%= euros(max_chart / 2) %></span><span>0 €</span></div>
+        <div class="report-chart-scroll">
+          <div class="report-chart report-chart-<%= @period.group %>" role="img" aria-label="Gráfico de recebimentos">
+            <% @chart_rows.each_with_index do |row, index| %>
+              <% current = row[:current]; previous = row[:previous] %>
+              <div class="report-chart-column" tabindex="0" aria-label="<%= current&.fetch(:label, '') %>: <%= current ? euros(current[:amount]) : euros(0) %>">
+                <div class="report-chart-bars"><span class="report-bar current" style="height:<%= (current ? current[:amount].to_d / max_chart * 100 : 0).round(2) %>%" title="Atual: <%= current ? euros(current[:amount]) : euros(0) %>"></span><% if show_comparison %><span class="report-bar previous" style="height:<%= (previous ? previous[:amount].to_d / max_chart * 100 : 0).round(2) %>%" title="Comparação: <%= previous ? euros(previous[:amount]) : euros(0) %>"></span><% end %></div>
+                <% chart_label = current&.fetch(:label, previous&.fetch(:label, '')) %>
+                <small class="report-chart-label"><%= @period.group == 'hour' ? chart_label.sub(':00', 'h') : chart_label %></small>
+              </div>
+            <% end %>
+          </div>
+        </div>
+        <div class="report-legend"><span><i class="current"></i>Período escolhido</span><% if show_comparison %><span><i class="previous"></i>Período comparado</span><% end %></div>
+      <% else %>
+        <div class="report-chart-empty"><strong>Ainda não existem recebimentos</strong><span>Escolhe outro período para consultar a evolução.</span></div>
+      <% end %>
+    </section>
+
+    <div class="report-columns">
+      <section class="panel report-card"><h2>Recebimentos por funcionário</h2><p class="report-note">Quem registou o pagamento, não necessariamente quem serviu a mesa.</p><% staff_max = [@staff_rows.map { |row| row[:amount] }.max.to_d, 1.to_d].max %><div class="report-bars-list"><% @staff_rows.each do |row| %><div class="report-person-row"><div class="report-person-label"><span><%= row[:name] %></span><strong><%= euros(row[:amount]) %></strong></div><div class="report-track"><i style="width:<%= (row[:amount].to_d / staff_max * 100).round(2) %>%"></i></div><small><%= row[:count] %> pagamentos<% if @period.comparing? %> · comparação: <%= euros(row[:previous]) %><% end %></small></div><% end %></div><% if @staff_rows.empty? %><p>Sem recebimentos neste período.</p><% end %></section>
+      <section class="panel report-card"><h2>Por método</h2><% if @statistics.by_method.any? %><ul class="report-list"><% @statistics.by_method.sort_by { |_, amount| -amount }.each do |method, amount| %><li><span><%= payment_method_label(method) %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% else %><p>Sem pagamentos neste período.</p><% end %></section>
+    </div>
+    <div class="report-columns">
+      <section class="panel report-card"><h2>Artigos pagos por quantidade</h2><ul class="report-list"><% @statistics.top_products(:quantity).each do |row| %><li><span><%= row[:name] %></span><strong><%= row[:quantity] %> un.</strong></li><% end %></ul><% if @statistics.products.empty? %><p>Sem artigos pagos neste período.</p><% end %></section>
+      <section class="panel report-card"><h2>Artigos pagos por valor</h2><ul class="report-list"><% @statistics.top_products(:amount).each do |row| %><li><span><%= row[:name] %></span><strong><%= euros(row[:amount]) %></strong></li><% end %></ul><% if @statistics.products.empty? %><p>Sem artigos pagos neste período.</p><% end %></section>
+    </div>
+  <% else %>
+    <section class="report-filter panel report-cash-filter"><div class="report-section-title"><div><p class="eyebrow">FECHO DIÁRIO</p><h2>Caixa</h2></div><span class="report-muted">Consulta independente das estatísticas</span></div><%= form_with url: staff_reports_path, method: :get, class: 'cash-date-form' do |f| %><%= hidden_field_tag :tab, 'cash' %><%= f.label :date, 'Dia' %><%= f.date_field :date, value: @date %><%= f.submit 'Ver dia', class: 'secondary' %><% end %></section>
+    <div class="report-stat-grid report-cash-summary"><% [['Total recebido', euros(@statistics.total)],['Pagamentos', @statistics.payments_count],['Mesas por pagar', @unpaid_tables.size]].each do |label, value| %><div class="report-stat"><strong><%= value %></strong><span><%= label %></span></div><% end %></div>
+    <section class="panel report-card"><div class="report-section-title"><div><p class="eyebrow">FECHO DE CAIXA</p><h2><%= @date.strftime('%d/%m/%Y') %></h2></div><span class="badge"><%= @closure ? 'Fechado' : 'Aberto' %></span></div><% if @closure %><p>Fechado por <strong><%= @closure.user.name.presence || @closure.user.login_identifier %></strong> às <%= @closure.closed_at.strftime('%H:%M') %>.</p><% else %><p>Confirma o total recebido deste dia para impedir um segundo fecho.</p><%= button_to 'Fechar caixa deste dia', close_staff_reports_path(date: @date), method: :post %><% end %></section>
+    <div class="report-columns"><section class="panel report-card"><h2>Por método</h2><ul class="report-list"><% @statistics.by_method.each do |method, amount| %><li><span><%= payment_method_label(method) %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% if @statistics.by_method.empty? %><p>Sem pagamentos neste dia.</p><% end %></section><section class="panel report-card"><h2>Por funcionário</h2><ul class="report-list"><% @statistics.staff.values.sort_by { |row| -row[:amount] }.each do |row| %><li><span><%= row[:name] %></span><strong><%= euros(row[:amount]) %></strong></li><% end %></ul><% if @statistics.staff.empty? %><p>Sem pagamentos neste dia.</p><% end %></section></div>
+    <section class="panel report-card"><h2>Mesas ainda por pagar</h2><p><%= @unpaid_tables.any? ? @unpaid_tables.map { |table| "Mesa #{table.number}" }.join(' · ') : 'Nenhuma mesa pendente.' %></p></section>
   <% end %>
-  <%= link_to 'Exportar CSV', export_staff_reports_path(date: @start_date), class: 'button secondary' %>
-  <%= link_to 'Ver atividade da equipa', staff_audit_events_path, class: 'button secondary' %>
 </div>
-
-<div class="staff-summary-grid">
-  <div class="staff-summary-card"><strong><%= euros(@total) %></strong><span>Total recebido</span></div>
-  <div class="staff-summary-card"><strong><%= @payments.size %></strong><span>Pagamentos</span></div>
-  <div class="staff-summary-card staff-summary-alert"><strong><%= @unpaid_tables.size %></strong><span>Mesas por pagar</span></div>
-</div>
-
-<section class="panel report-card"><div class="section-heading"><div><p class="eyebrow">FECHO DE CAIXA</p><h2><%= @start_date.strftime('%d/%m/%Y') %></h2></div><span class="badge"><%= @closure ? 'Fechado' : 'Aberto' %></span></div>
-  <% if @closure %><p>Fechado por <strong><%= @closure.user.name.presence || @closure.user.login_identifier %></strong> às <%= @closure.closed_at.strftime('%H:%M') %>.</p>
-  <% else %><p>Confirma o total recebido deste dia para impedir um segundo fecho.</p><%= button_to 'Fechar caixa deste dia', close_staff_reports_path(date: @start_date), method: :post %><% end %>
-</section>
-
-<div class="report-columns">
-  <section class="panel report-card"><h2>Por método</h2><ul><% @by_method.each do |method, amount| %><li class="line"><span><%= payment_method_label(method) %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% if @by_method.empty? %><p>Sem pagamentos neste dia.</p><% end %></section>
-  <section class="panel report-card"><h2>Por funcionário</h2><ul><% @staff_totals.each do |name, amount| %><li class="line"><span><%= name %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% if @staff_totals.empty? %><p>Sem pagamentos neste dia.</p><% end %></section>
-</div>
-
-<section class="panel report-card"><h2>Produtos mais pagos</h2><ul><% @product_totals.each do |name, amount| %><li class="line"><span><%= name %></span><strong><%= euros(amount) %></strong></li><% end %></ul><% if @product_totals.empty? %><p>Sem artigos pagos neste dia.</p><% end %></section>
-
-<section class="panel report-card"><h2>Mesas ainda por pagar</h2><% if @unpaid_tables.any? %><p><%= @unpaid_tables.map { |table| "Mesa #{table.number}" }.join(' · ') %></p><% else %><p>Nenhuma mesa pendente.</p><% end %></section>
