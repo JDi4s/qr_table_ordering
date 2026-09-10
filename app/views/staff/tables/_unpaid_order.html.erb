@@ -1,43 +1,75 @@
-<article class="panel unpaid-order">
-  <div class="line"><div><p class="eyebrow">PEDIDO #<%= order.id %></p><h2><%= order.created_at.strftime('%H:%M') %></h2></div><span class="badge order-status order-status-<%= order.status %>"><%= state_label(order.status) %></span></div>
-  <p><strong><%= euros(order.outstanding_total) %></strong> por pagar</p>
-  <% if order.payments.any? %>
-    <details class="payment-history"><summary><%= order.payments.size %> pagamento(s) registado(s)</summary>
-      <ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul>
-    </details>
-  <% end %>
-  <% unless order.accepted? || order.served? %><p class="table-warning">Este pedido ainda não está disponível para pagamento.</p><% end %>
-  <ul>
-    <% order.order_items.each do |item| %>
-      <li class="payment-line">
-        <div>
-          <% if item.denied? %>
-            <%= item.quantity %> × <%= item.display_name %> — rejeitado
-          <% elsif item.paid? %>
-            <%= item.quantity %> × <%= item.display_name %> — pago
-          <% else %>
-            <strong><%= item.remaining_quantity %> × <%= item.display_name %></strong> — <%= euros(item.outstanding_total) %>
-            <% if item.paid_quantity.positive? %><small><%= item.paid_quantity %> já pago(s)</small><% end %>
-          <% end %>
-        </div>
-        <% if item.unpaid? && item.accepted? %>
-          <%= form_with url: pay_item_staff_order_path(order), method: :patch, class: 'payment-form' do %>
-            <%= hidden_field_tag :order_item_id, item.id %>
-            <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true, aria: { label: "Quantidade de #{item.display_name} a pagar" } %>
-            <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
-            <%= submit_tag 'Confirmar' %>
-          <% end %>
-        <% end %>
-      </li>
+<details class="panel unpaid-order">
+  <summary class="unpaid-order-summary">
+    <div class="unpaid-order-heading">
+      <div>
+        <p class="eyebrow">PEDIDO #<%= order.id %></p>
+        <h2><%= order.created_at.strftime('%H:%M') %></h2>
+      </div>
+      <div class="unpaid-order-total">
+        <span class="badge order-status order-status-<%= order.status %>"><%= state_label(order.status) %></span>
+        <strong><%= euros(order.outstanding_total) %></strong>
+        <small>por pagar</small>
+      </div>
+    </div>
+  </summary>
+
+  <div class="unpaid-order-content">
+    <% if order.payments.any? %>
+      <details class="payment-history"><summary><%= order.payments.size %> pagamento(s) registado(s)</summary>
+        <ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul>
+      </details>
     <% end %>
-  </ul>
-  <div class="toolbar">
-    <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button secondary' %>
+
     <% if order.accepted? || order.served? %>
-      <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
-        <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
-        <%= submit_tag 'Pagar pedido completo' %>
+      <%= form_with url: pay_selected_staff_order_path(order), method: :patch, class: 'payment-selection-form', data: { controller: 'payment-selection' } do %>
+        <p class="payment-selection-help">Toca num artigo para selecionar uma unidade. Se houver duas, toca duas vezes.</p>
+
+        <ul class="payment-selection-list">
+          <% order.order_items.each do |item| %>
+            <% if item.unpaid? && item.accepted? %>
+              <li class="payment-selection-row" data-payment-selection-target="item" data-max-quantity="<%= item.remaining_quantity %>" data-selected-quantity="0" data-unit-price="<%= item.unit_price.to_f %>">
+                <%= button_tag type: 'button', class: 'payment-selection-item', data: { action: 'payment-selection#toggle' }, aria: { pressed: false } do %>
+                  <span class="payment-selection-copy">
+                    <strong><%= item.display_name %></strong>
+                    <small><%= item.remaining_quantity %> por pagar · <%= euros(item.outstanding_total) %><% if item.paid_quantity.positive? %> · <%= item.paid_quantity %> já pago(s)<% end %></small>
+                  </span>
+                  <span class="payment-selection-count" data-selection-count>0/<%= item.remaining_quantity %></span>
+                <% end %>
+                <%= hidden_field_tag "items[#{item.id}]", 0 %>
+              </li>
+            <% elsif item.denied? %>
+              <li class="payment-selection-row">
+                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %> — rejeitado</div>
+              </li>
+            <% elsif item.paid? %>
+              <li class="payment-selection-row">
+                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %> — pago</div>
+              </li>
+            <% else %>
+              <li class="payment-selection-row">
+                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %> — ainda não disponível</div>
+              </li>
+            <% end %>
+          <% end %>
+        </ul>
+
+        <div class="payment-selection-footer">
+          <div>
+            <strong data-payment-selection-target="selectedCount">0 artigos selecionados</strong>
+            <span data-payment-selection-target="selectedTotal">0,00 €</span>
+          </div>
+          <div class="payment-selection-actions">
+            <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
+            <%= submit_tag 'Pagar selecionados', disabled: true, data: { payment_selection_target: 'submit' } %>
+          </div>
+        </div>
       <% end %>
+    <% else %>
+      <p class="table-warning">Este pedido ainda não está disponível para pagamento.</p>
     <% end %>
+
+    <div class="toolbar">
+      <%= link_to 'Abrir pedido', staff_order_path(order), class: 'button secondary' %>
+    </div>
   </div>
-</article>
+</details>
