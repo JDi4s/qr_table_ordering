@@ -1,4 +1,6 @@
 class Establishment < ApplicationRecord
+  has_one_attached :logo
+
   has_many :tables, dependent: :restrict_with_error
   has_many :categories, dependent: :restrict_with_error
   has_many :menu_items, through: :categories
@@ -12,6 +14,7 @@ class Establishment < ApplicationRecord
   validates :name, presence: true, length: { maximum: 120 }
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ }
   validates :table_limit, :monthly_fee_cents, :production_areas_limit, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validate :logo_must_be_an_accepted_image
   validate :limit_covers_active_tables
 
   def monthly_fee
@@ -44,6 +47,16 @@ class Establishment < ApplicationRecord
   end
 
   private
+
+  def logo_must_be_an_accepted_image
+    return unless logo.attached?
+
+    unless logo.content_type.in?(%w[image/png image/jpeg image/webp])
+      errors.add(:logo, 'deve ser PNG, JPG ou WebP')
+    end
+
+    errors.add(:logo, 'não pode ultrapassar 5 MB') if logo.byte_size > 5.megabytes
+  end
 
   def limit_covers_active_tables
     if persisted? && table_limit && table_limit < tables.where(active: true).count
