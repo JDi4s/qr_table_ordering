@@ -1,0 +1,13 @@
+<% if rows.present? %>
+  <div class="report-compact-rows">
+    <% max_value = [rows.map { |row| row[:value].to_d }.max.to_d, 1.to_d].max %>
+    <% rows.first(10).each do |row| %>
+      <div class="report-compact-row">
+        <div class="report-compact-row-head"><span><%= row[:name] %></span><strong><%= row[:label] == '€' ? euros(row[:value]) : "#{row[:value]} #{row[:label]}" %></strong></div>
+        <div class="report-track"><i style="width:<%= (row[:value].to_d / max_value * 100).round(2) %>%"></i></div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="report-muted">Sem dados para este período.</p>
+<% end %>

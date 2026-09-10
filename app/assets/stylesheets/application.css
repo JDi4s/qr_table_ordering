@@ -866,6 +866,49 @@ small {
   .staff-menu-status-tab { flex: 0 0 auto; }
 }
 
+/* Reports explorer: one question, one metric and one period at a time. */
+.report-v2 .report-explorer { padding: 22px; }
+.report-v2 .report-explorer h2 { margin: 2px 0 18px; }
+.report-choice-grid, .report-choice-list, .report-period-switch { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.report-choice-grid::-webkit-scrollbar, .report-choice-list::-webkit-scrollbar, .report-period-switch::-webkit-scrollbar { display: none; }
+.report-choice-grid a, .report-choice-list a, .report-period-switch a { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; padding: 9px 14px; color: var(--green); text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.report-choice-grid a.is-active, .report-choice-list a.is-active, .report-period-switch a.is-active { color: #fff; background: var(--green); border-color: var(--green); }
+.report-field-label { margin: 18px 0 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.report-choice-list a { padding: 7px 11px; font-size: 12px; }
+.report-period-switch { padding-bottom: 2px; }
+.report-period-switch a { padding: 8px 15px; }
+.report-period-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 430px; margin: 20px auto 0; text-align: center; }
+.report-period-nav strong { flex: 1; font-size: 18px; }
+.report-arrow { display: grid; place-items: center; width: 32px; height: 32px; color: var(--green); border: 1px solid var(--line); border-radius: 50%; text-decoration: none; font-size: 25px; line-height: 1; }
+.report-employee-filter { margin-top: 14px; }
+.report-employee-filter select { width: 100%; max-width: 360px; margin: 0; }
+.report-stat-grid-compact { margin-top: 16px; }
+.report-focus-card { min-height: 330px; }
+.report-compact-rows { display: grid; gap: 15px; margin-top: 16px; }
+.report-compact-row-head { display: flex; justify-content: space-between; gap: 12px; }
+.report-compact-row-head strong { white-space: nowrap; }
+.report-compact-row .report-track { height: 9px; }
+
+@media (max-width: 600px) {
+  .report-v2 .report-heading { gap: 8px; }
+  .report-v2 .report-heading h1 { font-size: 25px; }
+  .report-v2 .report-export { align-self: center; }
+  .report-v2 .report-explorer { padding: 14px; }
+  .report-v2 .report-explorer h2 { font-size: 18px; margin-bottom: 13px; }
+  .report-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
+  .report-choice-grid a { text-align: center; padding: 8px 6px; }
+  .report-choice-list a, .report-period-switch a { padding: 7px 10px; font-size: 11px; }
+  .report-field-label { margin-top: 14px; }
+  .report-period-nav { margin-top: 14px; }
+  .report-period-nav strong { font-size: 16px; }
+  .report-focus-card { min-height: 285px; }
+  .report-v2 .report-chart { height: 175px; }
+  .report-v2 .report-chart-bars { height: 143px; }
+  .report-v2 .report-chart-day { min-width: 100%; }
+  .report-v2 .report-chart-month { min-width: 670px; }
+  .report-v2 .report-chart-year, .report-v2 .report-chart-lifetime { min-width: 100%; }
+}
+
 
 .unpaid-order > summary { list-style: none; cursor: pointer; }
 .unpaid-order > summary::-webkit-details-marker { display: none; }

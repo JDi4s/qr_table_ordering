@@ -1,48 +1,70 @@
 class ReportPeriod
   class Invalid < StandardError; end
-
-  attr_reader :period, :from, :to, :comparison, :compare_from, :compare_to, :group
+  VIEWS = %w[day month year lifetime].freeze
+  attr_reader :view, :from, :to, :comparison, :compare_from, :compare_to
 
   def initialize(params, today: Date.current)
-    @period = %w[today week month year custom].include?(params[:period]) ? params[:period] : 'today'
-    @from, @to = case period
-    when 'week' then [today - 6, today]
-    when 'month' then [today.beginning_of_month, today]
-    when 'year' then [today.beginning_of_year, today]
-    when 'custom' then [parse(params[:from]), parse(params[:to])]
-    else [today, today]
+    @today = today
+    @view = VIEWS.include?(params[:view].to_s) ? params[:view].to_s : 'day'
+    @from, @to = resolve_range(params)
+    validate_range(@from, @to)
+    @comparison = %w[previous none].include?(params[:compare].to_s) ? params[:compare].to_s : 'none'
+    if @comparison == 'previous'
+      days = (@to - @from).to_i + 1
+      @compare_from, @compare_to = [@from - days, @from - 1]
     end
-    validate_range(from, to)
-    @comparison = %w[previous custom none].include?(params[:compare]) ? params[:compare] : 'previous'
-    unless comparison == 'none'
-      days = (to - from).to_i + 1
-      @compare_from, @compare_to = comparison == 'custom' ?
-        [parse(params[:compare_from]), parse(params[:compare_to])] : [from - days, from - 1]
-      validate_range(compare_from, compare_to)
-    end
-    default_group = from == to ? 'hour' : ((to - from).to_i > 62 ? 'month' : 'day')
-    @group = %w[hour day month].include?(params[:group]) ? params[:group] : default_group
   end
 
-  def comparing?
-    comparison != 'none'
+  def comparing? = comparison == 'previous'
+
+  def label
+    case view
+    when 'day' then from.strftime('%d/%m/%Y')
+    when 'month' then from.strftime('%m/%Y')
+    when 'year' then from.strftime('%Y')
+    else 'Todo o período'
+    end
   end
 
   def to_params
-    { period: period, from: from.iso8601, to: to.iso8601, compare: comparison,
-      compare_from: compare_from&.iso8601, compare_to: compare_to&.iso8601, group: group }
+    { view: view, date: from.iso8601, month: from.strftime('%Y-%m'), year: from.year, compare: comparison }
   end
 
   private
 
-  def parse(value)
+  def resolve_range(params)
+    case view
+    when 'month'
+      month = parse_month(params[:month])
+      [month.beginning_of_month, [month.end_of_month, @today].min]
+    when 'year'
+      year = Integer(params[:year].presence || @today.year)
+      [Date.new(year, 1, 1), year == @today.year ? @today : Date.new(year, 12, 31)]
+    when 'lifetime'
+      [Date.new(1900, 1, 1), @today]
+    else
+      date = parse_date(params[:date].presence || @today.iso8601)
+      [date, date]
+    end
+  rescue ArgumentError
+    raise Invalid, 'Escolha um período válido.'
+  end
+
+  def parse_date(value)
     Date.iso8601(value.to_s)
   rescue ArgumentError
-    raise Invalid, 'Preencha as datas de início e fim do intervalo.'
+    raise Invalid, 'Escolha uma data válida.'
+  end
+
+  def parse_month(value)
+    Date.strptime(value.to_s, '%Y-%m')
+  rescue ArgumentError
+    raise Invalid, 'Escolha um mês válido.'
   end
 
   def validate_range(first, last)
-    raise Invalid, 'A data final deve ser igual ou posterior à inicial.' if last < first
+    raise Invalid, 'O período escolhido ainda não terminou.' if first > @today
     raise Invalid, 'Indique datas entre os anos 1900 e 9999.' unless first.year >= 1900 && last.year <= 9999
+    raise Invalid, 'O período escolhido não é válido.' if last < first
   end
 end
