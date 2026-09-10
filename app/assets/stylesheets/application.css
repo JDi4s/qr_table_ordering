@@ -691,7 +691,7 @@ small {
   }
 
   .staff-header { align-items: center; }
-  .staff-header > strong { align-self: center; flex: 1; min-width: 130px; line-height: 1.2; transform: translateY(5px); }
+  .staff-header > strong { align-self: center; flex: 1; min-width: 130px; line-height: 1.2; transform: translateY(9px); }
   .staff-main-nav { order: 3; flex-basis: 100%; width: 100%; gap: 8px; overflow-x: auto; justify-content: flex-start; padding-bottom: 2px; scrollbar-width: none; }
   .staff-main-nav { flex-wrap: nowrap; }
   .staff-main-nav::-webkit-scrollbar { display: none; }
