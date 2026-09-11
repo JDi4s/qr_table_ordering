@@ -70,35 +70,7 @@ end %>
     <div class="staff-category-content">
 
   <% items.each do |item| %>
-    <div class="line">
-      <div>
-        <strong><%= item.name %></strong>
-        <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
-        <p><%= euros(item.price) %> · <%= item.archived? ? 'Arquivado' : (item.available? ? 'Disponível' : 'Indisponível') %></p>
-      </div>
-
-      <div>
-        <% unless item.archived? %>
-          <%= button_to (item.available? ? 'Desativar' : 'Ativar'),
-            toggle_availability_staff_menu_item_path(item, menu_status: status),
-            method: :patch,
-            class: 'secondary compact-action',
-            title: item.available? ? 'Tornar produto indisponível' : 'Tornar produto disponível' %>
-        <% end %>
-
-        <% if current_user.manager? %>
-          <%= link_to 'Editar', edit_staff_menu_item_path(item), class: 'compact-action', data: { turbo_frame: '_top' } %>
-          <% if item.archived? %>
-            <%= button_to 'Restaurar', restore_staff_menu_item_path(item, menu_status: status), method: :patch, class: 'secondary compact-action' %>
-          <% else %>
-            <%= button_to 'Arquivar', staff_menu_item_path(item, menu_status: status), method: :delete, class: 'secondary compact-action' %>
-          <% end %>
-          <%= button_to purge_staff_menu_item_path(item, menu_status: status), method: :delete, class: 'trash-button', title: "Eliminar produto #{item.name}", aria: { label: "Eliminar produto #{item.name}" }, form: { class: 'trash-button-form' } do %>
-            <span aria-hidden="true">🗑︎</span>
-          <% end %>
-        <% end %>
-      </div>
-    </div>
+    <%= render 'staff/menu/item', item: item, status: status %>
   <% end %>
 
       <% matching_children.each do |child| %>

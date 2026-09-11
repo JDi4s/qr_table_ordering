@@ -15,29 +15,73 @@
   <%= button_tag '×', type: 'button', class: 'menu-help-close', data: { action: 'dismissible#close' }, aria: { label: 'Fechar ajuda' } %>
 </div>
 
-<% roots = @categories.select(&:root?).sort_by(&:name) %>
-<% available_count = @categories.count { |category| !category.archived? && category.available? } %>
-<% unavailable_count = @categories.count { |category| !category.archived? && !category.available? } %>
-<% archived_count = @categories.count(&:archived?) %>
 <%= turbo_frame_tag 'staff_menu_records' do %>
   <% if request.headers['Turbo-Frame'].present? %>
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
   <% end %>
 
-  <div class="staff-menu-status" data-controller="staff-menu">
-    <div class="staff-menu-status-tabs" role="tablist" aria-label="Estado do menu">
-      <% [['active', 'Ativas', available_count], ['unavailable', 'Indisponíveis', unavailable_count], ['archived', 'Arquivadas', archived_count]].each do |value, label, count| %>
-        <button type="button" class="staff-menu-status-tab <%= 'is-active' if @menu_status == value %>" data-staff-menu-target="tab" data-menu-status="<%= value %>" data-action="staff-menu#select" aria-selected="<%= @menu_status == value %>"><%= label %> <span><%= count %></span></button>
+  <div class="staff-menu-status">
+    <nav class="staff-menu-status-tabs" aria-label="Estado do menu">
+      <% [['active', 'Ativas'], ['unavailable', 'Indisponíveis'], ['archived', 'Arquivadas'], ['uncategorized', 'Sem categoria']].each do |value, label| %>
+        <%= link_to staff_menu_path(menu_status: value),
+          class: "staff-menu-status-tab #{'is-active' if @menu_status == value}",
+          aria: { current: ('page' if @menu_status == value) },
+          data: { turbo_frame: 'staff_menu_records', turbo_action: 'advance' } do %>
+          <%= label %> <span><%= @menu_counts[value] %></span>
+        <% end %>
       <% end %>
-    </div>
-    <section data-staff-menu-target="panel" data-menu-status="active" <%= 'hidden' unless @menu_status == 'active' %>>
-      <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'active' %><% end %>
-    </section>
-    <section data-staff-menu-target="panel" data-menu-status="unavailable" <%= 'hidden' unless @menu_status == 'unavailable' %>>
-      <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'unavailable' %><% end %>
-    </section>
-    <section data-staff-menu-target="panel" data-menu-status="archived" <%= 'hidden' unless @menu_status == 'archived' %>>
-      <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'archived' %><% end %>
+    </nav>
+
+    <section class="staff-menu-status-panel" data-menu-status="<%= @menu_status %>">
+      <% if @menu_status == 'uncategorized' %>
+        <div class="panel menu-records-heading">
+          <div>
+            <h2>Produtos sem categoria</h2>
+            <p>Produtos que ficaram sem categoria depois de uma eliminação.</p>
+          </div>
+          <% if current_user.manager? && @uncategorized_category&.menu_items&.any? %>
+            <%= button_to purge_uncategorized_staff_menu_items_path(menu_status: 'uncategorized'),
+              method: :delete, class: 'bulk-delete-button' do %>
+              <span aria-hidden="true">🗑︎</span> Apagar todos
+            <% end %>
+          <% end %>
+        </div>
+
+        <% if @uncategorized_category&.menu_items&.any? %>
+          <div class="panel uncategorized-products">
+            <% @uncategorized_category.menu_items.sort_by(&:name).each do |item| %>
+              <%= render 'staff/menu/item', item: item, status: 'uncategorized' %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="panel menu-empty-state">Não existem produtos sem categoria.</div>
+        <% end %>
+      <% else %>
+        <% if @menu_status == 'archived' && current_user.manager? && @menu_counts['archived'].positive? %>
+          <div class="panel menu-records-heading">
+            <div>
+              <h2>Registos arquivados</h2>
+              <p>Elimina definitivamente todos os produtos e categorias desta área.</p>
+            </div>
+            <%= button_to purge_archived_staff_menu_items_path(menu_status: 'archived'),
+              method: :delete, class: 'bulk-delete-button' do %>
+              <span aria-hidden="true">🗑︎</span> Apagar todos
+            <% end %>
+          </div>
+        <% end %>
+
+        <% rendered_category = false %>
+        <% @menu_roots.each do |category| %>
+          <% content = render('staff/menu/category', category: category, level: 0, status: @menu_status) %>
+          <% if content.present? %>
+            <% rendered_category = true %>
+            <%= content %>
+          <% end %>
+        <% end %>
+        <% unless rendered_category %>
+          <div class="panel menu-empty-state">Não existem registos neste separador.</div>
+        <% end %>
+      <% end %>
     </section>
   </div>
 <% end %>

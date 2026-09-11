@@ -846,10 +846,23 @@ small {
 .menu-help[hidden] { display: none; }
 .menu-help strong { color: var(--ink); }
 .staff-menu-status-tabs { display: flex; gap: 10px; margin: 20px 0; }
-.staff-menu-status-tab { margin: 0; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--green); }
+.staff-menu-status-tab { display: inline-flex; align-items: center; margin: 0; padding: 10px 18px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--green); font-weight: 700; line-height: 1.2; text-decoration: none; white-space: nowrap; }
 .staff-menu-status-tab span { display: inline-block; min-width: 22px; margin-left: 5px; padding: 1px 6px; border-radius: 999px; background: #eaf1e8; font-size: 12px; }
 .staff-menu-status-tab.is-active { background: var(--green); color: white; border-color: var(--green); }
 .staff-menu-status-tab.is-active span { background: #ffffff33; color: white; }
+.staff-menu-status-panel { min-height: 120px; }
+.menu-records-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.menu-records-heading h2 { margin: 0 0 5px; }
+.menu-records-heading p { margin: 0; color: var(--muted); }
+.menu-records-heading form { width: auto; margin: 0; flex: 0 0 auto; }
+.bulk-delete-button,
+button.bulk-delete-button { display: inline-flex; align-items: center; gap: 8px; width: auto; margin: 0; padding: 10px 14px; border: 1px solid #e8aaa0; border-radius: 10px; background: #fff4f1; color: #c43f2d; white-space: nowrap; }
+.bulk-delete-button:hover,
+button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; color: #a82e20; }
+.bulk-delete-button span { font-family: Arial, sans-serif; font-size: 20px; line-height: 1; }
+.uncategorized-products { padding-top: 4px; padding-bottom: 4px; }
+.uncategorized-products .line:last-child { border-bottom: 0; }
+.menu-empty-state { color: var(--muted); text-align: center; }
 
 @media (max-width: 600px) {
   main {
@@ -937,6 +950,10 @@ small {
   .menu-help { align-items: flex-start; flex-direction: column; }
   .staff-menu-status-tabs { overflow-x: auto; }
   .staff-menu-status-tab { flex: 0 0 auto; }
+  .menu-records-heading { align-items: stretch; flex-direction: column; }
+  .menu-records-heading form,
+  .menu-records-heading .bulk-delete-button { width: 100%; }
+  .menu-records-heading .bulk-delete-button { justify-content: center; }
 }
 
 /* Reports explorer: one question, one metric and one period at a time. */
