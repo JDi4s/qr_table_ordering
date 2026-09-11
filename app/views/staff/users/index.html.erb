@@ -26,7 +26,7 @@
           <div class="flash alert"><%= @user.errors.full_messages.join(', ') %></div>
         <% end %>
 
-        <%= form_with model: [:staff, @user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate' } do |f| %>
+        <%= form_with model: [:staff, @user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate', turbo_frame: '_top' } do |f| %>
           <div class="team-form-grid">
             <div class="team-field">
               <%= f.label :name, 'Nome' %>
@@ -106,7 +106,7 @@
           <% display_user = @editing_user&.id == user.id ? @editing_user : user %>
           <% identity = display_user.name.presence || display_user.login_identifier %>
           <% initials = identity.to_s.split.first(2).map { |part| part.first }.join.upcase %>
-          <article class="panel team-member-card <%= 'is-inactive' unless display_user.active? %>">
+          <article id="team-user-<%= display_user.id %>" class="panel team-member-card <%= 'is-inactive' unless display_user.active? %>">
             <div class="team-member-overview">
               <div class="team-avatar" aria-hidden="true"><%= initials %></div>
               <div class="team-member-identity">
@@ -136,7 +136,7 @@
                   <% if @editing_user&.id == display_user.id && display_user.errors.any? %>
                     <div class="flash alert"><%= display_user.errors.full_messages.join(', ') %></div>
                   <% end %>
-                  <%= form_with model: [:staff, display_user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate', team_form_original_active_value: display_user.active? } do |f| %>
+                  <%= form_with model: [:staff, display_user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate', team_form_original_active_value: display_user.active?, turbo_frame: '_top' } do |f| %>
                     <div class="team-active-control">
                       <label><%= f.check_box :active, data: { team_form_target: 'active' } %><span>Acesso ativo</span></label>
                       <small>Ao desativar, esta pessoa deixa imediatamente de conseguir entrar.</small>
