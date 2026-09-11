@@ -1,5 +1,4 @@
 require 'prawn'
-require 'prawn/table'
 
 class ReportPdf
   GREEN = '1F6F54'
@@ -20,7 +19,6 @@ class ReportPdf
       pdf.text @data[:title], size: 14, style: :bold
       pdf.text "Período: #{@data[:period]}", size: 10
       pdf.move_down 18
-
       draw_stats(pdf)
       pdf.move_down 18
       draw_chart(pdf) if @data[:chart_rows].present?
@@ -34,13 +32,21 @@ class ReportPdf
   private
 
   def draw_stats(pdf)
-    rows = @data[:stats].each_slice(2).map do |pair|
-      pair.map { |label, value| { label: label, value: value } }
-    end
-    pdf.table(rows.map { |pair| pair.map { |item| "#{item[:label]}\n#{item[:value]}" } },
-              width: pdf.bounds.width, cell_style: { padding: 9, border_color: LINE, border_width: 0.7, size: 10, text_color: INK },
-              column_widths: [pdf.bounds.width / 2, pdf.bounds.width / 2]) do |table|
-      table.cells.each { |cell| cell.background_color = 'F5F8F4' }
+    cell_width = pdf.bounds.width / 2
+    @data[:stats].each_slice(2) do |pair|
+      top = pdf.cursor
+      pair.each_with_index do |(label, value), index|
+        x = index * cell_width
+        pdf.fill_color 'F5F8F4'
+        pdf.fill_rectangle [x, top], cell_width - 6, 44
+        pdf.fill_color LINE
+        pdf.stroke_rectangle [x, top], cell_width - 6, 44
+        pdf.fill_color MUTED
+        pdf.text_box label.to_s, at: [x + 8, top - 8], width: cell_width - 22, height: 13, size: 8
+        pdf.fill_color INK
+        pdf.text_box value.to_s, at: [x + 8, top - 24], width: cell_width - 22, height: 17, size: 12, style: :bold
+      end
+      pdf.move_down 52
     end
   end
 
@@ -57,7 +63,7 @@ class ReportPdf
       pdf.text_box label, at: [0, pdf.cursor], width: 92, height: 12, size: 8
       bar_width = width * row[:value].to_f / max
       pdf.fill_color GREEN
-      pdf.rounded_rectangle([102, pdf.cursor - 1], [ [bar_width, 2].max, 10 ], 3)
+      pdf.rounded_rectangle [102, pdf.cursor - 1], [[bar_width, 2].max, 10], 3
       pdf.fill_color INK
       pdf.text_box row[:display].to_s, at: [102 + [bar_width, 2].max + 6, pdf.cursor], width: 70, height: 12, size: 8
       pdf.move_down 17
@@ -70,12 +76,22 @@ class ReportPdf
     pdf.fill_color INK
     pdf.text 'Detalhe', size: 13, style: :bold
     pdf.move_down 8
-    pdf.table([['Item', 'Valor']] + @data[:rows].first(25),
-              width: pdf.bounds.width,
-              header: true,
-              row_colors: ['F5F8F4', 'FFFFFF'],
-              cell_style: { padding: 6, size: 9, border_color: LINE, text_color: INK },
-              column_widths: [pdf.bounds.width * 0.68, pdf.bounds.width * 0.32])
+    width = pdf.bounds.width
+    first_column = width * 0.68
+    row_height = 22
+    rows = [['Item', 'Valor']] + @data[:rows].first(25)
+    rows.each_with_index do |row, index|
+      top = pdf.cursor
+      pdf.fill_color(index.zero? ? GREEN : (index.odd? ? 'F5F8F4' : 'FFFFFF'))
+      pdf.fill_rectangle [0, top], width, row_height
+      pdf.fill_color LINE
+      pdf.stroke_rectangle [0, top], width, row_height
+      pdf.stroke_line [first_column, top], [first_column, top - row_height]
+      pdf.fill_color(index.zero? ? 'FFFFFF' : INK)
+      pdf.text_box row[0].to_s, at: [6, top - 6], width: first_column - 12, height: 14, size: 9, style: index.zero? ? :bold : :normal
+      pdf.text_box row[1].to_s, at: [first_column + 6, top - 6], width: width - first_column - 12, height: 14, size: 9, style: index.zero? ? :bold : :normal, align: :right
+      pdf.move_down row_height
+    end
   end
 
   def draw_cash_details(pdf)
