@@ -16,7 +16,7 @@ class Staff::UsersController < Staff::BaseController
       sync_production_areas!(@user, area_ids)
     end
 
-    redirect_to staff_users_path, notice: 'Utilizador criado.'
+    redirect_to staff_users_path(anchor: "team-user-#{@user.id}"), notice: 'Utilizador criado.'
   rescue ActiveRecord::RecordInvalid => error
     prepare_index(new_user: @user)
     flash.now[:alert] = error.record.errors.full_messages.join(', ')
@@ -40,7 +40,7 @@ class Staff::UsersController < Staff::BaseController
       sync_production_areas!(user, area_ids)
     end
 
-    redirect_to staff_users_path, notice: 'Utilizador atualizado.', status: :see_other
+    redirect_to staff_users_path(anchor: "team-user-#{user.id}"), notice: 'Utilizador atualizado.', status: :see_other
   rescue ActiveRecord::RecordInvalid => error
     prepare_index
     @editing_user = error.record
