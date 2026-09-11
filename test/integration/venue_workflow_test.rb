@@ -31,7 +31,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     get staff_users_path
     assert_response :forbidden
     get admin_establishments_path
-    assert_response :forbidden
+    assert_redirected_to staff_orders_path
   end
 
   test 'manager can remove individual members and tables' do

@@ -36,7 +36,18 @@ class SupportAndPlansTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'Não consigo alterar o menu.'
     post admin_support_ticket_messages_path(ticket), params: { support_ticket_message: { body: 'Já estamos a verificar.' } }
     assert_redirected_to admin_support_ticket_path(ticket)
+    follow_redirect!
+    assert_response :success
+    assert_includes response.body, 'Já estamos a verificar.'
     assert_equal 'waiting_establishment', ticket.reload.status
+  end
+
+  test 'wrong account is redirected instead of seeing a forbidden page' do
+    sign_in(@manager)
+
+    get admin_establishments_path
+
+    assert_redirected_to staff_orders_path
   end
 
   test 'support changes configuration but cannot operate an order' do
