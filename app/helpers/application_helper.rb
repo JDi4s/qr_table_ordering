@@ -23,7 +23,6 @@ module ApplicationHelper
     {
       'pending' => 'Em avaliação',
       'accepted' => 'Aceite',
-      'needs_customer_action' => 'Aguarda confirmação do cliente',
       'denied' => 'Rejeitado / cancelado',
       'served' => 'Servido',
       'claimed' => 'Assumida',

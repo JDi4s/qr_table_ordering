@@ -410,7 +410,6 @@ div[data-controller="staff-board"] .staff-page-intro { justify-content: flex-sta
 .staff-card-actions .button, .staff-card-actions button { margin: 0; }
 .order-status-pending { background: #fff0c9; color: #805a13; }
 .order-status-accepted { background: #e1f1e7; color: #216044; }
-.order-status-needs_customer_action { background: #fff0c9; color: #805a13; }
 .order-status-served { background: #e9eef4; color: #405b70; }
 .staff-call-card { margin: 0; border-color: #e7bd65; background: #fffaf0; }
 .call-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #f3b52b; color: white; font-weight: 800; }

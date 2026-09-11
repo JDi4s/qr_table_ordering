@@ -28,11 +28,6 @@
 
     <div class="history-order-actions">
       <%= link_to 'Abrir pedido completo', staff_order_path(order), class: 'button secondary history-order-open' %>
-      <% if current_user.manager? && !order.voided? %>
-        <%= button_to staff_order_path(order), method: :delete, class: 'trash-button', title: "Eliminar pedido ##{order.id}", aria: { label: "Eliminar pedido ##{order.id}" }, form: { class: 'trash-button-form' } do %>
-          <span aria-hidden="true">🗑︎</span>
-        <% end %>
-      <% end %>
     </div>
   </div>
 </details>

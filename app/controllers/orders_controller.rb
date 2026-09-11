@@ -71,11 +71,6 @@ class OrdersController < ApplicationController
     @orders = customer_orders.includes(order_items: :menu_item).order(created_at: :desc).limit(30)
   end
 
-  def accept_remaining
-    customer_orders.find(params[:id]).accept_remaining!
-    redirect_to my_table_orders_path(@table), notice: 'Alterações aceites.', status: :see_other
-  end
-
   def cancel
     order = customer_orders.find(params[:id])
     order.reject!(nil, customer: true)

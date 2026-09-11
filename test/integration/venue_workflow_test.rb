@@ -34,9 +34,8 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test 'manager can remove individual members orders and tables' do
+  test 'manager can remove individual members and tables' do
     staff = venue_user(@venue, role: 'staff')
-    order = build_order(@table, @product, customer: 'remove-order')
     empty_table = @venue.tables.create!(number: 2)
     sign_in(@manager)
 
@@ -44,14 +43,36 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :see_other
     assert staff.reload.deleted?
     assert_not staff.active?
-    assert_difference('Order.count', -1) { delete staff_order_path(order) }
-    assert_response :see_other
     assert_no_difference('Table.count') { delete staff_table_path(empty_table) }
     assert_response :see_other
     assert empty_table.reload.deleted?
   end
 
-  test 'history remains after members tables and paid orders are removed' do
+  test 'orders do not have a staff deletion route' do
+    order = build_order(@table, @product, customer: 'permanent-history')
+
+    assert_raises(ActionController::RoutingError) do
+      Rails.application.routes.recognize_path(staff_order_path(order), method: :delete)
+    end
+  end
+
+  test 'staff cancellation keeps the order in history' do
+    order = build_order(@table, @product, customer: 'cancelled-history')
+    sign_in(@manager)
+
+    assert_no_difference('Order.count') do
+      patch staff_order_path(order), params: { status: 'denied', denial_reason: 'Produto indisponível' }
+    end
+
+    assert order.reload.denied?
+    assert_equal 'Produto indisponível', order.cancellation_reason
+    assert order.cancelled_at.present?
+    get history_staff_orders_path
+    assert_response :success
+    assert_includes response.body, "PEDIDO ##{order.id}"
+  end
+
+  test 'history remains after members and tables are removed' do
     staff = venue_user(@venue, role: 'staff')
     AuditLogger.record(user: staff, action: 'test_activity')
     order = build_order(@table, @product, customer: 'preserved-order')
@@ -61,9 +82,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
 
     assert_no_difference('User.count') { delete staff_user_path(staff) }
     assert_response :see_other
-    assert_no_difference('Order.count') { delete staff_order_path(order) }
-    assert_response :see_other
-    assert order.reload.voided?
+    assert Order.exists?(order.id)
     assert_equal staff, order.payments.first.user
     assert_no_difference('Table.count') { delete staff_table_path(@table) }
     assert_response :see_other
@@ -82,14 +101,6 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_no_changes -> { @table.reload.deleted_at } { delete staff_table_path(@table) }
     assert_response :see_other
     assert call.reload.claimed?
-  end
-
-  test 'staff cannot delete an order' do
-    order = build_order(@table, @product, customer: 'staff-delete')
-    sign_in(venue_user(@venue, role: 'staff'))
-
-    assert_no_difference('Order.count') { delete staff_order_path(order) }
-    assert_response :forbidden
   end
 
   test 'staff can log in with username without an email' do
@@ -164,7 +175,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test 'staff decisions render whole detail and customer accepts proposal end to end' do
+  test 'staff decisions accept changes directly and render them to the customer' do
     get new_table_order_path(@table)
     post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '2' } } }
     quote = css_select('input[name="quote"]').first['value']
@@ -177,11 +188,9 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     staff.patch staff_order_item_path(order.order_items.first), params: { order_item: { status: 'accepted', proposed_description: 'Sem queijo', unit_price: '8.50' } }
     assert_equal 303, staff.response.status
     staff.patch staff_order_path(order), params: { status: 'accepted' }
-    assert order.reload.needs_customer_action?
+    assert order.reload.accepted?
     get my_table_orders_path(@table)
     assert_includes response.body, 'Sem queijo'
-    post accept_remaining_table_order_path(@table, order)
-    assert order.reload.accepted?
     assert_equal 17, order.total
     staff.patch staff_order_path(order), params: { status: 'served' }
     assert order.reload.served?

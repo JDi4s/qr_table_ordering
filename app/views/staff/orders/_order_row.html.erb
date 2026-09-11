@@ -10,10 +10,5 @@
     <%= link_to(order.pending? ? 'Avaliar pedido' : 'Abrir pedido', staff_order_path(order), class: 'button secondary') %>
     <% if order.pending? %><%= button_to 'Aceitar sem alterações', staff_order_path(order, status: 'accepted'), method: :patch %><% end %>
     <% if order.accepted? %><%= button_to 'Marcar servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
-    <% if current_user.manager? %>
-      <%= button_to staff_order_path(order), method: :delete, class: 'trash-button', title: "Eliminar pedido ##{order.id}", aria: { label: "Eliminar pedido ##{order.id}" }, form: { class: 'trash-button-form' } do %>
-        <span aria-hidden="true">🗑︎</span>
-      <% end %>
-    <% end %>
   </div>
 </article>

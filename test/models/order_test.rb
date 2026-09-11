@@ -5,33 +5,28 @@ class OrderTest < ActiveSupport::TestCase
     @order = build_order(@table, @product)
   end
 
-  test 'partial rejection removes value and waits only after staff finalizes' do
+  test 'partial rejection removes value and accepts immediately after staff finalizes' do
     @order.review_item!(@order.order_items.first.id, 'denied', reason: 'Esgotado')
     assert @order.reload.pending?
     assert_equal 20, @order.total
     @order.finalize_review!
-    assert @order.reload.needs_customer_action?
-    assert_equal ['accepted', 'denied'], @order.order_items.pluck(:status).sort
-    @order.accept_remaining!
     assert @order.reload.accepted?
+    assert_equal ['accepted', 'denied'], @order.order_items.pluck(:status).sort
     assert_equal 20, @order.total
   end
 
-  test 'all denied finishes without customer confirmation' do
+  test 'all denied cancels the order' do
     @order.order_items.each { |item| @order.review_item!(item.id, 'denied', reason: 'Esgotado') }
     @order.finalize_review!
     assert @order.reload.denied?
     assert_equal 0, @order.total
-    assert_raises(Order::InvalidTransition) { @order.accept_remaining! }
   end
 
-  test 'proposal and revised price need customer acceptance' do
+  test 'message and revised price are accepted when staff finalizes' do
     @order.review_item!(@order.order_items.first.id, 'accepted', description: 'Sem queijo', price: '8.50')
     @order.finalize_review!
-    assert @order.reload.needs_customer_action?
+    assert @order.reload.accepted?
     assert_equal BigDecimal('28.50'), @order.total
-    assert_raises(Order::InvalidTransition) { @order.serve! }
-    @order.accept_remaining!
     @order.serve!
     assert @order.reload.served?
     assert @order.served_at
@@ -161,15 +156,8 @@ class OrderTest < ActiveSupport::TestCase
     assert @order.reload.pending?
   end
 
-  test 'served or paid orders are preserved when removed' do
-    assert_not @order.preserve_when_removed?
-    @order.finalize_review!
-    @order.serve!
-    assert @order.reload.preserve_when_removed?
-
-    paid = build_order(@table, @product, customer: 'customer-paid')
-    paid.finalize_review!
-    paid.mark_paid!(venue_user(@venue, role: 'staff'))
-    assert paid.reload.preserve_when_removed?
+  test 'orders cannot be deleted' do
+    assert_no_difference('Order.count') { assert_not @order.destroy }
+    assert_includes @order.errors.full_messages.join, 'não podem ser eliminados'
   end
 end

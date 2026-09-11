@@ -1,6 +1,4 @@
 class Staff::OrdersController < Staff::BaseController
-  before_action :require_manager, only: :destroy
-
   def index
     scope = current_establishment.orders.not_voided.includes(:table, order_items: { menu_item: :production_area }).where.not(status: %w[served denied])
     if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
@@ -52,7 +50,8 @@ class Staff::OrdersController < Staff::BaseController
       AuditLogger.record(user: current_user, action: 'order_accepted', record: order)
     when 'denied'
       order.reject!(params[:denial_reason])
-      AuditLogger.record(user: current_user, action: 'order_rejected', record: order, metadata: { reason: params[:denial_reason] })
+      AuditLogger.record(user: current_user, action: 'order_cancelled', record: order,
+                         metadata: { actor: 'staff', reason: params[:denial_reason] })
     when 'served'
       order.serve!
       AuditLogger.record(user: current_user, action: 'order_served', record: order)
@@ -62,30 +61,6 @@ class Staff::OrdersController < Staff::BaseController
       format.turbo_stream { head :no_content }
       format.html { redirect_to staff_order_path(order), notice: 'Pedido atualizado.', status: :see_other }
     end
-  end
-
-  def destroy
-    order = current_establishment.orders.includes(:payments).find(params[:id])
-    raise Order::InvalidTransition, 'Este pedido já foi anulado.' if order.voided?
-
-    metadata = {
-      deleted_order_id: order.id,
-      table_number: order.table.number,
-      status: order.status,
-      total: order.total.to_s
-    }
-    destination = (order.denied? || order.served? || order.preserve_when_removed?) ? history_staff_orders_path : staff_orders_path
-    if order.preserve_when_removed?
-      order.update!(voided_at: Time.current, voided_by_user: current_user)
-      AuditLogger.record(user: current_user, action: 'order_voided', record: order, metadata: metadata)
-      message = "Pedido ##{metadata[:deleted_order_id]} anulado. Os valores recebidos foram mantidos."
-    else
-      order.destroy!
-      AuditLogger.record(user: current_user, action: 'order_deleted', metadata: metadata)
-      message = "Pedido ##{metadata[:deleted_order_id]} eliminado."
-    end
-
-    redirect_to destination, notice: message, status: :see_other
   end
 
   def history

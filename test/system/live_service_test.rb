@@ -25,18 +25,16 @@ class LiveServiceTest < ApplicationSystemTestCase
       assert_selector "#order_#{order.id}", text: product.name
       click_on 'Avaliar pedido'
       click_on 'Alterar descrição ou preço'
-      fill_in 'Alteração a confirmar pelo cliente', with: 'Sem queijo'
+      fill_in 'Mensagem ou alteração do artigo', with: 'Sem queijo'
       fill_in 'Novo preço por unidade (€)', with: '8.50'
       click_on 'Guardar decisão'
       assert_text 'Decisão guardada'
-      click_on 'Concluir avaliação e avisar cliente'
-      assert_text 'Aguarda confirmação do cliente'
+      click_on 'Concluir avaliação e aceitar pedido'
+      assert_text 'Aceite'
     end
     Capybara.using_session(:customer) do
-      assert_text 'O seu pedido tem alterações.'
+      assert_text 'Alteração:'
       assert_text '17,00 €'
-      click_on 'Aceitar este pedido atualizado'
-      assert_text 'Alterações aceites.'
       assert_text 'Aceite'
       page.save_screenshot(Rails.root.join('tmp/screenshots/customer.png'))
       visit new_table_order_path(table)

@@ -5,6 +5,6 @@ class Staff::OrderItemsController < Staff::BaseController
     item.order.review_item!(item.id, values[:status], reason: values[:denial_reason], description: values[:proposed_description], price: values[:unit_price])
     AuditLogger.record(user: current_user, action: 'order_item_reviewed', record: item.order,
                       metadata: { item_id: item.id, decision: values[:status] })
-    redirect_to staff_order_path(item.order), notice: 'Decisão guardada. Conclua a avaliação para avisar o cliente.', status: :see_other
+    redirect_to staff_order_path(item.order), notice: 'Decisão guardada. Conclua a avaliação para aceitar o pedido.', status: :see_other
   end
 end

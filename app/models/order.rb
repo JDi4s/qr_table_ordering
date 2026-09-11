@@ -9,7 +9,7 @@ class Order < ApplicationRecord
   has_many :payments, dependent: :restrict_with_error
   has_many :menu_items, through: :order_items
   has_many :audit_events, as: :auditable, dependent: :nullify
-  enum status: { pending: 'pending', accepted: 'accepted', needs_customer_action: 'needs_customer_action', denied: 'denied', served: 'served' }
+  enum status: { pending: 'pending', accepted: 'accepted', denied: 'denied', served: 'served' }
   scope :not_voided, -> { where(voided_at: nil) }
   scope :unpaid, -> { not_voided.where(paid_at: nil).where.not(status: 'denied') }
   validates :note, length: { maximum: 1000 }
@@ -18,6 +18,7 @@ class Order < ApplicationRecord
   after_create_commit :notify_staff_devices
   after_update_commit :broadcast_updated
   after_destroy_commit :broadcast_destroyed
+  before_destroy :prevent_deletion, prepend: true
 
   def customer_stream
     "table_#{table_id}_customer_#{customer_token}"
@@ -48,36 +49,21 @@ class Order < ApplicationRecord
       raise InvalidTransition, 'Pedido sem artigos.' unless order_items.exists?
       order_items.where(status: 'pending').update_all(status: 'accepted', updated_at: Time.current)
       items = order_items.reload
-      next_status = if items.all?(&:denied?)
-        'denied'
-      elsif items.any? { |item| item.denied? || item.proposed_description.present? }
-        'needs_customer_action'
-      else
-        'accepted'
-      end
+      next_status = items.all?(&:denied?) ? 'denied' : 'accepted'
       update!(status: next_status, total: payable_total,
               denial_reason: next_status == 'denied' ? 'Todos os produtos foram rejeitados.' : nil)
     end
   end
 
-  def accept_remaining!
-    with_lock do
-      ensure_state!('needs_customer_action')
-      raise InvalidTransition, 'Não existem artigos confirmados.' unless order_items.where(status: 'accepted').exists?
-      raise InvalidTransition, 'O funcionário ainda está a avaliar o pedido.' if order_items.where(status: 'pending').exists?
-      update!(status: 'accepted', total: payable_total)
-    end
-  end
-
   def reject!(reason, customer: false)
     with_lock do
-      ensure_state!('pending', 'needs_customer_action')
+      ensure_state!('pending')
       raise InvalidTransition, 'O prazo para cancelar este pedido terminou.' if customer && !cancellable_by_customer?
       reason = customer ? 'Cancelado pelo cliente.' : reason.to_s.strip
-      raise InvalidTransition, 'Indique o motivo da rejeição.' if reason.blank?
+      raise InvalidTransition, 'Indique o motivo do cancelamento.' if reason.blank?
       order_items.update_all(status: 'denied', denial_reason: reason, updated_at: Time.current)
       update!(status: 'denied', denial_reason: customer ? nil : reason,
-              cancellation_reason: customer ? reason : nil, cancelled_at: customer ? Time.current : nil, total: 0)
+              cancellation_reason: reason, cancelled_at: Time.current, total: 0)
     end
   end
 
@@ -101,7 +87,7 @@ class Order < ApplicationRecord
   end
 
   def cancellable_by_customer?
-    (pending? && created_at >= 3.minutes.ago) || needs_customer_action?
+    pending? && created_at >= 3.minutes.ago
   end
 
   def outstanding_total
@@ -118,10 +104,6 @@ class Order < ApplicationRecord
 
   def voided?
     voided_at.present?
-  end
-
-  def preserve_when_removed?
-    served? || paid_at.present? || payments.exists?
   end
 
   def mark_paid!(user, payment_method: 'cash')
@@ -203,6 +185,11 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def prevent_deletion
+    errors.add(:base, 'Os pedidos não podem ser eliminados. Cancele o pedido para manter o histórico.')
+    throw :abort
+  end
 
   def ensure_payment_state!
     raise InvalidTransition, 'Este pedido foi anulado.' if voided?

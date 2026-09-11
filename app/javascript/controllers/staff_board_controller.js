@@ -40,7 +40,7 @@ export default class extends Controller {
 
   updateOrderVisibility(order) {
     const status = order.dataset.boardStatus
-    const visible = this.currentFilter === "all" || (this.currentFilter === "pending" && status === "pending") || (this.currentFilter === "accepted" && ["accepted", "needs_customer_action"].includes(status))
+    const visible = this.currentFilter === "all" || (this.currentFilter === "pending" && status === "pending") || (this.currentFilter === "accepted" && status === "accepted")
     order.hidden = !visible
   }
 

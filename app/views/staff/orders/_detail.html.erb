@@ -7,14 +7,14 @@
       <h2><%= item.quantity %> × <%= item.display_name %></h2><p><%= state_label(item.status) %> · <%= euros(item.unit_price) %> / unidade</p>
       <% unless item.denied? %><p><%= item.paid_quantity %> paga(s) · <%= item.remaining_quantity %> por pagar</p><% end %>
       <% if item.denial_reason.present? %><p>Motivo: <%= item.denial_reason %></p><% end %>
-      <% if item.proposed_description.present? %><p>Proposta: <%= item.proposed_description %></p><% end %>
+      <% if item.proposed_description.present? %><p>Alteração: <%= item.proposed_description %></p><% end %>
       <% if order.pending? %>
         <%= form_with model: [:staff, item] do |f| %>
           <fieldset class="order-decision-form"><legend>Decisão deste artigo</legend>
             <%= f.label :status, 'O que queres fazer?' %><%= f.select :status, [['Aceitar', 'accepted'], ['Rejeitar', 'denied']] %>
             <%= f.label :denial_reason, 'Motivo da rejeição (obrigatório se rejeitares)' %><%= f.text_field :denial_reason, maxlength: 300, placeholder: 'Por exemplo: produto esgotado' %>
             <details class="order-advanced-fields"><summary>Alterar descrição ou preço</summary>
-              <%= f.label :proposed_description, 'Alteração a confirmar pelo cliente' %><%= f.text_field :proposed_description, placeholder: 'Por exemplo: sem queijo', maxlength: 300 %>
+              <%= f.label :proposed_description, 'Mensagem ou alteração do artigo' %><%= f.text_field :proposed_description, placeholder: 'Por exemplo: sem queijo', maxlength: 300 %>
               <%= f.label :unit_price, 'Novo preço por unidade (€)' %><%= f.number_field :unit_price, step: '0.01', min: 0, required: true %>
             </details>
             <%= f.submit 'Guardar decisão' %>
@@ -32,17 +32,16 @@
     </article>
   <% end %>
   <% if order.pending? && !order.voided? %>
-    <section class="panel order-next-step"><p class="eyebrow">PRÓXIMO PASSO</p><h2>Concluir avaliação</h2><p>Os artigos ainda em avaliação serão aceites. Se houver rejeições ou alterações, o cliente terá de confirmar antes da preparação.</p>
-      <%= button_to 'Concluir avaliação e avisar cliente', staff_order_path(order, status: 'accepted'), method: :patch %>
+    <section class="panel order-next-step"><p class="eyebrow">PRÓXIMO PASSO</p><h2>Concluir avaliação</h2><p>Os artigos ainda em avaliação serão aceites. As rejeições, mensagens e alterações ficam registadas no pedido.</p>
+      <%= button_to 'Concluir avaliação e aceitar pedido', staff_order_path(order, status: 'accepted'), method: :patch %>
     </section>
   <% end %>
-  <% if !order.voided? && (order.pending? || order.needs_customer_action?) %>
+  <% if !order.voided? && order.pending? %>
     <section class="panel danger-panel"><%= form_with url: staff_order_path(order), method: :patch do |f| %>
-      <%= hidden_field_tag :status, 'denied' %><%= f.label :denial_reason, 'Rejeitar o pedido completo — motivo' %>
-      <%= f.text_field :denial_reason, required: true, maxlength: 300 %><%= f.submit 'Rejeitar pedido', class: 'secondary' %>
+      <%= hidden_field_tag :status, 'denied' %><%= f.label :denial_reason, 'Cancelar o pedido — motivo' %>
+      <%= f.text_field :denial_reason, required: true, maxlength: 300 %><%= f.submit 'Cancelar pedido', class: 'secondary' %>
     <% end %></section>
   <% end %>
-  <% if order.needs_customer_action? && !order.voided? %><div class="flash notice">Aguarde a confirmação do cliente antes de preparar o pedido.</div><% end %>
   <% if order.accepted? && !order.voided? %><%= button_to 'Marcar como servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
   <% if !order.voided? && (order.accepted? || order.served?) && !order.paid? %>
     <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
@@ -51,12 +50,4 @@
     <% end %>
   <% end %>
   <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.display_identity %></li><% end %></ul></details><% end %>
-  <% if current_user.manager? && !order.voided? %>
-    <section class="panel danger-panel record-delete">
-      <div><strong>Eliminar pedido</strong><small>Sem pagamentos é removido; com pagamentos ou já servido fica anulado sem alterar o Caixa.</small></div>
-      <%= button_to staff_order_path(order), method: :delete, class: 'trash-button', title: "Eliminar pedido ##{order.id}", aria: { label: "Eliminar pedido ##{order.id}" }, form: { class: 'trash-button-form' } do %>
-        <span aria-hidden="true">🗑︎</span>
-      <% end %>
-    </section>
-  <% end %>
 </section>

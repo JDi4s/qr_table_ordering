@@ -16,13 +16,12 @@ Rails.application.routes.draw do
         post :review
       end
       member do
-        post :accept_remaining
         post :cancel
       end
     end
   end
   namespace :staff do
-    resources :orders, only: [:index, :show, :update, :destroy] do
+    resources :orders, only: [:index, :show, :update] do
       member { patch :mark_paid; patch :pay_item; patch :pay_selected }
       collection { get :history }
     end
