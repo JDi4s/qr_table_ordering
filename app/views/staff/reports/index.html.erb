@@ -1,5 +1,6 @@
+<% export_params = @report_tab == 'cash' ? { tab: 'cash', date: @date } : @filter_params %>
 <div class="report-dashboard report-v2">
-  <div class="report-heading"><div><p class="eyebrow">CONTROLO FINANCEIRO</p><h1>Relatórios e caixa</h1></div><details class="report-export-menu"><summary class="button secondary report-export">Extrair relatório</summary><div class="report-export-options"><%= link_to 'PDF', pdf_staff_reports_path(<%= @report_tab == 'cash' ? { tab: 'cash', date: @date } : @filter_params %>), class: 'button' %><%= link_to 'CSV', export_staff_reports_path(<%= @report_tab == 'cash' ? { tab: 'cash', date: @date } : @filter_params %>), class: 'button secondary' %></div></details></div>
+  <div class="report-heading"><div><p class="eyebrow">CONTROLO FINANCEIRO</p><h1>Relatórios e caixa</h1></div><details class="report-export-menu"><summary class="button secondary report-export">Extrair relatório</summary><div class="report-export-options"><%= link_to 'PDF', pdf_staff_reports_path(export_params), class: 'button' %><%= link_to 'CSV', export_staff_reports_path(export_params), class: 'button secondary' %></div></details></div>
   <nav class="report-tabs" aria-label="Área financeira"><%= link_to 'Estatísticas', staff_reports_path(tab: 'statistics'), class: (@report_tab == 'statistics' ? 'is-active' : '') %><%= link_to 'Caixa', staff_reports_path(tab: 'cash', date: (@date || Date.current)), class: (@report_tab == 'cash' ? 'is-active' : '') %></nav>
 
   <% if @report_tab == 'statistics' %>
