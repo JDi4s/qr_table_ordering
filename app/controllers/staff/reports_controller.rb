@@ -72,7 +72,12 @@ class Staff::ReportsController < Staff::BaseController
       period: @period.label,
       stats: [['Total recebido', helpers.euros(@statistics.total)], ['Pagamentos', @statistics.payments_count.to_s], ['Pedidos', @statistics.orders_count.to_s], ['Ticket médio', helpers.euros(@statistics.average)]],
       chart_rows: @chart_rows.map { |row| { label: row[:label], value: row[:amount].to_f, display: pdf_value(row[:amount]) } },
-      rows: report_detail_rows
+      sections: [
+        { title: report_metric_label, rows: report_detail_rows },
+        { title: 'Por funcionário', rows: @staff_rows.map { |row| [row[:name], helpers.euros(row[:amount])] } },
+        { title: 'Por método de pagamento', rows: @methods.map { |key, value| [helpers.payment_method_label(key), helpers.euros(value)] } }
+      ],
+      payment_rows: pdf_payment_rows(@period.from, @period.to, employee: @employee)
     }
   end
 
@@ -82,10 +87,36 @@ class Staff::ReportsController < Staff::BaseController
       period: @date.strftime('%d/%m/%Y'),
       stats: [['Total recebido', helpers.euros(@statistics.total)], ['Pagamentos', @statistics.payments_count.to_s], ['Pedidos pagos', @statistics.orders_count.to_s], ['Mesas por pagar', @unpaid_tables.size.to_s]],
       chart_rows: @statistics.by_method.sort_by { |_, amount| -amount }.map { |key, value| { label: helpers.payment_method_label(key), value: value.to_f, display: helpers.euros(value) } },
-      rows: @statistics.by_method.sort_by { |_, amount| -amount }.map { |key, value| [helpers.payment_method_label(key), helpers.euros(value)] },
+      sections: [
+        { title: 'Por método de pagamento', rows: @statistics.by_method.sort_by { |_, amount| -amount }.map { |key, value| [helpers.payment_method_label(key), helpers.euros(value)] } },
+        { title: 'Por funcionário', rows: @statistics.staff.values.sort_by { |row| [-row[:amount], row[:name]] }.map { |row| [row[:name], helpers.euros(row[:amount])] } },
+        { title: 'Por mesa', rows: cash_table_rows.map { |number, amount| ["Mesa #{number}", helpers.euros(amount)] } }
+      ],
+      payment_rows: pdf_payment_rows(@date, @date),
       status: @closure ? 'Fechado' : 'Aberto',
       pending_tables: @unpaid_tables.map { |table| "Mesa #{table.number}" }
     }
+  end
+
+  def pdf_payment_rows(first, last, employee: nil)
+    report_payments(first, last, employee: employee).includes(order: :table).map do |payment|
+      local = payment.paid_at.in_time_zone
+      [
+        local.strftime('%d/%m/%Y'),
+        local.strftime('%H:%M'),
+        payment.order_id.to_s,
+        payment.order.table.number.to_s,
+        payment.user.name.presence || payment.user.login_identifier,
+        helpers.payment_method_label(payment.payment_method),
+        helpers.euros(payment.amount)
+      ]
+    end
+  end
+
+  def cash_table_rows
+    report_payments(@date, @date).includes(order: :table).group_by { |payment| payment.order.table.number }
+      .transform_values { |payments| payments.sum(&:amount) }
+      .sort_by { |number, amount| [-amount, number] }
   end
 
   def report_detail_rows
