@@ -1686,3 +1686,478 @@ small {
   opacity: .38;
   cursor: default;
 }
+
+
+/* Definições: navegação e gestão compacta da equipa. */
+.settings-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 22px 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.settings-tabs a:hover,
+.settings-tabs a.is-active {
+  color: var(--green);
+  background: #eef4ee;
+  border-bottom-color: var(--green);
+}
+
+.team-page {
+  max-width: 100%;
+}
+
+.team-page turbo-frame {
+  display: block;
+}
+
+.team-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 22px 0 12px;
+}
+
+.team-page-heading .eyebrow,
+.team-section-heading .eyebrow {
+  margin: 0 0 5px;
+}
+
+.team-page-heading h2,
+.team-section-heading h3,
+.team-results-heading h3 {
+  margin: 0;
+}
+
+.team-page-heading p:not(.eyebrow) {
+  margin: 7px 0 0;
+  color: var(--muted);
+}
+
+.team-create {
+  margin: 14px 0 18px;
+}
+
+.team-create > summary {
+  width: fit-content;
+  margin: 0 0 0 auto;
+  list-style: none;
+}
+
+.team-create > summary::-webkit-details-marker,
+.team-member-editor > summary::-webkit-details-marker {
+  display: none;
+}
+
+.team-create-panel {
+  margin: 10px 0 0;
+}
+
+.team-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.team-section-heading > small {
+  max-width: 300px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.team-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.team-field {
+  min-width: 0;
+}
+
+.team-field-wide {
+  grid-column: 1 / -1;
+}
+
+.team-field label,
+.team-filter-search label,
+.team-filter-field label {
+  margin: 0 0 5px;
+}
+
+.team-field small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.team-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.team-form-actions input {
+  margin: 0;
+}
+
+.team-areas {
+  padding: 14px;
+  margin: 18px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.team-areas legend {
+  padding: 0 6px;
+  font-weight: 700;
+}
+
+.team-area-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.team-area-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f8faf7;
+  font-size: 13px;
+}
+
+.team-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.team-summary-grid > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+}
+
+.team-summary-grid strong {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.team-summary-grid span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.team-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 150px 160px auto;
+  gap: 10px;
+  align-items: end;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+}
+
+.team-filter-search,
+.team-filter-field {
+  min-width: 0;
+}
+
+.team-filter-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.team-filter-actions input,
+.team-filter-actions .button {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.team-results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 22px 0 10px;
+}
+
+.team-results-heading span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.team-member-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.team-member-card {
+  min-width: 0;
+  margin: 0;
+  padding: 18px;
+}
+
+.team-member-card.is-inactive {
+  background: #fafafa;
+}
+
+.team-member-overview {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.team-avatar {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e7f1e8;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.team-member-identity {
+  min-width: 0;
+}
+
+.team-member-identity h3 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-member-identity p {
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-member-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.team-role-badge,
+.team-status-badge {
+  white-space: nowrap;
+}
+
+.team-status-badge.is-inactive {
+  color: #7b433d;
+  background: #fae9e6;
+}
+
+.team-member-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 0;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.team-member-meta span {
+  min-width: 0;
+}
+
+.team-member-meta small,
+.team-member-meta strong {
+  display: block;
+}
+
+.team-member-meta small {
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.team-member-meta strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.team-member-editor {
+  border-top: 1px solid var(--line);
+}
+
+.team-member-editor > summary {
+  padding: 12px 0 0;
+  color: var(--green);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.team-editor-content {
+  padding-top: 15px;
+}
+
+.team-active-control {
+  padding: 11px 12px;
+  margin-bottom: 14px;
+  border-radius: 9px;
+  background: #f3f7f2;
+}
+
+.team-active-control label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.team-active-control small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+}
+
+.team-self-note,
+.team-empty p {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.team-empty {
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .settings-tabs {
+    margin-top: 18px;
+  }
+
+  .settings-tabs a {
+    flex: 1;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .team-page-heading,
+  .team-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .team-section-heading > small {
+    text-align: left;
+  }
+
+  .team-create > summary {
+    width: 100%;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .team-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .team-field-wide {
+    grid-column: auto;
+  }
+
+  .team-form-actions input {
+    width: 100%;
+  }
+
+  .team-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .team-summary-grid > div {
+    padding: 11px 12px;
+  }
+
+  .team-summary-grid strong {
+    font-size: 20px;
+  }
+
+  .team-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-filter-search,
+  .team-filter-actions {
+    grid-column: 1 / -1;
+  }
+
+  .team-filter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .team-filter-actions input,
+  .team-filter-actions .button {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .team-member-list {
+    grid-template-columns: 1fr;
+  }
+
+  .team-member-overview {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .team-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .team-member-badges {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .team-member-meta {
+    grid-template-columns: 1fr;
+  }
+}
