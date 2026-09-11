@@ -1,19 +1,193 @@
-<h1>Equipa</h1><p class="settings-intro">Gere quem pode atender pedidos e chamadas neste estabelecimento.</p><section class="panel"><h2>Criar acesso</h2>
-<%= form_with model: [:staff, @user] do |f| %>
-  <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true %>
-  <%= f.label :username, 'Username do funcionário' %><%= f.text_field :username, required: true, pattern: '[a-z0-9][a-z0-9_.-]{2,30}', placeholder: 'ex.: joao' %>
-  <%= f.label :email, 'Email (obrigatório apenas para gerente)' %><%= f.email_field :email %>
-  <%= f.label :password, 'Palavra-passe (mínimo 12 caracteres)' %><%= f.password_field :password, minlength: 12, required: true, autocomplete: 'new-password' %>
-  <%= f.label :role, 'Perfil' %><%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']] %><%= f.submit 'Criar utilizador' %>
-  <% if current_establishment.production_areas_enabled? %><fieldset><legend>Áreas do funcionário</legend><% @production_areas.each do |area| %><label><%= check_box_tag 'user[production_area_ids][]', area.id %> <%= area.name %></label><% end %></fieldset><% end %>
-<% end %></section>
-<% @users.each do |user| %><section class="panel team-card"><div class="staff-order-card-heading"><div><h2><%= user.name.presence || user.login_identifier %></h2><p>Username: <strong><%= user.username.presence || 'não definido' %></strong><% if user.email.present? %> · <%= user.email %><% end %></p></div><span class="badge"><%= user.manager? ? 'Gerente' : 'Funcionário' %> · <%= user.active? ? 'Ativo' : 'Desativado' %></span></div>
-  <% if user != current_user %><%= form_with model: [:staff, user] do |f| %>
-    <label><%= f.check_box :active %> Acesso ativo</label>
-    <%= f.label :username, 'Username' %><%= f.text_field :username, required: user.staff?, pattern: '[a-z0-9][a-z0-9_.-]{2,30}' %>
-    <%= f.label :email, 'Email (gerente)' %><%= f.email_field :email %>
-    <%= f.label :role, 'Perfil' %><%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']] %>
-    <% if current_establishment.production_areas_enabled? %><fieldset><legend>Áreas do funcionário</legend><% @production_areas.each do |area| %><label><%= check_box_tag 'user[production_area_ids][]', area.id, user.production_area_ids.include?(area.id) %> <%= area.name %></label><% end %></fieldset><% end %>
-    <%= f.label :password, 'Nova palavra-passe (deixe vazio para manter)' %><%= f.password_field :password, minlength: 12, autocomplete: 'new-password' %>
-    <%= f.submit 'Guardar', class: 'secondary' %>
-  <% end %><% end %></section><% end %>
+<p class="eyebrow">CONFIGURAÇÃO DO SERVIÇO</p>
+<h1>Definições</h1>
+<p class="settings-intro">Organiza aqui a empresa, a equipa e as preferências deste dispositivo.</p>
+
+<%= render 'staff/settings/tabs' %>
+
+<section class="team-page">
+  <div class="team-page-heading">
+    <div>
+      <p class="eyebrow">GESTÃO DE ACESSOS</p>
+      <h2>Equipa</h2>
+      <p>Gere quem pode atender pedidos e chamadas neste estabelecimento.</p>
+    </div>
+  </div>
+
+  <%= turbo_frame_tag 'settings_team' do %>
+    <details class="team-create" <%= 'open' if @user.errors.any? %>>
+      <summary class="button">Adicionar pessoa</summary>
+      <div class="panel team-create-panel">
+        <div class="team-section-heading">
+          <div><p class="eyebrow">NOVO ACESSO</p><h3>Criar utilizador</h3></div>
+          <small>O funcionário altera a palavra-passe no primeiro acesso.</small>
+        </div>
+
+        <% if @user.errors.any? %>
+          <div class="flash alert"><%= @user.errors.full_messages.join(', ') %></div>
+        <% end %>
+
+        <%= form_with model: [:staff, @user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate' } do |f| %>
+          <div class="team-form-grid">
+            <div class="team-field">
+              <%= f.label :name, 'Nome' %>
+              <%= f.text_field :name, required: true, autocomplete: 'name' %>
+            </div>
+            <div class="team-field">
+              <%= f.label :role, 'Perfil' %>
+              <%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']], {}, data: { team_form_target: 'role', action: 'change->team-form#syncRequirements' } %>
+            </div>
+            <div class="team-field">
+              <%= f.label :username, 'Username' %>
+              <%= f.text_field :username, required: @user.staff?, pattern: '[a-z0-9][a-z0-9_.-]{2,30}', placeholder: 'ex.: joao', autocomplete: 'username', data: { team_form_target: 'username' } %>
+              <small>Obrigatório para funcionários.</small>
+            </div>
+            <div class="team-field">
+              <%= f.label :email, 'Email' %>
+              <%= f.email_field :email, required: @user.manager?, autocomplete: 'email', data: { team_form_target: 'email' } %>
+              <small>Obrigatório para gerentes.</small>
+            </div>
+            <div class="team-field team-field-wide">
+              <%= f.label :password, 'Palavra-passe temporária' %>
+              <%= f.password_field :password, minlength: 12, required: true, autocomplete: 'new-password' %>
+              <small>Mínimo de 12 caracteres.</small>
+            </div>
+          </div>
+
+          <% if current_establishment.production_areas_enabled? %>
+            <fieldset class="team-areas" data-team-form-target="areas" <%= 'hidden' if @user.manager? %>>
+              <legend>Áreas do funcionário</legend>
+              <div class="team-area-options">
+                <% @production_areas.each do |area| %>
+                  <label><%= check_box_tag 'user[production_area_ids][]', area.id, @user.production_area_ids.include?(area.id) %><span><%= area.name %></span></label>
+                <% end %>
+              </div>
+            </fieldset>
+          <% end %>
+
+          <div class="team-form-actions"><%= f.submit 'Criar utilizador' %></div>
+        <% end %>
+      </div>
+    </details>
+
+    <div class="team-summary-grid" aria-label="Resumo da equipa">
+      <div><strong><%= @team_totals[:total] %></strong><span>Total</span></div>
+      <div><strong><%= @team_totals[:active] %></strong><span>Ativos</span></div>
+      <div><strong><%= @team_totals[:staff] %></strong><span>Funcionários</span></div>
+      <div><strong><%= @team_totals[:managers] %></strong><span>Gerentes</span></div>
+    </div>
+
+    <%= form_with url: staff_users_path, method: :get, class: 'team-filters', data: { turbo_frame: 'settings_team', turbo_action: 'advance' } do %>
+      <div class="team-filter-search">
+        <%= label_tag :q, 'Pesquisar' %>
+        <%= search_field_tag :q, @team_query, placeholder: 'Nome, username ou email' %>
+      </div>
+      <div class="team-filter-field">
+        <%= label_tag :status, 'Estado' %>
+        <%= select_tag :status, options_for_select([['Todos', ''], ['Ativos', 'active'], ['Desativados', 'inactive']], @team_status) %>
+      </div>
+      <div class="team-filter-field">
+        <%= label_tag :role, 'Perfil' %>
+        <%= select_tag :role, options_for_select([['Todos', ''], ['Funcionários', 'staff'], ['Gerentes', 'manager']], @team_role) %>
+      </div>
+      <div class="team-filter-actions">
+        <%= submit_tag 'Filtrar' %>
+        <%= link_to 'Limpar', staff_users_path, class: 'button secondary', data: { turbo_frame: 'settings_team', turbo_action: 'advance' } %>
+      </div>
+    <% end %>
+
+    <div class="team-results-heading">
+      <h3>Pessoas</h3>
+      <span><%= @users.size %> <%= @users.size == 1 ? 'resultado' : 'resultados' %></span>
+    </div>
+
+    <% if @users.any? %>
+      <div class="team-member-list">
+        <% @users.each do |user| %>
+          <% display_user = @editing_user&.id == user.id ? @editing_user : user %>
+          <% identity = display_user.name.presence || display_user.login_identifier %>
+          <% initials = identity.to_s.split.first(2).map { |part| part.first }.join.upcase %>
+          <article class="panel team-member-card <%= 'is-inactive' unless display_user.active? %>">
+            <div class="team-member-overview">
+              <div class="team-avatar" aria-hidden="true"><%= initials %></div>
+              <div class="team-member-identity">
+                <h3><%= identity %></h3>
+                <p><%= display_user.username.present? ? "@#{display_user.username}" : display_user.email %></p>
+              </div>
+              <div class="team-member-badges">
+                <span class="badge team-role-badge"><%= display_user.manager? ? 'Gerente' : 'Funcionário' %></span>
+                <span class="badge team-status-badge <%= 'is-inactive' unless display_user.active? %>"><%= display_user.active? ? 'Ativo' : 'Desativado' %></span>
+              </div>
+            </div>
+
+            <div class="team-member-meta">
+              <% if display_user.email.present? %><span><small>Email</small><strong><%= display_user.email %></strong></span><% end %>
+              <% if current_establishment.production_areas_enabled? && display_user.staff? %>
+                <span><small>Áreas</small><strong><%= display_user.production_areas.any? ? display_user.production_areas.map(&:name).join(', ') : 'Todas' %></strong></span>
+              <% end %>
+              <span><small>Notificações</small><strong><%= display_user.staff_push_subscription.present? ? 'Dispositivo associado' : 'Sem dispositivo' %></strong></span>
+            </div>
+
+            <% if display_user == current_user %>
+              <p class="team-self-note">Esta é a tua conta. A palavra-passe e as preferências pessoais são geridas em Geral.</p>
+            <% else %>
+              <details class="team-member-editor" <%= 'open' if @editing_user&.id == display_user.id %>>
+                <summary>Editar acesso</summary>
+                <div class="team-editor-content">
+                  <% if @editing_user&.id == display_user.id && display_user.errors.any? %>
+                    <div class="flash alert"><%= display_user.errors.full_messages.join(', ') %></div>
+                  <% end %>
+                  <%= form_with model: [:staff, display_user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate', team_form_original_active_value: display_user.active? } do |f| %>
+                    <div class="team-active-control">
+                      <label><%= f.check_box :active, data: { team_form_target: 'active' } %><span>Acesso ativo</span></label>
+                      <small>Ao desativar, esta pessoa deixa imediatamente de conseguir entrar.</small>
+                    </div>
+                    <div class="team-form-grid">
+                      <div class="team-field">
+                        <%= f.label :name, 'Nome' %>
+                        <%= f.text_field :name, required: true %>
+                      </div>
+                      <div class="team-field">
+                        <%= f.label :role, 'Perfil' %>
+                        <%= f.select :role, [['Funcionário', 'staff'], ['Gerente', 'manager']], {}, data: { team_form_target: 'role', action: 'change->team-form#syncRequirements' } %>
+                      </div>
+                      <div class="team-field">
+                        <%= f.label :username, 'Username' %>
+                        <%= f.text_field :username, required: display_user.staff?, pattern: '[a-z0-9][a-z0-9_.-]{2,30}', data: { team_form_target: 'username' } %>
+                        <small>Obrigatório para funcionários.</small>
+                      </div>
+                      <div class="team-field">
+                        <%= f.label :email, 'Email' %>
+                        <%= f.email_field :email, required: display_user.manager?, data: { team_form_target: 'email' } %>
+                        <small>Obrigatório para gerentes.</small>
+                      </div>
+                      <div class="team-field team-field-wide">
+                        <%= f.label :password, 'Nova palavra-passe' %>
+                        <%= f.password_field :password, minlength: 12, autocomplete: 'new-password' %>
+                        <small>Deixa vazio para manter a atual. Funcionários terão de a alterar no próximo acesso.</small>
+                      </div>
+                    </div>
+
+                    <% if current_establishment.production_areas_enabled? %>
+                      <fieldset class="team-areas" data-team-form-target="areas" <%= 'hidden' if display_user.manager? %>>
+                        <legend>Áreas do funcionário</legend>
+                        <div class="team-area-options">
+                          <% @production_areas.each do |area| %>
+                            <label><%= check_box_tag 'user[production_area_ids][]', area.id, display_user.production_area_ids.include?(area.id) %><span><%= area.name %></span></label>
+                          <% end %>
+                        </div>
+                      </fieldset>
+                    <% end %>
+
+                    <div class="team-form-actions"><%= f.submit 'Guardar alterações' %></div>
+                  <% end %>
+                </div>
+              </details>
+            <% end %>
+          </article>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="panel team-empty"><strong>Sem resultados</strong><p>Altera os filtros ou pesquisa por outro nome.</p></div>
+    <% end %>
+  <% end %>
+</section>
