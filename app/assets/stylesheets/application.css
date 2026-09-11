@@ -1571,11 +1571,11 @@ small {
 .report-calendar-toolbar { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; }
 .report-calendar-toolbar strong { text-align: center; }
 .report-period-dialog-head h2 { margin: 0; font-size: 20px; }
-.report-dialog-close { width: 34px; height: 34px; border: 0; border-radius: 50%; color: var(--green); background: #edf4ee; font-size: 25px; line-height: 1; cursor: pointer; outline: none; }
+.report-dialog-close { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; color: var(--green); background: #edf4ee; font-size: 22px; line-height: 1; cursor: pointer; outline: none; }
 .report-dialog-close:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 .report-calendar-toolbar { margin: 22px 0 12px; }
 .report-calendar-toolbar strong { font-size: 17px; }
-.report-calendar-toolbar button { justify-self: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; color: var(--green); background: white; font-size: 25px; line-height: 1; cursor: pointer; outline: none; }
+.report-calendar-toolbar button { display: grid; place-items: center; justify-self: center; width: 34px; height: 34px; padding: 0 0 2px; border: 1px solid var(--line); border-radius: 50%; color: var(--green); background: white; font-size: 25px; line-height: 1; cursor: pointer; outline: none; }
 .report-calendar-toolbar button:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 .report-calendar-weekdays, .report-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
 .report-calendar-weekdays { margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
