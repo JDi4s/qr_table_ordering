@@ -63,7 +63,7 @@ class ReportPdf
       pdf.text_box label, at: [0, pdf.cursor], width: 92, height: 12, size: 8
       bar_width = width * row[:value].to_f / max
       pdf.fill_color GREEN
-      pdf.rounded_rectangle [102, pdf.cursor - 1], [[bar_width, 2].max, 10], 3
+      pdf.rounded_rectangle [102, pdf.cursor - 1], [bar_width, 2].max, 10, 3
       pdf.fill_color INK
       pdf.text_box row[:display].to_s, at: [102 + [bar_width, 2].max + 6, pdf.cursor], width: 70, height: 12, size: 8
       pdf.move_down 17
