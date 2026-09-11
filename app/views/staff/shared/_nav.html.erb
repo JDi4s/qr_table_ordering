@@ -12,8 +12,7 @@
       <%= link_to 'Mesas / QR', staff_tables_path, class: ('is-active' if current_page?(staff_tables_path)), aria: { current: (current_page?(staff_tables_path) ? 'page' : nil) } %>
       <%= link_to 'Histórico', history_staff_orders_path, class: ('is-active' if staff_nav_active?(:history)), aria: { current: (staff_nav_active?(:history) ? 'page' : nil) } %>
       <% if current_user.manager? %><%= link_to 'Relatórios', staff_reports_path, class: ('is-active' if staff_nav_active?(:reports)), aria: { current: (staff_nav_active?(:reports) ? 'page' : nil) } %><% end %>
-      <% if current_user.manager? %><%= link_to 'Equipa', staff_users_path, class: ('is-active' if controller_path.start_with?('staff/users')), aria: { current: (controller_path.start_with?('staff/users') ? 'page' : nil) } %><% end %>
-      <%= link_to 'Definições', edit_staff_settings_path, class: ('is-active' if controller_path.start_with?('staff/settings')), aria: { current: (controller_path.start_with?('staff/settings') ? 'page' : nil) } %>
+      <%= link_to 'Definições', edit_staff_settings_path, class: ('is-active' if controller_path.start_with?('staff/settings') || controller_path.start_with?('staff/users')), aria: { current: ((controller_path.start_with?('staff/settings') || controller_path.start_with?('staff/users')) ? 'page' : nil) } %>
     </div>
   </nav>
   <%= button_to 'Sair', logout_path, method: :delete, class: 'secondary staff-logout' %>
