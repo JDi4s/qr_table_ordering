@@ -1,6 +1,6 @@
 class ReportPeriod
   class Invalid < StandardError; end
-  VIEWS = %w[day month year lifetime].freeze
+  VIEWS = %w[day last_7_days month year lifetime].freeze
   attr_reader :view, :from, :to, :comparison, :compare_from, :compare_to
 
   def initialize(params, today: Date.current)
@@ -20,6 +20,7 @@ class ReportPeriod
   def label
     case view
     when 'day' then from.strftime('%d/%m/%Y')
+    when 'last_7_days' then 'Últimos 7 dias'
     when 'month' then from.strftime('%m/%Y')
     when 'year' then from.strftime('%Y')
     else 'Todo o período'
@@ -34,6 +35,8 @@ class ReportPeriod
 
   def resolve_range(params)
     case view
+    when 'last_7_days'
+      [@today - 6.days, @today]
     when 'month'
       month = parse_month(params[:month])
       [month.beginning_of_month, [month.end_of_month, @today].min]

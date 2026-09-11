@@ -6,6 +6,9 @@ class User < ApplicationRecord
   has_many :audit_events, dependent: :nullify
   has_many :production_area_users, dependent: :destroy
   has_many :production_areas, through: :production_area_users
+  has_many :created_support_tickets, class_name: 'SupportTicket', foreign_key: :created_by_id, inverse_of: :created_by
+  has_many :support_ticket_messages, foreign_key: :author_id, dependent: :restrict_with_error
+  has_many :support_sessions, foreign_key: :platform_admin_id, dependent: :restrict_with_error
   enum role: { staff: 'staff', manager: 'manager', platform_admin: 'platform_admin' }
   before_validation do
     self.email = email.to_s.strip.downcase.presence

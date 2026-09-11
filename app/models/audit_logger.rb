@@ -2,6 +2,9 @@ class AuditLogger
   def self.record(user:, action:, record: nil, metadata: {})
     establishment = record.respond_to?(:establishment) ? record.establishment : user&.establishment
     establishment ||= record&.table&.establishment if record.respond_to?(:table)
+    if establishment.blank? && user&.platform_admin?
+      establishment = SupportSession.active.where(platform_admin_id: user.id).order(started_at: :desc).first&.establishment
+    end
     return unless establishment
 
     AuditEvent.create!(

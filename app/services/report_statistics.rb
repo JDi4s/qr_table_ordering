@@ -20,7 +20,7 @@ class ReportStatistics
 
   def series(first, last, view)
     case view
-    when 'month'
+    when 'month', 'last_7_days'
       (first..last).map { |day| { label: day.strftime('%d'), amount: @days[day] } }
     when 'year'
       (1..12).map do |month|

@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base
-  helper_method :current_user, :current_establishment
+  helper_method :current_user, :current_establishment, :active_support_session, :support_mode?, :manager_access?
   rescue_from Order::InvalidTransition, with: :invalid_operation
   rescue_from ActiveRecord::RecordInvalid, with: :invalid_record
 
@@ -10,7 +10,25 @@ class ApplicationController < ActionController::Base
   end
 
   def current_establishment
+    return active_support_session&.establishment if current_user&.platform_admin?
+
     current_user&.establishment
+  end
+
+  def active_support_session
+    return unless current_user&.platform_admin? && session[:support_session_id].present?
+
+    @active_support_session ||= SupportSession.active
+      .includes(:establishment, :support_ticket)
+      .find_by(id: session[:support_session_id], platform_admin_id: current_user.id)
+  end
+
+  def support_mode?
+    active_support_session.present?
+  end
+
+  def manager_access?
+    current_user&.manager? || support_mode?
   end
 
   def invalid_operation(error)

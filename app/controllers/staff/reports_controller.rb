@@ -24,6 +24,8 @@ class Staff::ReportsController < Staff::BaseController
       return
     end
 
+    return essential_export_locked if current_establishment.essential_plan?
+
     period = ReportPeriod.new(params)
     first = period.from
     last = period.to
@@ -46,6 +48,7 @@ class Staff::ReportsController < Staff::BaseController
       document = ReportPdf.new(cash_pdf_data).render
       filename = "caixa_#{@date}.pdf"
     else
+      return essential_export_locked if current_establishment.essential_plan?
       load_statistics
       document = ReportPdf.new(statistics_pdf_data).render
       filename = "relatorio_#{@period.from}_#{@period.to}.pdf"
@@ -222,11 +225,17 @@ class Staff::ReportsController < Staff::BaseController
   end
 
   def load_statistics
-    @period = ReportPeriod.new(params)
-    @analysis = ANALYSES.include?(params[:analysis].to_s) ? params[:analysis].to_s : 'revenue'
-    @metric = METRICS.fetch(@analysis).include?(params[:metric].to_s) ? params[:metric].to_s : METRICS.fetch(@analysis).first
+    @essential_statistics = current_establishment.essential_plan?
+    period_params = params
+    if @essential_statistics
+      allowed_view = %w[day last_7_days].include?(params[:view].to_s) ? params[:view].to_s : 'day'
+      period_params = { view: allowed_view, date: Date.current.iso8601, compare: 'none' }
+    end
+    @period = ReportPeriod.new(period_params)
+    @analysis = @essential_statistics ? 'revenue' : (ANALYSES.include?(params[:analysis].to_s) ? params[:analysis].to_s : 'revenue')
+    @metric = @essential_statistics ? 'total' : (METRICS.fetch(@analysis).include?(params[:metric].to_s) ? params[:metric].to_s : METRICS.fetch(@analysis).first)
     @employees = current_establishment.users.where(deleted_at: nil).order(:name, :id)
-    load_employee
+    load_employee unless @essential_statistics
     @statistics = ReportStatistics.new(report_payments(@period.from, @period.to, employee: @employee))
     @previous = @period.comparing? ? ReportStatistics.new(report_payments(@period.compare_from, @period.compare_to, employee: @employee)) : nil
     load_analysis_data
@@ -325,6 +334,12 @@ class Staff::ReportsController < Staff::BaseController
 
   def invalid_filter(error)
     redirect_to staff_reports_path(tab: params[:tab] == 'cash' || action_name == 'close' ? 'cash' : 'statistics'), alert: error.message
+  end
+
+  def essential_export_locked
+    redirect_to staff_reports_path(tab: 'statistics'),
+                alert: 'Os relatórios estatísticos em PDF e CSV estão disponíveis no plano Gestão.',
+                status: :see_other
   end
 
   def csv_text(value)

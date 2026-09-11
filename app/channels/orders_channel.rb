@@ -6,7 +6,8 @@ class OrdersChannel < ApplicationCable::Channel
       name = "table_#{@table_id}_customer_#{connection.customer_token}"
     else
       return reject unless authorized?
-      name = connection.current_user.establishment.staff_stream
+      establishment = connection.current_user.establishment || connection.support_establishment
+      name = establishment.staff_stream
     end
     stream_from name, coder: ActiveSupport::JSON do |message|
       # Recheck on every event so suspensions also stop already-open connections.
@@ -25,7 +26,7 @@ class OrdersChannel < ApplicationCable::Channel
       connection.customer_token.present? && Table.joins(:establishment).where(id: @table_id, active: true, establishments: { active: true }).exists?
     else
       user = User.find_by(id: connection.current_user&.id, active: true)
-      user&.venue_access?
+      user&.venue_access? || (user&.platform_admin? && connection.support_establishment.present?)
     end
   end
 end

@@ -11,9 +11,12 @@ class Establishment < ApplicationRecord
   has_many :production_areas, dependent: :destroy
   has_many :audit_events, dependent: :destroy
   has_many :cash_closures, dependent: :destroy
+  has_many :support_tickets, dependent: :restrict_with_error
+  has_many :support_sessions, dependent: :restrict_with_error
   validates :name, presence: true, length: { maximum: 120 }
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ }
   validates :table_limit, :monthly_fee_cents, :production_areas_limit, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :plan, inclusion: { in: %w[essential management] }
   validate :logo_must_be_an_accepted_image
   validate :limit_covers_active_tables
 
@@ -34,6 +37,14 @@ class Establishment < ApplicationRecord
 
   def production_areas_enabled?
     production_areas_limit.to_i.positive?
+  end
+
+  def essential_plan?
+    plan == 'essential'
+  end
+
+  def management_plan?
+    plan == 'management'
   end
 
   def available_production_areas

@@ -23,6 +23,7 @@ class Staff::MenuItemsController < Staff::BaseController
 
     if @menu_item.errors.empty? && @menu_item.save
       sync_recommendations!
+      AuditLogger.record(user: current_user, action: 'menu_item_created', record: @menu_item)
       redirect_to staff_menu_path(anchor: "category-#{@menu_item.category_id}"), notice: 'Produto criado.'
     else
       render :new, status: :unprocessable_entity
@@ -36,6 +37,7 @@ class Staff::MenuItemsController < Staff::BaseController
     attributes = menu_item_params
     if @menu_item.errors.empty? && @menu_item.update(attributes)
       sync_recommendations!
+      AuditLogger.record(user: current_user, action: 'menu_item_updated', record: @menu_item)
       redirect_to staff_menu_path(anchor: "category-#{@menu_item.category_id}"), notice: 'Produto atualizado.'
     else
       render :edit, status: :unprocessable_entity
@@ -44,11 +46,13 @@ class Staff::MenuItemsController < Staff::BaseController
 
   def destroy
     @menu_item.update!(archived_at: Time.current, available: false)
+    AuditLogger.record(user: current_user, action: 'menu_item_archived', record: @menu_item)
     redirect_to menu_destination(@menu_item.category_id), notice: 'Produto arquivado.', status: :see_other
   end
 
   def restore
     @menu_item.update!(archived_at: nil, available: true)
+    AuditLogger.record(user: current_user, action: 'menu_item_restored', record: @menu_item)
     redirect_to menu_destination(@menu_item.category_id), notice: 'Produto restaurado.', status: :see_other
   end
 
@@ -109,6 +113,8 @@ class Staff::MenuItemsController < Staff::BaseController
     raise Order::InvalidTransition, 'Restaure primeiro o produto arquivado.' if @menu_item.archived?
 
     @menu_item.update!(available: !@menu_item.available?)
+    AuditLogger.record(user: current_user, action: 'menu_item_availability_changed', record: @menu_item,
+                       metadata: { available: @menu_item.available? })
     redirect_to menu_destination(@menu_item.category_id), status: :see_other
   end
 

@@ -14,7 +14,7 @@
         title: item.available? ? 'Tornar produto indisponível' : 'Tornar produto disponível' %>
     <% end %>
 
-    <% if current_user.manager? %>
+    <% if manager_access? %>
       <%= link_to 'Editar', edit_staff_menu_item_path(item), class: 'compact-action', data: { turbo_frame: '_top' } %>
       <% if item.archived? %>
         <%= button_to 'Restaurar', restore_staff_menu_item_path(item, menu_status: status), method: :patch, class: 'secondary compact-action' %>

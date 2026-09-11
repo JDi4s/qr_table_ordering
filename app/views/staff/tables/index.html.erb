@@ -2,7 +2,7 @@
 <p><strong><%= @tables.where(active: true).count %> / <%= current_establishment.table_limit %></strong> mesas ativas. Os QR codes existentes podem ser descarregados novamente.</p>
 <p><%= link_to "Ver mesas com consumo (#{@tables_with_consumption_count})", active_staff_tables_path, class: 'button' %></p>
 
-<% if current_user.manager? %>
+<% if manager_access? %>
   <section class="panel">
     <h2>Criar mesa</h2>
     <%= form_with model: [:staff, @table] do |f| %>
@@ -35,7 +35,7 @@
         </div>
       <% end %>
 
-      <% if current_user.manager? %>
+      <% if manager_access? %>
         <details class="table-admin-details">
           <summary>Editar mesa</summary>
           <div class="table-admin-details-content">

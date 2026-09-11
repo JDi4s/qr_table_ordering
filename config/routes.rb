@@ -6,6 +6,12 @@ Rails.application.routes.draw do
   delete 'logout', to: 'sessions#destroy'
   namespace :admin do
     resources :establishments, except: [:show, :destroy]
+    resources :support_tickets, only: [:index, :show, :update] do
+      resources :messages, only: :create, controller: 'support_ticket_messages'
+    end
+    resources :audit_events, only: :index
+    resources :support_sessions, only: [:create, :destroy]
+    resource :push_subscription, only: [:create, :destroy], controller: 'push_subscriptions'
   end
   resources :tables, only: [] do
     resources :service_calls, only: :create
@@ -53,6 +59,9 @@ Rails.application.routes.draw do
     end
     resource :push_subscription, only: [:create, :destroy], controller: 'push_subscriptions'
     resource :settings, only: [:edit, :update]
+    resources :support_tickets, only: [:index, :new, :create, :show] do
+      resources :messages, only: :create, controller: 'support_ticket_messages'
+    end
     resources :reports, only: [:index] do
       collection { get :export; get :pdf; post :close }
     end

@@ -12,6 +12,7 @@ class Staff::CategoriesController < Staff::BaseController
     @category = current_establishment.categories.new(category_params)
 
     if @category.save
+      AuditLogger.record(user: current_user, action: 'category_created', record: @category)
       redirect_to staff_menu_path, notice: 'Categoria criada.'
     else
       render :new, status: :unprocessable_entity
@@ -23,6 +24,7 @@ class Staff::CategoriesController < Staff::BaseController
 
   def update
     if @category.update(category_params)
+      AuditLogger.record(user: current_user, action: 'category_updated', record: @category)
       redirect_to staff_menu_path, notice: 'Categoria atualizada.'
     else
       render :edit, status: :unprocessable_entity
@@ -31,11 +33,13 @@ class Staff::CategoriesController < Staff::BaseController
 
   def destroy
     @category.update!(archived_at: Time.current, available: false)
+    AuditLogger.record(user: current_user, action: 'category_archived', record: @category)
     redirect_to menu_destination(@category.id), notice: 'Categoria arquivada.', status: :see_other
   end
 
   def restore
     @category.update!(archived_at: nil, available: true)
+    AuditLogger.record(user: current_user, action: 'category_restored', record: @category)
     redirect_to menu_destination(@category.id), notice: 'Categoria restaurada.', status: :see_other
   end
 
@@ -66,6 +70,8 @@ class Staff::CategoriesController < Staff::BaseController
     raise Order::InvalidTransition, 'Restaure primeiro a categoria arquivada.' if @category.archived?
 
     @category.update!(available: !@category.available?)
+    AuditLogger.record(user: current_user, action: 'category_availability_changed', record: @category,
+                       metadata: { available: @category.available? })
     redirect_to menu_destination(@category.id), status: :see_other
   end
 

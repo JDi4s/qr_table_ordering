@@ -42,7 +42,7 @@ end %>
         title: category.available? ? 'Tornar categoria indisponível' : 'Tornar categoria disponível' %>
     <% end %>
 
-    <% if current_user.manager? %>
+    <% if manager_access? %>
       <%= link_to 'Editar', edit_staff_category_path(category), class: 'compact-action', data: { turbo_frame: '_top' } %>
       <% if category.archived? %>
         <%= button_to 'Restaurar', restore_staff_category_path(category, menu_status: status), method: :patch, class: 'secondary compact-action' %>

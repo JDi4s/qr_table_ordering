@@ -25,13 +25,15 @@ class Staff::TablesController < Staff::BaseController
   end
 
   def create
-    current_establishment.tables.create!(params.require(:table).permit(:number))
+    table = current_establishment.tables.create!(params.require(:table).permit(:number))
+    AuditLogger.record(user: current_user, action: 'table_created', record: table)
     redirect_to staff_tables_path, notice: 'Mesa criada.', status: :see_other
   end
 
   def update
     table = current_establishment.tables.where(deleted_at: nil).find_by!(qr_token: params[:id])
     table.update!(params.require(:table).permit(:number, :active))
+    AuditLogger.record(user: current_user, action: 'table_updated', record: table)
     redirect_to staff_tables_path, notice: 'Mesa atualizada.', status: :see_other
   end
 

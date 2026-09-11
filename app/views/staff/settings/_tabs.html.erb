@@ -1,6 +1,7 @@
 <nav class="settings-tabs" aria-label="Secções das definições">
   <%= link_to 'Geral', edit_staff_settings_path, class: ('is-active' if controller_path.start_with?('staff/settings')), aria: { current: (controller_path.start_with?('staff/settings') ? 'page' : nil) } %>
-  <% if current_user.manager? %>
+  <% if manager_access? %>
     <%= link_to 'Equipa', staff_users_path, class: ('is-active' if controller_path.start_with?('staff/users')), aria: { current: (controller_path.start_with?('staff/users') ? 'page' : nil) } %>
   <% end %>
+  <% if current_user.manager? %><% open_support_count = current_establishment.support_tickets.unresolved.count %><%= link_to "Apoio#{open_support_count.positive? ? " (#{open_support_count})" : ''}", staff_support_tickets_path, class: ('is-active' if controller_path.start_with?('staff/support_ticket')), aria: { current: (controller_path.start_with?('staff/support_ticket') ? 'page' : nil) } %><% end %>
 </nav>

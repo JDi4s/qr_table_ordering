@@ -1,6 +1,6 @@
 <p class="eyebrow">GESTÃO DO MENU</p><h1>Menu</h1>
 
-<% if current_user.manager? %>
+<% if manager_access? %>
   <div class="toolbar menu-actions">
     <%= link_to 'Criar categoria', new_staff_category_path, class: 'button' %>
     <%= link_to 'Criar produto', new_staff_menu_item_path, class: 'button secondary' %>
@@ -39,7 +39,7 @@
             <h2>Produtos sem categoria</h2>
             <p>Produtos que ficaram sem categoria depois de uma eliminação.</p>
           </div>
-          <% if current_user.manager? && @uncategorized_category&.menu_items&.any? %>
+          <% if manager_access? && @uncategorized_category&.menu_items&.any? %>
             <%= button_to purge_uncategorized_staff_menu_items_path(menu_status: 'uncategorized'),
               method: :delete, class: 'bulk-delete-button' do %>
               <span aria-hidden="true">🗑︎</span> Apagar todos
@@ -57,7 +57,7 @@
           <div class="panel menu-empty-state">Não existem produtos sem categoria.</div>
         <% end %>
       <% else %>
-        <% if @menu_status == 'archived' && current_user.manager? && @menu_counts['archived'].positive? %>
+        <% if @menu_status == 'archived' && manager_access? && @menu_counts['archived'].positive? %>
           <div class="panel menu-records-heading">
             <div>
               <h2>Registos arquivados</h2>

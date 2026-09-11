@@ -51,8 +51,44 @@ module ApplicationHelper
       'cash_closed' => 'fechou o caixa', 'order_voided' => 'anulou o pedido',
       'order_deleted' => 'eliminou o pedido', 'team_member_deleted' => 'eliminou um membro',
       'table_deleted' => 'eliminou uma mesa', 'category_deleted' => 'eliminou uma categoria',
-      'menu_item_deleted' => 'eliminou um produto'
+      'menu_item_deleted' => 'eliminou um produto',
+      'support_ticket_created' => 'abriu um pedido de apoio',
+      'support_ticket_updated' => 'atualizou um pedido de apoio',
+      'support_replied' => 'respondeu a um pedido de apoio',
+      'support_access_started' => 'iniciou uma intervenção de Suporte',
+      'support_access_ended' => 'terminou uma intervenção de Suporte',
+      'menu_item_created' => 'criou um produto', 'menu_item_updated' => 'alterou um produto',
+      'menu_item_archived' => 'arquivou um produto', 'menu_item_restored' => 'restaurou um produto',
+      'menu_item_availability_changed' => 'alterou a disponibilidade de um produto',
+      'category_created' => 'criou uma categoria', 'category_updated' => 'alterou uma categoria',
+      'category_archived' => 'arquivou uma categoria', 'category_restored' => 'restaurou uma categoria',
+      'category_availability_changed' => 'alterou a disponibilidade de uma categoria',
+      'table_created' => 'criou uma mesa', 'table_updated' => 'alterou uma mesa',
+      'team_member_created' => 'criou um membro', 'team_member_updated' => 'alterou um membro',
+      'branding_updated' => 'alterou a imagem do estabelecimento',
+      'establishment_replied_to_support' => 'respondeu ao Suporte',
+      'establishment_created' => 'criou um estabelecimento',
+      'establishment_contract_updated' => 'alterou o contrato ou plano'
     }.fetch(value.to_s, value.to_s.humanize.downcase)
+  end
+
+  def audit_actor_label(event, internal: false)
+    return 'Cliente' unless event.user
+    return event.user.display_identity if internal || !event.user.platform_admin?
+
+    'Suporte'
+  end
+
+  def plan_label(establishment)
+    establishment.management_plan? ? 'Gestão' : 'Essencial'
+  end
+
+  def support_ticket_status_label(status)
+    { 'open' => 'Aberto', 'in_analysis' => 'Em análise', 'waiting_establishment' => 'A aguardar estabelecimento', 'resolved' => 'Resolvido' }.fetch(status.to_s, status.to_s)
+  end
+
+  def support_ticket_category_label(category)
+    { 'orders' => 'Pedidos', 'menu' => 'Menu', 'tables' => 'Mesas', 'team' => 'Equipa', 'reports' => 'Relatórios', 'billing' => 'Faturação', 'other' => 'Outro' }.fetch(category.to_s, category.to_s)
   end
 
   def category_options(categories, parent_id = nil, prefix = '')

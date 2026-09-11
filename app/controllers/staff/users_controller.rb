@@ -15,6 +15,7 @@ class Staff::UsersController < Staff::BaseController
       @user.save!
       sync_production_areas!(@user, area_ids)
     end
+    AuditLogger.record(user: current_user, action: 'team_member_created', record: @user)
 
     redirect_to staff_users_path(anchor: "team-user-#{@user.id}"), notice: 'Utilizador criado.'
   rescue ActiveRecord::RecordInvalid => error
@@ -39,6 +40,7 @@ class Staff::UsersController < Staff::BaseController
       user.save!
       sync_production_areas!(user, area_ids)
     end
+    AuditLogger.record(user: current_user, action: 'team_member_updated', record: user)
 
     redirect_to staff_users_path(anchor: "team-user-#{user.id}"), notice: 'Utilizador atualizado.', status: :see_other
   rescue ActiveRecord::RecordInvalid => error
