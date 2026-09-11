@@ -18,9 +18,15 @@ class Staff::ReportsController < Staff::BaseController
   end
 
   def export
-    period = params[:tab] == 'cash' ? nil : ReportPeriod.new(params)
-    first = period ? period.from : cash_date
-    last = period ? period.to : first
+    if params[:tab] == 'cash'
+      load_daily_report
+      send_data cash_csv, filename: "caixa_#{@date}.csv", type: 'text/csv; charset=utf-8'
+      return
+    end
+
+    period = ReportPeriod.new(params)
+    first = period.from
+    last = period.to
     payments = report_payments(first, last).includes(order: :table)
     csv = CSV.generate(headers: true) do |output|
       output << ['Data', 'Hora', 'Pedido', 'Mesa', 'Funcionário', 'Método', 'Valor']
@@ -81,6 +87,62 @@ class Staff::ReportsController < Staff::BaseController
     }
   end
 
+  def cash_csv
+    CSV.generate do |output|
+      output << ['RELATÓRIO DE CAIXA']
+      output << ['Data', @date.strftime('%d/%m/%Y')]
+      output << ['Estado', @closure ? 'Fechado' : 'Aberto']
+      if @closure
+        output << ['Fechado por', @closure.user.name.presence || @closure.user.login_identifier]
+        output << ['Fechado às', @closure.closed_at.strftime('%d/%m/%Y %H:%M')]
+      end
+      output << ['Total recebido', @statistics.total.to_s('F')]
+      output << ['Pagamentos', @statistics.payments_count]
+      output << ['Pedidos pagos', @statistics.orders_count]
+      output << ['Mesas por pagar', @unpaid_tables.size]
+      output << []
+
+      output << ['POR MÉTODO DE PAGAMENTO']
+      output << ['Método', 'Valor']
+      @statistics.by_method.sort_by { |_, amount| -amount }.each do |key, value|
+        output << [helpers.payment_method_label(key), value.to_s('F')]
+      end
+      output << []
+
+      output << ['POR FUNCIONÁRIO']
+      output << ['Funcionário', 'Valor']
+      @statistics.staff.values.sort_by { |row| [-row[:amount], row[:name]] }.each do |row|
+        output << [csv_text(row[:name]), row[:amount].to_s('F')]
+      end
+      output << []
+
+      output << ['POR MESA']
+      output << ['Mesa', 'Valor']
+      cash_table_rows.each do |number, amount|
+        output << ["Mesa #{number}", amount.to_s('F')]
+      end
+      output << []
+
+      output << ['MESAS POR PAGAR']
+      if @unpaid_tables.any?
+        output << ['Mesa']
+        @unpaid_tables.each { |table| output << ["Mesa #{table.number}"] }
+      else
+        output << ['Nenhuma mesa por pagar']
+      end
+      output << []
+
+      output << ['PAGAMENTOS DETALHADOS']
+      output << ['Data', 'Hora', 'Pedido', 'Mesa', 'Funcionário', 'Método', 'Valor']
+      report_payments(@date, @date).includes(order: :table).order(:paid_at, :id).each do |payment|
+        local = payment.paid_at.in_time_zone
+        output << [local.to_date, local.strftime('%H:%M'), payment.order_id, payment.order.table.number,
+                   csv_text(payment.user.name.presence || payment.user.login_identifier),
+                   helpers.payment_method_label(payment.payment_method), payment.amount.to_s('F')]
+      end
+    end
+  end
+
   def cash_pdf_data
     {
       title: 'Fecho de caixa',
@@ -94,12 +156,13 @@ class Staff::ReportsController < Staff::BaseController
       ],
       payment_rows: pdf_payment_rows(@date, @date),
       status: @closure ? 'Fechado' : 'Aberto',
+      status_detail: @closure ? "Fechado por #{@closure.user.name.presence || @closure.user.login_identifier} às #{@closure.closed_at.strftime('%d/%m/%Y %H:%M')}." : 'O caixa ainda está aberto.',
       pending_tables: @unpaid_tables.map { |table| "Mesa #{table.number}" }
     }
   end
 
   def pdf_payment_rows(first, last, employee: nil)
-    report_payments(first, last, employee: employee).includes(order: :table).map do |payment|
+    report_payments(first, last, employee: employee).includes(order: :table).order(:paid_at, :id).map do |payment|
       local = payment.paid_at.in_time_zone
       [
         local.strftime('%d/%m/%Y'),
