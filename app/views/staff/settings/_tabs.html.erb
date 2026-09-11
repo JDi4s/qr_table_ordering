@@ -1,0 +1,6 @@
+<nav class="settings-tabs" aria-label="Secções das definições">
+  <%= link_to 'Geral', edit_staff_settings_path, class: ('is-active' if controller_path.start_with?('staff/settings')), aria: { current: (controller_path.start_with?('staff/settings') ? 'page' : nil) } %>
+  <% if current_user.manager? %>
+    <%= link_to 'Equipa', staff_users_path, class: ('is-active' if controller_path.start_with?('staff/users')), aria: { current: (controller_path.start_with?('staff/users') ? 'page' : nil) } %>
+  <% end %>
+</nav>
