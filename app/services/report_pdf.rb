@@ -103,11 +103,12 @@ class ReportPdf
       pdf.fill_color INK
       pdf.text section[:title], size: 13, style: :bold
       pdf.move_down 7
-      draw_rows(pdf, section[:rows].first(25))
+      draw_rows(pdf, section[:rows].first(25), true)
     end
   end
 
-  def draw_rows(pdf, rows)
+  def draw_rows(pdf, rows, include_header = false)
+    rows = [['Item', 'Valor']] + rows if include_header
     width = pdf.bounds.width
     first_column = width * 0.68
     row_height = 22
@@ -146,7 +147,6 @@ class ReportPdf
   end
 
   def draw_payment_header(pdf, widths)
-    pdf.start_new_page
     pdf.fill_color INK
     pdf.text 'Pagamentos detalhados', size: 15, style: :bold
     pdf.move_down 10
