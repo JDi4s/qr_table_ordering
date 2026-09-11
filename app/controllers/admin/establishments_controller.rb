@@ -3,7 +3,6 @@ class Admin::EstablishmentsController < Admin::BaseController
     @establishments = Establishment.includes(:tables, :support_tickets).order(:name)
     @open_tickets_count = SupportTicket.unresolved.count
     @active_clients_count = @establishments.count(&:active?)
-    @monthly_revenue_cents = @establishments.select(&:active?).sum(&:monthly_fee_cents)
     @active_support_sessions = SupportSession.active.includes(:establishment, :platform_admin).order(started_at: :desc)
   end
   def new

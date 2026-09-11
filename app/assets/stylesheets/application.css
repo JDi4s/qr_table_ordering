@@ -23,7 +23,7 @@
 .admin-page-heading .eyebrow, .admin-section-heading .eyebrow { margin: 0 0 5px; }
 .admin-page-heading h1 { margin: 0 0 5px; }
 .admin-page-heading p:last-child { margin: 0; color: var(--muted); }
-.admin-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.admin-summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
 .admin-summary-grid article { display: grid; gap: 5px; padding: 19px 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .admin-summary-grid span { color: var(--muted); font-size: 13px; }
 .admin-summary-grid strong { font-size: 27px; letter-spacing: -.8px; }
@@ -131,8 +131,7 @@
   .admin-main { padding: 24px 14px 70px; }
   .admin-page-heading { align-items: stretch; flex-direction: column; }
   .admin-page-heading .button { width: 100%; text-align: center; }
-  .admin-summary-grid { grid-template-columns: 1fr 1fr; }
-  .admin-summary-grid article:last-child { grid-column: 1 / -1; }
+  .admin-summary-grid { grid-template-columns: 1fr; }
   .admin-client-grid { grid-template-columns: 1fr; }
   .admin-client-actions { flex-direction: column; }
   .admin-support-entry form > div { align-items: stretch; flex-direction: column; }
