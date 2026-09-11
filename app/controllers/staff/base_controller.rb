@@ -10,8 +10,14 @@ class Staff::BaseController < ApplicationController
     return if current_user&.venue_access? || support_mode?
 
     if current_user&.platform_admin?
-      session.delete(:support_session_id)
-      redirect_to admin_establishments_path, alert: 'A intervenção de Suporte terminou ou expirou.'
+      expired_session = current_user.support_sessions.find_by(id: session[:support_session_id])
+      if expired_session && expired_session.ended_at.nil?
+        AuditLogger.record(user: current_user, action: 'support_access_ended', record: expired_session,
+                           metadata: { expired: true })
+      end
+      expired_session&.finish!
+      reset_session
+      redirect_to login_path, alert: 'A intervenção de Suporte terminou ou expirou. Inicia sessão novamente.'
     else
       redirect_to login_path, alert: 'Inicie sessão numa conta ativa.'
     end

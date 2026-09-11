@@ -71,7 +71,46 @@ class SupportAndPlansTest < ActionDispatch::IntegrationTest
     assert AuditEvent.where(user: @owner, action: 'menu_item_created').exists?
 
     delete admin_support_session_path(support_session)
-    assert_redirected_to admin_establishments_path
+    assert_redirected_to login_path
     assert support_session.reload.ended_at.present?
+
+    get admin_establishments_path
+    assert_redirected_to login_path
+  end
+
+  test 'support session cannot cross directly into platform administration' do
+    sign_in(@owner)
+    post admin_support_sessions_path, params: { establishment_id: @venue.id, reason: 'Verificar configuração' }
+
+    get admin_establishments_path
+
+    assert_redirected_to staff_menu_path
+  end
+
+  test 'expired support session logs the platform administrator out' do
+    sign_in(@owner)
+    post admin_support_sessions_path, params: { establishment_id: @venue.id, reason: 'Verificar configuração' }
+    support_session = SupportSession.last
+    support_session.update_column(:expires_at, 1.minute.ago)
+
+    get staff_menu_path
+
+    assert_redirected_to login_path
+    assert support_session.reload.ended_at.present?
+    get admin_establishments_path
+    assert_redirected_to login_path
+  end
+
+  test 'signing in as a manager closes the previous support intervention' do
+    sign_in(@owner)
+    post admin_support_sessions_path, params: { establishment_id: @venue.id, reason: 'Verificar configuração' }
+    support_session = SupportSession.last
+
+    post login_path, params: { identifier: @manager.email, password: 'Test-password-123' }
+
+    assert_redirected_to staff_orders_path
+    assert support_session.reload.ended_at.present?
+    get admin_establishments_path
+    assert_redirected_to staff_orders_path
   end
 end

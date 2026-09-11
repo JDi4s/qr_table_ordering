@@ -6,6 +6,7 @@ class SessionsController < ApplicationController
     user = User.where(deleted_at: nil)
       .where('lower(email) = :identifier OR lower(username) = :identifier', identifier: identifier).first
     if user&.active? && user.authenticate(params[:password]) && (user.platform_admin? || user.venue_access?)
+      finish_current_support_session!
       reset_session
       session[:user_id] = user.id
       redirect_to(user.platform_admin? ? admin_establishments_path : (user.must_change_password? ? edit_staff_settings_path : staff_orders_path))
@@ -16,8 +17,21 @@ class SessionsController < ApplicationController
   end
 
   def destroy
+    finish_current_support_session!
     current_user&.staff_push_subscription&.destroy!
     reset_session
     redirect_to login_path, status: :see_other
+  end
+
+  private
+
+  def finish_current_support_session!
+    return if session[:support_session_id].blank? || current_user.blank?
+
+    support_session = current_user.support_sessions.find_by(id: session[:support_session_id])
+    return if support_session.blank? || support_session.ended_at.present?
+
+    AuditLogger.record(user: current_user, action: 'support_access_ended', record: support_session)
+    support_session.finish!
   end
 end
