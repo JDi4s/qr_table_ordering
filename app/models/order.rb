@@ -7,6 +7,7 @@ class Order < ApplicationRecord
   has_many :order_items, dependent: :destroy
   has_many :payments, dependent: :restrict_with_error
   has_many :menu_items, through: :order_items
+  has_many :audit_events, as: :auditable, dependent: :nullify
   enum status: { pending: 'pending', accepted: 'accepted', needs_customer_action: 'needs_customer_action', denied: 'denied', served: 'served' }
   scope :unpaid, -> { where(paid_at: nil).where.not(status: 'denied') }
   validates :note, length: { maximum: 1000 }
@@ -14,6 +15,7 @@ class Order < ApplicationRecord
   after_create_commit :broadcast_created
   after_create_commit :notify_staff_devices
   after_update_commit :broadcast_updated
+  after_destroy_commit :broadcast_destroyed
 
   def customer_stream
     "table_#{table_id}_customer_#{customer_token}"
@@ -110,6 +112,10 @@ class Order < ApplicationRecord
 
   def paid?
     paid_at.present?
+  end
+
+  def removable_by_manager?
+    paid_at.nil? && !payments.exists? && (pending? || denied?)
   end
 
   def mark_paid!(user, payment_method: 'cash')
@@ -252,6 +258,11 @@ class Order < ApplicationRecord
       broadcast_replace_to(establishment.staff_stream, target: dom_id(self), partial: 'staff/orders/order_row', locals: { order: self })
     end
     broadcast_replace_to(establishment.staff_stream, target: "order_detail_#{id}", partial: 'staff/orders/detail', locals: { order: self })
+    broadcast_active_table
+  end
+
+  def broadcast_destroyed
+    broadcast_remove_to(establishment.staff_stream, target: dom_id(self))
     broadcast_active_table
   end
 

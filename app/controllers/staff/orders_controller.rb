@@ -1,4 +1,6 @@
 class Staff::OrdersController < Staff::BaseController
+  before_action :require_manager, only: :destroy
+
   def index
     scope = current_establishment.orders.includes(:table, order_items: { menu_item: :production_area }).where.not(status: %w[served denied])
     if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
@@ -60,6 +62,25 @@ class Staff::OrdersController < Staff::BaseController
       format.turbo_stream { head :no_content }
       format.html { redirect_to staff_order_path(order), notice: 'Pedido atualizado.', status: :see_other }
     end
+  end
+
+  def destroy
+    order = current_establishment.orders.includes(:payments).find(params[:id])
+    unless order.removable_by_manager?
+      raise Order::InvalidTransition, 'Este pedido já tem atividade que deve permanecer nos relatórios e não pode ser eliminado.'
+    end
+
+    metadata = {
+      deleted_order_id: order.id,
+      table_number: order.table.number,
+      status: order.status,
+      total: order.total.to_s
+    }
+    destination = order.denied? ? history_staff_orders_path : staff_orders_path
+    order.destroy!
+    AuditLogger.record(user: current_user, action: 'order_deleted', metadata: metadata)
+
+    redirect_to destination, notice: "Pedido ##{metadata[:deleted_order_id]} eliminado.", status: :see_other
   end
 
   def history

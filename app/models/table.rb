@@ -23,6 +23,10 @@ class Table < ApplicationRecord
     orders.unpaid
   end
 
+  def removable_by_manager?
+    !orders.exists? && !service_calls.exists?
+  end
+
   private
 
   def generate_qr_token

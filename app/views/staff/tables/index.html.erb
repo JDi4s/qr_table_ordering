@@ -47,6 +47,14 @@
             <% end %>
           </div>
         </details>
+        <div class="record-delete table-delete">
+          <% if table.removable_by_manager? %>
+            <div><strong>Eliminar mesa</strong><small>Sem pedidos nem chamadas registadas.</small></div>
+            <%= button_to 'Eliminar', staff_table_path(table), method: :delete, class: 'destructive' %>
+          <% else %>
+            <div><strong>Histórico protegido</strong><small>Esta mesa já foi utilizada. Para a retirar do serviço, desativa-a acima.</small></div>
+          <% end %>
+        </div>
       <% end %>
     </section>
   <% end %>

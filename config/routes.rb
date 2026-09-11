@@ -22,17 +22,17 @@ Rails.application.routes.draw do
     end
   end
   namespace :staff do
-    resources :orders, only: [:index, :show, :update] do
+    resources :orders, only: [:index, :show, :update, :destroy] do
       member { patch :mark_paid; patch :pay_item; patch :pay_selected }
       collection { get :history }
     end
     resources :order_items, only: :update
     resources :service_calls, only: :update
-    resources :tables, only: [:index, :show, :create, :update] do
+    resources :tables, only: [:index, :show, :create, :update, :destroy] do
       collection { get :active }
       member { get :qr_code }
     end
-    resources :users, only: [:index, :create, :update]
+    resources :users, only: [:index, :create, :update, :destroy]
     get '/menu', to: 'menu#index', as: :menu
     resources :menu_items do
       member { patch :toggle_availability; patch :restore }

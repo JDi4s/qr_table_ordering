@@ -36,4 +36,13 @@ class User < ApplicationRecord
   def staff_account?
     staff? || manager?
   end
+
+  def removable_from_team?
+    persisted? &&
+      !payments.exists? &&
+      !audit_events.exists? &&
+      !Order.where(paid_by_user_id: id).exists? &&
+      !ServiceCall.where(assigned_user_id: id).exists? &&
+      !CashClosure.where(user_id: id).exists?
+  end
 end

@@ -26,6 +26,11 @@
       <% end %>
     </ul>
 
-    <%= link_to 'Abrir pedido completo', staff_order_path(order), class: 'button secondary history-order-open' %>
+    <div class="history-order-actions">
+      <%= link_to 'Abrir pedido completo', staff_order_path(order), class: 'button secondary history-order-open' %>
+      <% if current_user.manager? && order.removable_by_manager? %>
+        <%= button_to 'Eliminar pedido', staff_order_path(order), method: :delete, class: 'destructive' %>
+      <% end %>
+    </div>
   </div>
 </details>

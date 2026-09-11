@@ -289,6 +289,41 @@ input[type="submit"]:hover {
   color: #a33621;
 }
 
+.destructive,
+button.destructive,
+input[type="submit"].destructive {
+  border-color: #c95142;
+  background: white;
+  color: #a33621;
+}
+
+.record-delete {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.record-delete > div {
+  min-width: 0;
+}
+
+.record-delete strong,
+.record-delete small {
+  display: block;
+}
+
+.record-delete small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.record-delete form,
+.record-delete button {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
 .call {
   border-left: 5px solid #d99b4b;
 }
@@ -2056,6 +2091,31 @@ small {
   font-size: 12px;
 }
 
+.team-member-delete {
+  padding-top: 14px;
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.history-order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.history-order-actions form,
+.history-order-actions .button,
+.history-order-actions button {
+  margin: 0;
+}
+
+.table-delete {
+  padding-top: 13px;
+  margin-top: 13px;
+  border-top: 1px solid var(--line);
+}
+
 .team-empty {
   text-align: center;
 }
@@ -2156,5 +2216,15 @@ small {
 
   .team-member-meta {
     grid-template-columns: 1fr;
+  }
+
+  .record-delete {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .record-delete form,
+  .record-delete button {
+    width: 100%;
   }
 }

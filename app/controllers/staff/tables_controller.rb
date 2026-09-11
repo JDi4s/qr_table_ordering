@@ -35,6 +35,19 @@ class Staff::TablesController < Staff::BaseController
     redirect_to staff_tables_path, notice: 'Mesa atualizada.', status: :see_other
   end
 
+  def destroy
+    table = current_establishment.tables.find_by!(qr_token: params[:id])
+    unless table.removable_by_manager?
+      raise Order::InvalidTransition, 'Esta mesa já tem histórico. Desative-a para preservar pedidos, chamadas e relatórios.'
+    end
+
+    metadata = { deleted_table_id: table.id, number: table.number }
+    table.destroy!
+    AuditLogger.record(user: current_user, action: 'table_deleted', metadata: metadata)
+
+    redirect_to staff_tables_path, notice: "Mesa #{metadata[:number]} eliminada.", status: :see_other
+  end
+
   def qr_code
     table = current_establishment.tables.where(active: true).find_by!(qr_token: params[:id])
 

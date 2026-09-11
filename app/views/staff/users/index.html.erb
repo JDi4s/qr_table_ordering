@@ -26,7 +26,7 @@
           <div class="flash alert"><%= @user.errors.full_messages.join(', ') %></div>
         <% end %>
 
-        <%= form_with model: [:staff, @user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate', turbo_frame: '_top' } do |f| %>
+        <%= form_with model: [:staff, @user], class: 'team-form', data: { controller: 'team-form', turbo_frame: '_top' } do |f| %>
           <div class="team-form-grid">
             <div class="team-field">
               <%= f.label :name, 'Nome' %>
@@ -136,9 +136,9 @@
                   <% if @editing_user&.id == display_user.id && display_user.errors.any? %>
                     <div class="flash alert"><%= display_user.errors.full_messages.join(', ') %></div>
                   <% end %>
-                  <%= form_with model: [:staff, display_user], class: 'team-form', data: { controller: 'team-form', action: 'submit->team-form#confirmDeactivate', team_form_original_active_value: display_user.active?, turbo_frame: '_top' } do |f| %>
+                  <%= form_with model: [:staff, display_user], class: 'team-form', data: { controller: 'team-form', turbo_frame: '_top' } do |f| %>
                     <div class="team-active-control">
-                      <label><%= f.check_box :active, data: { team_form_target: 'active' } %><span>Acesso ativo</span></label>
+                      <label><%= f.check_box :active %><span>Acesso ativo</span></label>
                       <small>Ao desativar, esta pessoa deixa imediatamente de conseguir entrar.</small>
                     </div>
                     <div class="team-form-grid">
@@ -180,6 +180,15 @@
 
                     <div class="team-form-actions"><%= f.submit 'Guardar alterações' %></div>
                   <% end %>
+
+                  <div class="record-delete team-member-delete">
+                    <% if display_user.removable_from_team? %>
+                      <div><strong>Eliminar da equipa</strong><small>Disponível porque esta pessoa ainda não tem atividade registada.</small></div>
+                      <%= button_to 'Eliminar definitivamente', staff_user_path(display_user), method: :delete, class: 'destructive', form: { data: { turbo_frame: '_top' } } %>
+                    <% else %>
+                      <div><strong>Histórico protegido</strong><small>Este membro já aparece na atividade do serviço. Para retirar o acesso, desativa-o acima.</small></div>
+                    <% end %>
+                  </div>
                 </div>
               </details>
             <% end %>

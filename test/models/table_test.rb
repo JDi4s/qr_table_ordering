@@ -25,4 +25,12 @@ class TableTest < ActiveSupport::TestCase
   ensure
     Rails.configuration.x.public_url = old
   end
+
+  test 'only tables without orders or calls are removable' do
+    empty_table = @venue.tables.create!(number: 2, active: false)
+    assert empty_table.removable_by_manager?
+
+    build_order(@table, @product)
+    assert_not @table.reload.removable_by_manager?
+  end
 end

@@ -51,4 +51,10 @@
     <% end %>
   <% end %>
   <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul></details><% end %>
+  <% if current_user.manager? && order.removable_by_manager? %>
+    <section class="panel danger-panel record-delete">
+      <div><strong>Eliminar pedido</strong><small>Remove este pedido e os respetivos artigos. Só está disponível sem pagamentos.</small></div>
+      <%= button_to 'Eliminar definitivamente', staff_order_path(order), method: :delete, class: 'destructive' %>
+    </section>
+  <% end %>
 </section>

@@ -34,6 +34,43 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test 'manager can delete untouched members orders and tables' do
+    staff = venue_user(@venue, role: 'staff')
+    order = build_order(@table, @product, customer: 'remove-order')
+    empty_table = @venue.tables.create!(number: 2)
+    sign_in(@manager)
+
+    assert_difference('User.count', -1) { delete staff_user_path(staff) }
+    assert_response :see_other
+    assert_difference('Order.count', -1) { delete staff_order_path(order) }
+    assert_response :see_other
+    assert_difference('Table.count', -1) { delete staff_table_path(empty_table) }
+    assert_response :see_other
+  end
+
+  test 'history protects members orders and tables from deletion' do
+    staff = venue_user(@venue, role: 'staff')
+    AuditLogger.record(user: staff, action: 'test_activity')
+    order = build_order(@table, @product, customer: 'protected-order')
+    order.finalize_review!
+    sign_in(@manager)
+
+    assert_no_difference('User.count') { delete staff_user_path(staff) }
+    assert_response :see_other
+    assert_no_difference('Order.count') { delete staff_order_path(order) }
+    assert_response :see_other
+    assert_no_difference('Table.count') { delete staff_table_path(@table) }
+    assert_response :see_other
+  end
+
+  test 'staff cannot delete an order' do
+    order = build_order(@table, @product, customer: 'staff-delete')
+    sign_in(venue_user(@venue, role: 'staff'))
+
+    assert_no_difference('Order.count') { delete staff_order_path(order) }
+    assert_response :forbidden
+  end
+
   test 'staff can log in with username without an email' do
     staff = venue_user(@venue, role: 'staff')
     staff.update!(email: nil, username: 'balcao')

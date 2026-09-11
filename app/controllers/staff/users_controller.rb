@@ -49,6 +49,21 @@ class Staff::UsersController < Staff::BaseController
     render :index, status: :unprocessable_entity
   end
 
+  def destroy
+    user = current_establishment.users.find(params[:id])
+    raise Order::InvalidTransition, 'Não pode eliminar a sua própria conta.' if user == current_user
+    unless user.removable_from_team?
+      raise Order::InvalidTransition, 'Este membro tem atividade registada. Desative o acesso para preservar os relatórios.'
+    end
+
+    identity = user.name.presence || user.login_identifier
+    metadata = { deleted_user_id: user.id, name: identity, role: user.role }
+    user.destroy!
+    AuditLogger.record(user: current_user, action: 'team_member_deleted', metadata: metadata)
+
+    redirect_to staff_users_path, notice: "#{identity} foi eliminado da equipa.", status: :see_other
+  end
+
   private
 
   def prepare_index(new_user: nil)
