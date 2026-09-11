@@ -86,7 +86,7 @@ class OrdersController < ApplicationController
   private
 
   def set_table
-    @table = Table.joins(:establishment).where(active: true, establishments: { active: true }).find_by!(qr_token: params[:table_id])
+    @table = Table.joins(:establishment).where(active: true, deleted_at: nil, establishments: { active: true }).find_by!(qr_token: params[:table_id])
   end
 
   def ensure_customer_token
@@ -94,7 +94,7 @@ class OrdersController < ApplicationController
   end
 
   def customer_orders
-    @table.orders.where(customer_token: session[:customer_token])
+    @table.orders.not_voided.where(customer_token: session[:customer_token])
   end
 
   def save_draft(items, note)

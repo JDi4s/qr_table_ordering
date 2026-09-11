@@ -34,33 +34,54 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test 'manager can delete untouched members orders and tables' do
+  test 'manager can remove individual members orders and tables' do
     staff = venue_user(@venue, role: 'staff')
     order = build_order(@table, @product, customer: 'remove-order')
     empty_table = @venue.tables.create!(number: 2)
     sign_in(@manager)
 
-    assert_difference('User.count', -1) { delete staff_user_path(staff) }
+    assert_no_difference('User.count') { delete staff_user_path(staff) }
     assert_response :see_other
+    assert staff.reload.deleted?
+    assert_not staff.active?
     assert_difference('Order.count', -1) { delete staff_order_path(order) }
     assert_response :see_other
-    assert_difference('Table.count', -1) { delete staff_table_path(empty_table) }
+    assert_no_difference('Table.count') { delete staff_table_path(empty_table) }
     assert_response :see_other
+    assert empty_table.reload.deleted?
   end
 
-  test 'history protects members orders and tables from deletion' do
+  test 'history remains after members tables and paid orders are removed' do
     staff = venue_user(@venue, role: 'staff')
     AuditLogger.record(user: staff, action: 'test_activity')
-    order = build_order(@table, @product, customer: 'protected-order')
+    order = build_order(@table, @product, customer: 'preserved-order')
     order.finalize_review!
+    order.mark_paid!(staff)
     sign_in(@manager)
 
     assert_no_difference('User.count') { delete staff_user_path(staff) }
     assert_response :see_other
     assert_no_difference('Order.count') { delete staff_order_path(order) }
     assert_response :see_other
+    assert order.reload.voided?
+    assert_equal staff, order.payments.first.user
     assert_no_difference('Table.count') { delete staff_table_path(@table) }
     assert_response :see_other
+    assert @table.reload.deleted?
+    assert_equal order, @table.orders.first
+  end
+
+  test 'manager cannot remove a table or member involved in open service' do
+    staff = venue_user(@venue, role: 'staff')
+    call = @table.service_calls.create!(status: 'claimed', assigned_user: staff)
+    build_order(@table, @product, customer: 'open-order')
+    sign_in(@manager)
+
+    assert_no_changes -> { staff.reload.deleted_at } { delete staff_user_path(staff) }
+    assert_response :see_other
+    assert_no_changes -> { @table.reload.deleted_at } { delete staff_table_path(@table) }
+    assert_response :see_other
+    assert call.reload.claimed?
   end
 
   test 'staff cannot delete an order' do

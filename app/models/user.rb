@@ -15,18 +15,19 @@ class User < ApplicationRecord
       self.username = "#{base.first(24)}_#{SecureRandom.hex(3)}"
     end
   end
-  validates :email, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
+  validates :email, uniqueness: { case_sensitive: false, conditions: -> { where(deleted_at: nil) } },
+                    format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :email, presence: true, if: -> { manager? || platform_admin? }
   validates :username, presence: true, if: :staff?
   validates :username, format: { with: /\A[a-z0-9][a-z0-9_.-]{2,30}\z/, message: 'deve ter 3 a 31 caracteres sem espaços' }, allow_blank: true
-  validates :username, uniqueness: { case_sensitive: false }, allow_blank: true
+  validates :username, uniqueness: { case_sensitive: false, conditions: -> { where(deleted_at: nil) } }, allow_blank: true
   validates :role, presence: true
   validates :password, length: { minimum: 12 }, if: -> { new_record? || password.present? }
   validates :establishment, presence: true, unless: :platform_admin?
   validate { errors.add(:establishment, 'deve estar vazio para o administrador da plataforma') if platform_admin? && establishment_id.present? }
 
   def venue_access?
-    active? && !platform_admin? && establishment&.active?
+    active? && !deleted? && !platform_admin? && establishment&.active?
   end
 
   def login_identifier
@@ -37,12 +38,16 @@ class User < ApplicationRecord
     staff? || manager?
   end
 
-  def removable_from_team?
-    persisted? &&
-      !payments.exists? &&
-      !audit_events.exists? &&
-      !Order.where(paid_by_user_id: id).exists? &&
-      !ServiceCall.where(assigned_user_id: id).exists? &&
-      !CashClosure.where(user_id: id).exists?
+  def deleted?
+    deleted_at.present?
+  end
+
+  def display_identity
+    identity = name.presence || login_identifier || 'Utilizador'
+    deleted? ? "#{identity} (eliminado)" : identity
+  end
+
+  def involved_in_open_service?
+    ServiceCall.where(assigned_user_id: id, status: %w[pending claimed]).exists?
   end
 end

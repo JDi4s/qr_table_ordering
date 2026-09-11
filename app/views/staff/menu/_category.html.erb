@@ -49,7 +49,9 @@ end %>
         <%= button_to 'Arquivar', staff_category_path(category), method: :delete, class: 'secondary compact-action' %>
       <% end %>
       <% unless category.uncategorized? %>
-        <%= button_to 'Eliminar', purge_staff_category_path(category), method: :delete, class: 'destructive compact-action' %>
+        <%= button_to purge_staff_category_path(category), method: :delete, class: 'trash-button', title: "Eliminar categoria #{category.name}", aria: { label: "Eliminar categoria #{category.name}" }, form: { class: 'trash-button-form' } do %>
+          <span aria-hidden="true">🗑︎</span>
+        <% end %>
       <% end %>
     <% end %>
   </div>

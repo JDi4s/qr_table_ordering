@@ -1,6 +1,6 @@
 <section id="order_detail_<%= order.id %>" class="staff-order-detail">
-  <p class="eyebrow">MESA <%= order.table.number %></p><h1>Pedido #<%= order.id %></h1>
-  <p><span class="badge"><%= state_label(order.status) %></span> · Total: <strong><%= euros(order.total) %></strong> · Por pagar: <strong><%= euros(order.outstanding_total) %></strong></p>
+  <p class="eyebrow">MESA <%= order.table.display_number %></p><h1>Pedido #<%= order.id %></h1>
+  <p><span class="badge order-status-<%= order.voided? ? 'voided' : order.status %>"><%= order_state_label(order) %></span> · Total: <strong><%= euros(order.total) %></strong> · Por pagar: <strong><%= euros(order.outstanding_total) %></strong></p>
   <% if order.note.present? %><div class="flash notice">Observações do cliente: <%= order.note %></div><% end %>
   <% order.order_items.each do |item| %>
     <article class="panel order-item-detail">
@@ -21,7 +21,7 @@
           </fieldset>
         <% end %>
       <% end %>
-      <% if (order.accepted? || order.served?) && item.unpaid? %>
+      <% if !order.voided? && (order.accepted? || order.served?) && item.unpaid? %>
         <%= form_with url: pay_item_staff_order_path(order), method: :patch, class: 'payment-form' do %>
           <%= hidden_field_tag :order_item_id, item.id %>
           <%= number_field_tag :quantity, item.remaining_quantity, min: 1, max: item.remaining_quantity, required: true %>
@@ -31,30 +31,32 @@
       <% end %>
     </article>
   <% end %>
-  <% if order.pending? %>
+  <% if order.pending? && !order.voided? %>
     <section class="panel order-next-step"><p class="eyebrow">PRÓXIMO PASSO</p><h2>Concluir avaliação</h2><p>Os artigos ainda em avaliação serão aceites. Se houver rejeições ou alterações, o cliente terá de confirmar antes da preparação.</p>
       <%= button_to 'Concluir avaliação e avisar cliente', staff_order_path(order, status: 'accepted'), method: :patch %>
     </section>
   <% end %>
-  <% if order.pending? || order.needs_customer_action? %>
+  <% if !order.voided? && (order.pending? || order.needs_customer_action?) %>
     <section class="panel danger-panel"><%= form_with url: staff_order_path(order), method: :patch do |f| %>
       <%= hidden_field_tag :status, 'denied' %><%= f.label :denial_reason, 'Rejeitar o pedido completo — motivo' %>
       <%= f.text_field :denial_reason, required: true, maxlength: 300 %><%= f.submit 'Rejeitar pedido', class: 'secondary' %>
     <% end %></section>
   <% end %>
-  <% if order.needs_customer_action? %><div class="flash notice">Aguarde a confirmação do cliente antes de preparar o pedido.</div><% end %>
-  <% if order.accepted? %><%= button_to 'Marcar como servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
-  <% if (order.accepted? || order.served?) && !order.paid? %>
+  <% if order.needs_customer_action? && !order.voided? %><div class="flash notice">Aguarde a confirmação do cliente antes de preparar o pedido.</div><% end %>
+  <% if order.accepted? && !order.voided? %><%= button_to 'Marcar como servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
+  <% if !order.voided? && (order.accepted? || order.served?) && !order.paid? %>
     <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
       <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
           <%= submit_tag 'Pagar pedido completo', class: 'secondary' %>
     <% end %>
   <% end %>
-  <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul></details><% end %>
-  <% if current_user.manager? && order.removable_by_manager? %>
+  <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.display_identity %></li><% end %></ul></details><% end %>
+  <% if current_user.manager? && !order.voided? %>
     <section class="panel danger-panel record-delete">
-      <div><strong>Eliminar pedido</strong><small>Remove este pedido e os respetivos artigos. Só está disponível sem pagamentos.</small></div>
-      <%= button_to 'Eliminar definitivamente', staff_order_path(order), method: :delete, class: 'destructive' %>
+      <div><strong>Eliminar pedido</strong><small>Sem pagamentos é removido; com pagamentos ou já servido fica anulado sem alterar o Caixa.</small></div>
+      <%= button_to staff_order_path(order), method: :delete, class: 'trash-button', title: "Eliminar pedido ##{order.id}", aria: { label: "Eliminar pedido ##{order.id}" }, form: { class: 'trash-button-form' } do %>
+        <span aria-hidden="true">🗑︎</span>
+      <% end %>
     </section>
   <% end %>
 </section>

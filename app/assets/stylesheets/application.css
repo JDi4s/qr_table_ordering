@@ -297,6 +297,47 @@ input[type="submit"].destructive {
   color: #a33621;
 }
 
+.trash-button,
+button.trash-button {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e8aaa0;
+  border-radius: 10px;
+  background: #fff4f1;
+  color: #c43f2d;
+  font-family: Arial, sans-serif;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.trash-button:hover,
+button.trash-button:hover {
+  border-color: #c95142;
+  background: #ffe5df;
+  color: #a82e20;
+}
+
+.trash-button span {
+  display: block;
+  transform: translateY(-1px);
+}
+
+.trash-button-form {
+  width: auto;
+  margin: 0;
+}
+
+.order-status-voided {
+  border-color: #e8aaa0;
+  background: #fff0eb;
+  color: #a33621;
+}
+
 .record-delete {
   display: flex;
   gap: 16px;
@@ -2226,5 +2267,11 @@ small {
   .record-delete form,
   .record-delete button {
     width: 100%;
+  }
+
+  .record-delete .trash-button-form,
+  .record-delete button.trash-button {
+    width: 42px;
+    align-self: flex-end;
   }
 }

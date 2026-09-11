@@ -3,7 +3,8 @@ class SessionsController < ApplicationController
 
   def create
     identifier = (params[:identifier].presence || params[:email]).to_s.strip.downcase
-    user = User.where('lower(email) = :identifier OR lower(username) = :identifier', identifier: identifier).first
+    user = User.where(deleted_at: nil)
+      .where('lower(email) = :identifier OR lower(username) = :identifier', identifier: identifier).first
     if user&.active? && user.authenticate(params[:password]) && (user.platform_admin? || user.venue_access?)
       reset_session
       session[:user_id] = user.id

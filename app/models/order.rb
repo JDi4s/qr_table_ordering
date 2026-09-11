@@ -3,13 +3,15 @@ class Order < ApplicationRecord
   class InvalidTransition < StandardError; end
   belongs_to :table
   belongs_to :paid_by_user, class_name: 'User', optional: true
+  belongs_to :voided_by_user, class_name: 'User', optional: true
   has_one :establishment, through: :table
   has_many :order_items, dependent: :destroy
   has_many :payments, dependent: :restrict_with_error
   has_many :menu_items, through: :order_items
   has_many :audit_events, as: :auditable, dependent: :nullify
   enum status: { pending: 'pending', accepted: 'accepted', needs_customer_action: 'needs_customer_action', denied: 'denied', served: 'served' }
-  scope :unpaid, -> { where(paid_at: nil).where.not(status: 'denied') }
+  scope :not_voided, -> { where(voided_at: nil) }
+  scope :unpaid, -> { not_voided.where(paid_at: nil).where.not(status: 'denied') }
   validates :note, length: { maximum: 1000 }
   validates :customer_token, presence: true
   after_create_commit :broadcast_created
@@ -114,8 +116,12 @@ class Order < ApplicationRecord
     paid_at.present?
   end
 
-  def removable_by_manager?
-    paid_at.nil? && !payments.exists? && (pending? || denied?)
+  def voided?
+    voided_at.present?
+  end
+
+  def preserve_when_removed?
+    served? || paid_at.present? || payments.exists?
   end
 
   def mark_paid!(user, payment_method: 'cash')
@@ -199,6 +205,7 @@ class Order < ApplicationRecord
   private
 
   def ensure_payment_state!
+    raise InvalidTransition, 'Este pedido foi anulado.' if voided?
     raise InvalidTransition, 'O pedido tem de ser aceite antes de ser pago.' unless accepted? || served?
   end
 
@@ -238,6 +245,7 @@ class Order < ApplicationRecord
   end
 
   def ensure_state!(*allowed)
+    raise InvalidTransition, 'Este pedido foi anulado.' if voided?
     raise InvalidTransition, 'O pedido já mudou de estado. Atualize a página.' unless allowed.include?(status)
   end
 
@@ -252,7 +260,7 @@ class Order < ApplicationRecord
 
   def broadcast_updated
     broadcast_replace_to(customer_stream, target: dom_id(self), partial: 'orders/my_order_card', locals: { order: self })
-    if served? || denied?
+    if served? || denied? || voided?
       broadcast_remove_to(establishment.staff_stream, target: dom_id(self))
     else
       broadcast_replace_to(establishment.staff_stream, target: dom_id(self), partial: 'staff/orders/order_row', locals: { order: self })

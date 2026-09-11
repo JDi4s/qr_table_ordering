@@ -4,7 +4,8 @@ class Table < ApplicationRecord
   has_many :service_calls, dependent: :restrict_with_error
   before_validation :generate_qr_token, on: :create
   around_save :enforce_capacity
-  validates :number, numericality: { only_integer: true, greater_than: 0 }, uniqueness: { scope: :establishment_id }
+  validates :number, numericality: { only_integer: true, greater_than: 0 },
+                     uniqueness: { scope: :establishment_id, conditions: -> { where(deleted_at: nil) } }
   validates :qr_token, presence: true, uniqueness: true
 
   def to_param
@@ -23,8 +24,16 @@ class Table < ApplicationRecord
     orders.unpaid
   end
 
-  def removable_by_manager?
-    !orders.exists? && !service_calls.exists?
+  def deleted?
+    deleted_at.present?
+  end
+
+  def display_number
+    deleted? ? "#{number} (eliminada)" : number.to_s
+  end
+
+  def involved_in_open_service?
+    orders.unpaid.exists? || service_calls.where(status: %w[pending claimed]).exists?
   end
 
   private

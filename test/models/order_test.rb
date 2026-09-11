@@ -155,19 +155,15 @@ class OrderTest < ActiveSupport::TestCase
     assert @order.reload.pending?
   end
 
-  test 'only pending or denied orders without payments are removable' do
-    assert @order.removable_by_manager?
-
+  test 'served or paid orders are preserved when removed' do
+    assert_not @order.preserve_when_removed?
     @order.finalize_review!
-    assert_not @order.reload.removable_by_manager?
-
-    denied = build_order(@table, @product, customer: 'customer-denied')
-    denied.reject!('Duplicado')
-    assert denied.reload.removable_by_manager?
+    @order.serve!
+    assert @order.reload.preserve_when_removed?
 
     paid = build_order(@table, @product, customer: 'customer-paid')
     paid.finalize_review!
     paid.mark_paid!(venue_user(@venue, role: 'staff'))
-    assert_not paid.reload.removable_by_manager?
+    assert paid.reload.preserve_when_removed?
   end
 end

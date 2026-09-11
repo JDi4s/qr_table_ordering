@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
   private
 
   def current_user
-    @current_user ||= User.find_by(id: session[:user_id], active: true)
+    @current_user ||= User.find_by(id: session[:user_id], active: true, deleted_at: nil)
   end
 
   def current_establishment

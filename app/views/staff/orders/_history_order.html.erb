@@ -3,14 +3,14 @@
   <summary>
     <div class="history-order-main">
       <p class="eyebrow">PEDIDO #<%= order.id %></p>
-      <h2>Mesa <%= order.table.number %></h2>
+      <h2>Mesa <%= order.table.display_number %></h2>
       <div class="history-order-meta">
         <span><%= order.created_at.strftime('%H:%M') %></span>
         <span><%= order.order_items.sum(&:quantity) %> artigos</span>
       </div>
     </div>
     <div class="history-order-total">
-      <span class="badge order-status order-status-<%= order.status %>"><%= state_label(order.status) %></span>
+      <span class="badge order-status order-status-<%= order.voided? ? 'voided' : order.status %>"><%= order_state_label(order) %></span>
       <strong><%= euros(received_total) %></strong>
     </div>
   </summary>
@@ -28,8 +28,10 @@
 
     <div class="history-order-actions">
       <%= link_to 'Abrir pedido completo', staff_order_path(order), class: 'button secondary history-order-open' %>
-      <% if current_user.manager? && order.removable_by_manager? %>
-        <%= button_to 'Eliminar pedido', staff_order_path(order), method: :delete, class: 'destructive' %>
+      <% if current_user.manager? && !order.voided? %>
+        <%= button_to staff_order_path(order), method: :delete, class: 'trash-button', title: "Eliminar pedido ##{order.id}", aria: { label: "Eliminar pedido ##{order.id}" }, form: { class: 'trash-button-form' } do %>
+          <span aria-hidden="true">🗑︎</span>
+        <% end %>
       <% end %>
     </div>
   </div>

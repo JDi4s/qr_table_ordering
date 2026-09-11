@@ -24,7 +24,7 @@ class Staff::UsersController < Staff::BaseController
   end
 
   def update
-    user = current_establishment.users.find(params[:id])
+    user = current_establishment.users.where(deleted_at: nil).find(params[:id])
     raise Order::InvalidTransition, 'Não pode alterar a sua própria conta nesta área.' if user == current_user
 
     values = user_params
@@ -50,16 +50,20 @@ class Staff::UsersController < Staff::BaseController
   end
 
   def destroy
-    user = current_establishment.users.find(params[:id])
+    user = current_establishment.users.where(deleted_at: nil).find(params[:id])
     raise Order::InvalidTransition, 'Não pode eliminar a sua própria conta.' if user == current_user
-    unless user.removable_from_team?
-      raise Order::InvalidTransition, 'Este membro tem atividade registada. Desative o acesso para preservar os relatórios.'
+    raise Order::InvalidTransition, 'Este funcionário tem uma chamada em curso. Conclua-a antes de eliminar.' if user.involved_in_open_service?
+    if user.manager? && !current_establishment.users.where(role: 'manager', active: true, deleted_at: nil).where.not(id: user.id).exists?
+      raise Order::InvalidTransition, 'Não pode eliminar o último gerente ativo.'
     end
 
     identity = user.name.presence || user.login_identifier
     metadata = { deleted_user_id: user.id, name: identity, role: user.role }
-    user.destroy!
-    AuditLogger.record(user: current_user, action: 'team_member_deleted', metadata: metadata)
+    User.transaction do
+      user.staff_push_subscription&.destroy!
+      user.update!(active: false, deleted_at: Time.current)
+      AuditLogger.record(user: current_user, action: 'team_member_deleted', metadata: metadata)
+    end
 
     redirect_to staff_users_path, notice: "#{identity} foi eliminado da equipa.", status: :see_other
   end
@@ -67,7 +71,7 @@ class Staff::UsersController < Staff::BaseController
   private
 
   def prepare_index(new_user: nil)
-    base = current_establishment.users
+    base = current_establishment.users.where(deleted_at: nil)
     @team_totals = {
       total: base.count,
       active: base.where(active: true).count,

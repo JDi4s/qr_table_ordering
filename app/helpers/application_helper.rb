@@ -31,6 +31,10 @@ module ApplicationHelper
     }.fetch(value, value)
   end
 
+  def order_state_label(order)
+    order.voided? ? 'Anulado' : state_label(order.status)
+  end
+
   def payment_method_options
     [['Dinheiro', 'cash'], ['Cartão', 'card'], ['MB Way', 'mbway'], ['Outro', 'other']]
   end
@@ -45,7 +49,9 @@ module ApplicationHelper
       'order_served' => 'marcou o pedido como servido', 'order_cancelled' => 'cancelou o pedido',
       'payment_received' => 'registou um pagamento', 'service_call_claimed' => 'assumiu uma chamada',
       'service_call_resolved' => 'marcou uma chamada como atendida', 'order_item_reviewed' => 'avaliou um artigo',
-      'cash_closed' => 'fechou o caixa'
+      'cash_closed' => 'fechou o caixa', 'order_voided' => 'anulou o pedido',
+      'order_deleted' => 'eliminou o pedido', 'team_member_deleted' => 'eliminou um membro',
+      'table_deleted' => 'eliminou uma mesa', 'category_deleted' => 'eliminou uma categoria'
     }.fetch(value.to_s, value.to_s.humanize.downcase)
   end
 

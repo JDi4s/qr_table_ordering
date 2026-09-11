@@ -26,11 +26,11 @@ class TableTest < ActiveSupport::TestCase
     Rails.configuration.x.public_url = old
   end
 
-  test 'only tables without orders or calls are removable' do
+  test 'tables with open work cannot be removed from service' do
     empty_table = @venue.tables.create!(number: 2, active: false)
-    assert empty_table.removable_by_manager?
+    assert_not empty_table.involved_in_open_service?
 
     build_order(@table, @product)
-    assert_not @table.reload.removable_by_manager?
+    assert @table.reload.involved_in_open_service?
   end
 end

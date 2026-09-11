@@ -32,8 +32,8 @@ class Staff::ReportsController < Staff::BaseController
       output << ['Data', 'Hora', 'Pedido', 'Mesa', 'Funcionário', 'Método', 'Valor']
       payments.find_each(batch_size: 500) do |payment|
         local = payment.paid_at.in_time_zone
-        output << [local.to_date, local.strftime('%H:%M'), payment.order_id, payment.order.table.number,
-                   csv_text(payment.user.name.presence || payment.user.login_identifier),
+        output << [local.to_date, local.strftime('%H:%M'), payment.order_id, payment.order.table.display_number,
+                   csv_text(payment.user.display_identity),
                    helpers.payment_method_label(payment.payment_method), payment.amount.to_s('F')]
       end
     end
@@ -93,7 +93,7 @@ class Staff::ReportsController < Staff::BaseController
       output << ['Data', @date.strftime('%d/%m/%Y')]
       output << ['Estado', @closure ? 'Fechado' : 'Aberto']
       if @closure
-        output << ['Fechado por', @closure.user.name.presence || @closure.user.login_identifier]
+        output << ['Fechado por', @closure.user.display_identity]
         output << ['Fechado às', @closure.closed_at.strftime('%d/%m/%Y %H:%M')]
       end
       output << ['Total recebido', @statistics.total.to_s('F')]
@@ -136,8 +136,8 @@ class Staff::ReportsController < Staff::BaseController
       output << ['Data', 'Hora', 'Pedido', 'Mesa', 'Funcionário', 'Método', 'Valor']
       report_payments(@date, @date).includes(order: :table).order(:paid_at, :id).each do |payment|
         local = payment.paid_at.in_time_zone
-        output << [local.to_date, local.strftime('%H:%M'), payment.order_id, payment.order.table.number,
-                   csv_text(payment.user.name.presence || payment.user.login_identifier),
+        output << [local.to_date, local.strftime('%H:%M'), payment.order_id, payment.order.table.display_number,
+                   csv_text(payment.user.display_identity),
                    helpers.payment_method_label(payment.payment_method), payment.amount.to_s('F')]
       end
     end
@@ -156,7 +156,7 @@ class Staff::ReportsController < Staff::BaseController
       ],
       payment_rows: pdf_payment_rows(@date, @date),
       status: @closure ? 'Fechado' : 'Aberto',
-      status_detail: @closure ? "Fechado por #{@closure.user.name.presence || @closure.user.login_identifier} às #{@closure.closed_at.strftime('%d/%m/%Y %H:%M')}." : 'O caixa ainda está aberto.',
+      status_detail: @closure ? "Fechado por #{@closure.user.display_identity} às #{@closure.closed_at.strftime('%d/%m/%Y %H:%M')}." : 'O caixa ainda está aberto.',
       pending_tables: @unpaid_tables.map { |table| "Mesa #{table.number}" }
     }
   end
@@ -168,8 +168,8 @@ class Staff::ReportsController < Staff::BaseController
         local.strftime('%d/%m/%Y'),
         local.strftime('%H:%M'),
         payment.order_id.to_s,
-        payment.order.table.number.to_s,
-        payment.user.name.presence || payment.user.login_identifier,
+        payment.order.table.display_number,
+        payment.user.display_identity,
         helpers.payment_method_label(payment.payment_method),
         helpers.euros(payment.amount)
       ]
@@ -177,7 +177,7 @@ class Staff::ReportsController < Staff::BaseController
   end
 
   def cash_table_rows
-    report_payments(@date, @date).includes(order: :table).group_by { |payment| payment.order.table.number }
+    report_payments(@date, @date).includes(order: :table).group_by { |payment| payment.order.table.display_number }
       .transform_values { |payments| payments.sum(&:amount) }
       .sort_by { |number, amount| [-amount, number] }
   end
@@ -225,7 +225,7 @@ class Staff::ReportsController < Staff::BaseController
     @period = ReportPeriod.new(params)
     @analysis = ANALYSES.include?(params[:analysis].to_s) ? params[:analysis].to_s : 'revenue'
     @metric = METRICS.fetch(@analysis).include?(params[:metric].to_s) ? params[:metric].to_s : METRICS.fetch(@analysis).first
-    @employees = current_establishment.users.order(:name, :id)
+    @employees = current_establishment.users.where(deleted_at: nil).order(:name, :id)
     load_employee
     @statistics = ReportStatistics.new(report_payments(@period.from, @period.to, employee: @employee))
     @previous = @period.comparing? ? ReportStatistics.new(report_payments(@period.compare_from, @period.compare_to, employee: @employee)) : nil
@@ -278,8 +278,8 @@ class Staff::ReportsController < Staff::BaseController
     return [] unless defined?(AuditEvent) && current_establishment.respond_to?(:audit_events)
     events = current_establishment.audit_events.where(action: %w[order_served order_accepted], created_at: @period.from.beginning_of_day...(@period.to + 1).beginning_of_day).where.not(user_id: nil)
     events.group(:user_id).count.map do |id, count|
-      user = @employees.find { |employee| employee.id == id }
-      { name: user ? (user.name.presence || user.login_identifier) : 'Funcionário', value: count, label: 'mesas' }
+      user = current_establishment.users.find_by(id: id)
+      { name: user ? user.display_identity : 'Funcionário', value: count, label: 'mesas' }
     end.sort_by { |row| [-row[:value], row[:name]] }
   rescue ActiveRecord::StatementInvalid
     []
@@ -288,8 +288,8 @@ class Staff::ReportsController < Staff::BaseController
   def service_call_rows
     calls = current_establishment.service_calls.where(created_at: @period.from.beginning_of_day...(@period.to + 1).beginning_of_day).where.not(assigned_user_id: nil)
     calls.group(:assigned_user_id).count.map do |id, count|
-      user = @employees.find { |employee| employee.id == id }
-      { name: user ? (user.name.presence || user.login_identifier) : 'Funcionário', count: count }
+      user = current_establishment.users.find_by(id: id)
+      { name: user ? user.display_identity : 'Funcionário', count: count }
     end.sort_by { |row| [-row[:count], row[:name]] }
   end
 
@@ -302,7 +302,7 @@ class Staff::ReportsController < Staff::BaseController
     @date = cash_date
     @statistics = ReportStatistics.new(report_payments(@date, @date))
     @closure = current_establishment.cash_closures.includes(:user).find_by(business_date: @date)
-    @unpaid_tables = current_establishment.tables.joins(:orders).merge(Order.unpaid).distinct.order(:number)
+    @unpaid_tables = current_establishment.tables.where(deleted_at: nil).joins(:orders).merge(Order.unpaid).distinct.order(:number)
   end
 
   def report_payments(first, last, employee: nil)
@@ -312,7 +312,7 @@ class Staff::ReportsController < Staff::BaseController
 
   def load_employee
     return if params[:employee_id].blank?
-    @employee = current_establishment.users.find_by(id: params[:employee_id])
+    @employee = current_establishment.users.where(deleted_at: nil).find_by(id: params[:employee_id])
     raise ReportPeriod::Invalid, 'Escolha um funcionário deste estabelecimento.' unless @employee
   end
 

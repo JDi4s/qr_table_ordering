@@ -182,11 +182,9 @@
                   <% end %>
 
                   <div class="record-delete team-member-delete">
-                    <% if display_user.removable_from_team? %>
-                      <div><strong>Eliminar da equipa</strong><small>Disponível porque esta pessoa ainda não tem atividade registada.</small></div>
-                      <%= button_to 'Eliminar definitivamente', staff_user_path(display_user), method: :delete, class: 'destructive', form: { data: { turbo_frame: '_top' } } %>
-                    <% else %>
-                      <div><strong>Histórico protegido</strong><small>Este membro já aparece na atividade do serviço. Para retirar o acesso, desativa-o acima.</small></div>
+                    <div><strong>Eliminar da equipa</strong><small>O acesso desaparece; os registos antigos mantêm-se identificados no histórico.</small></div>
+                    <%= button_to staff_user_path(display_user), method: :delete, class: 'trash-button', title: 'Eliminar membro', aria: { label: "Eliminar #{identity}" }, form: { class: 'trash-button-form', data: { turbo_frame: '_top' } } do %>
+                      <span aria-hidden="true">🗑︎</span>
                     <% end %>
                   </div>
                 </div>

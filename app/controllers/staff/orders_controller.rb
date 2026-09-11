@@ -2,7 +2,7 @@ class Staff::OrdersController < Staff::BaseController
   before_action :require_manager, only: :destroy
 
   def index
-    scope = current_establishment.orders.includes(:table, order_items: { menu_item: :production_area }).where.not(status: %w[served denied])
+    scope = current_establishment.orders.not_voided.includes(:table, order_items: { menu_item: :production_area }).where.not(status: %w[served denied])
     if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
       scope = scope.joins(order_items: :menu_item).where(menu_items: { production_area_id: current_user.production_area_ids }).distinct
     end
@@ -66,9 +66,7 @@ class Staff::OrdersController < Staff::BaseController
 
   def destroy
     order = current_establishment.orders.includes(:payments).find(params[:id])
-    unless order.removable_by_manager?
-      raise Order::InvalidTransition, 'Este pedido já tem atividade que deve permanecer nos relatórios e não pode ser eliminado.'
-    end
+    raise Order::InvalidTransition, 'Este pedido já foi anulado.' if order.voided?
 
     metadata = {
       deleted_order_id: order.id,
@@ -76,11 +74,18 @@ class Staff::OrdersController < Staff::BaseController
       status: order.status,
       total: order.total.to_s
     }
-    destination = order.denied? ? history_staff_orders_path : staff_orders_path
-    order.destroy!
-    AuditLogger.record(user: current_user, action: 'order_deleted', metadata: metadata)
+    destination = (order.denied? || order.served? || order.preserve_when_removed?) ? history_staff_orders_path : staff_orders_path
+    if order.preserve_when_removed?
+      order.update!(voided_at: Time.current, voided_by_user: current_user)
+      AuditLogger.record(user: current_user, action: 'order_voided', record: order, metadata: metadata)
+      message = "Pedido ##{metadata[:deleted_order_id]} anulado. Os valores recebidos foram mantidos."
+    else
+      order.destroy!
+      AuditLogger.record(user: current_user, action: 'order_deleted', metadata: metadata)
+      message = "Pedido ##{metadata[:deleted_order_id]} eliminado."
+    end
 
-    redirect_to destination, notice: "Pedido ##{metadata[:deleted_order_id]} eliminado.", status: :see_other
+    redirect_to destination, notice: message, status: :see_other
   end
 
   def history
@@ -108,9 +113,13 @@ class Staff::OrdersController < Staff::BaseController
 
     scope = current_establishment.orders
       .includes(:table, :payments, order_items: :menu_item)
-      .where(status: %w[served denied])
+      .where('orders.status IN (?) OR orders.voided_at IS NOT NULL', %w[served denied])
 
-    scope = scope.where(status: @history_status) unless @history_status == 'all'
+    if @history_status == 'served'
+      scope = scope.where(status: 'served', voided_at: nil)
+    elsif @history_status == 'denied'
+      scope = scope.where("orders.status = 'denied' OR orders.voided_at IS NOT NULL")
+    end
     if @history_from && @history_to
       from_time, to_time = [@history_from, @history_to].minmax
       scope = scope.where(created_at: from_time..to_time)
@@ -124,8 +133,8 @@ class Staff::OrdersController < Staff::BaseController
     @history_to_value = @history_to&.strftime('%Y-%m-%dT%H:%M')
     @orders = scope.order(created_at: :desc).to_a
     @history_total = @orders.size
-    @history_served = @orders.count(&:served?)
-    @history_denied = @orders.count(&:denied?)
+    @history_served = @orders.count { |order| order.served? && !order.voided? }
+    @history_denied = @orders.count { |order| order.denied? || order.voided? }
     @history_tables = @orders.map(&:table_id).uniq.size
     @history_received = @orders.sum { |order| order.payments.sum { |payment| payment.amount.to_d } }
   end

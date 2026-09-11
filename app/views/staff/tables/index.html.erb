@@ -48,11 +48,9 @@
           </div>
         </details>
         <div class="record-delete table-delete">
-          <% if table.removable_by_manager? %>
-            <div><strong>Eliminar mesa</strong><small>Sem pedidos nem chamadas registadas.</small></div>
-            <%= button_to 'Eliminar', staff_table_path(table), method: :delete, class: 'destructive' %>
-          <% else %>
-            <div><strong>Histórico protegido</strong><small>Esta mesa já foi utilizada. Para a retirar do serviço, desativa-a acima.</small></div>
+          <div><strong>Eliminar mesa</strong><small>Desaparece do serviço; o histórico anterior é preservado.</small></div>
+          <%= button_to staff_table_path(table), method: :delete, class: 'trash-button', title: "Eliminar Mesa #{table.number}", aria: { label: "Eliminar Mesa #{table.number}" }, form: { class: 'trash-button-form' } do %>
+            <span aria-hidden="true">🗑︎</span>
           <% end %>
         </div>
       <% end %>

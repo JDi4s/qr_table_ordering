@@ -16,7 +16,7 @@
   <div class="unpaid-order-content">
     <% if order.payments.any? %>
       <details class="payment-history"><summary><%= order.payments.size %> pagamento(s) registado(s)</summary>
-        <ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.name.presence || payment.user.login_identifier %></li><% end %></ul>
+        <ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.display_identity %></li><% end %></ul>
       </details>
     <% end %>
 

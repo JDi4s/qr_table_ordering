@@ -1,6 +1,6 @@
 <article class="panel staff-order-card" id="<%= dom_id(order) %>" data-staff-board-target="order" data-board-status="<%= order.status %>">
   <div class="staff-order-card-heading">
-    <div><p class="eyebrow">PEDIDO #<%= order.id %></p><h2>Mesa <%= order.table.number %></h2></div>
+    <div><p class="eyebrow">PEDIDO #<%= order.id %></p><h2>Mesa <%= order.table.display_number %></h2></div>
     <span class="badge order-status order-status-<%= order.status %>"><%= state_label(order.status) %></span>
   </div>
   <div class="staff-order-meta"><span><%= order.created_at.strftime('%H:%M') %></span><span><%= order.order_items.sum(&:quantity) %> artigos</span><strong><%= euros(order.outstanding_total) %></strong></div>
@@ -10,5 +10,10 @@
     <%= link_to(order.pending? ? 'Avaliar pedido' : 'Abrir pedido', staff_order_path(order), class: 'button secondary') %>
     <% if order.pending? %><%= button_to 'Aceitar sem alterações', staff_order_path(order, status: 'accepted'), method: :patch %><% end %>
     <% if order.accepted? %><%= button_to 'Marcar servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
+    <% if current_user.manager? %>
+      <%= button_to staff_order_path(order), method: :delete, class: 'trash-button', title: "Eliminar pedido ##{order.id}", aria: { label: "Eliminar pedido ##{order.id}" }, form: { class: 'trash-button-form' } do %>
+        <span aria-hidden="true">🗑︎</span>
+      <% end %>
+    <% end %>
   </div>
 </article>

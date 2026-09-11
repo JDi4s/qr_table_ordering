@@ -48,7 +48,7 @@ class ReportStatistics
     @order_ids.add(payment.order_id)
     @by_method[payment.payment_method] += amount
     user = payment.user
-    @staff[payment.user_id] ||= { id: payment.user_id, name: user.name.presence || user.login_identifier, amount: 0.to_d, count: 0 }
+    @staff[payment.user_id] ||= { id: payment.user_id, name: user.display_identity, amount: 0.to_d, count: 0 }
     @staff[payment.user_id][:amount] += amount
     @staff[payment.user_id][:count] += 1
     date = payment.paid_at.in_time_zone.to_date
