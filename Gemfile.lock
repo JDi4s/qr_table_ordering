@@ -179,6 +179,10 @@ GEM
     pg (1.6.3-x86_64-darwin)
     pg (1.6.3-x86_64-linux)
     pg (1.6.3-x86_64-linux-musl)
+    pdf-core (0.10.0)
+    prawn (2.5.0)
+      pdf-core (~> 0.10.0)
+      ttfunk (~> 1.8)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -267,6 +271,7 @@ GEM
     thor (1.5.0)
     timeout (0.6.0)
     tsort (0.2.0)
+    ttfunk (1.8.1)
     turbo-rails (2.0.21)
       actionpack (>= 7.1.0)
       railties (>= 7.1.0)
@@ -310,6 +315,7 @@ DEPENDENCIES
   jbuilder
   minitest (~> 5.25)
   pg (~> 1.1)
+  prawn (~> 2.5)
   puma (>= 5.0)
   rails (~> 7.1.6)
   redis (~> 5.4)

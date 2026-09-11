@@ -1678,3 +1678,13 @@ small {
   .report-cash-status .report-section-title { flex-direction: row; align-items: center; }
   .report-cash-pending-row { gap: 8px; }
 }
+
+
+/* Exportação agrupada: um botão abre PDF e CSV. */
+.report-export-menu { position: relative; display: inline-block; }
+.report-export-menu > summary { list-style: none; cursor: pointer; }
+.report-export-menu > summary::-webkit-details-marker { display: none; }
+.report-export-menu[open] > summary { color: #fff; background: var(--green); }
+.report-export-options { position: absolute; z-index: 20; top: calc(100% + 8px); right: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-width: 190px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 10px 28px rgba(24, 65, 48, .18); }
+.report-export-options .button { margin: 0; padding: 8px 10px; text-align: center; font-size: 12px; }
+@media (max-width: 600px) { .report-export-menu { width: auto; } .report-export-options { right: 0; min-width: 170px; } }
