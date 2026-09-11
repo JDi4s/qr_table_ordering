@@ -51,7 +51,8 @@ module ApplicationHelper
       'service_call_resolved' => 'marcou uma chamada como atendida', 'order_item_reviewed' => 'avaliou um artigo',
       'cash_closed' => 'fechou o caixa', 'order_voided' => 'anulou o pedido',
       'order_deleted' => 'eliminou o pedido', 'team_member_deleted' => 'eliminou um membro',
-      'table_deleted' => 'eliminou uma mesa', 'category_deleted' => 'eliminou uma categoria'
+      'table_deleted' => 'eliminou uma mesa', 'category_deleted' => 'eliminou uma categoria',
+      'menu_item_deleted' => 'eliminou um produto'
     }.fetch(value.to_s, value.to_s.humanize.downcase)
   end
 

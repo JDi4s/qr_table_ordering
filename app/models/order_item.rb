@@ -1,6 +1,6 @@
 class OrderItem < ApplicationRecord
   belongs_to :order
-  belongs_to :menu_item
+  belongs_to :menu_item, optional: true
   enum status: { pending: 'pending', accepted: 'accepted', denied: 'denied' }
   attribute :paid_quantity, :integer, default: 0
   before_validation do
@@ -16,7 +16,7 @@ class OrderItem < ApplicationRecord
   validate :same_establishment
 
   def display_name
-    name_snapshot.presence || menu_item.name
+    name_snapshot.presence || menu_item&.name || 'Produto eliminado'
   end
 
   def remaining_quantity

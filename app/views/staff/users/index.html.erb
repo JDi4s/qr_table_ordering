@@ -14,6 +14,9 @@
   </div>
 
   <%= turbo_frame_tag 'settings_team' do %>
+    <% if request.headers['Turbo-Frame'].present? %>
+      <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
+    <% end %>
     <details class="team-create" <%= 'open' if @user.errors.any? %>>
       <summary class="button">Adicionar pessoa</summary>
       <div class="panel team-create-panel">
@@ -113,9 +116,16 @@
                 <h3><%= identity %></h3>
                 <p><%= display_user.username.present? ? "@#{display_user.username}" : display_user.email %></p>
               </div>
-              <div class="team-member-badges">
-                <span class="badge team-role-badge"><%= display_user.manager? ? 'Gerente' : 'Funcionário' %></span>
-                <span class="badge team-status-badge <%= 'is-inactive' unless display_user.active? %>"><%= display_user.active? ? 'Ativo' : 'Desativado' %></span>
+              <div class="team-member-actions">
+                <div class="team-member-badges">
+                  <span class="badge team-role-badge"><%= display_user.manager? ? 'Gerente' : 'Funcionário' %></span>
+                  <span class="badge team-status-badge <%= 'is-inactive' unless display_user.active? %>"><%= display_user.active? ? 'Ativo' : 'Desativado' %></span>
+                </div>
+                <% unless display_user == current_user %>
+                  <%= button_to staff_user_path(display_user), method: :delete, class: 'trash-button', title: 'Eliminar membro', aria: { label: "Eliminar #{identity}" }, form: { class: 'trash-button-form' } do %>
+                    <span aria-hidden="true">🗑︎</span>
+                  <% end %>
+                <% end %>
               </div>
             </div>
 
@@ -181,12 +191,6 @@
                     <div class="team-form-actions"><%= f.submit 'Guardar alterações' %></div>
                   <% end %>
 
-                  <div class="record-delete team-member-delete">
-                    <div><strong>Eliminar da equipa</strong><small>O acesso desaparece; os registos antigos mantêm-se identificados no histórico.</small></div>
-                    <%= button_to staff_user_path(display_user), method: :delete, class: 'trash-button', title: 'Eliminar membro', aria: { label: "Eliminar #{identity}" }, form: { class: 'trash-button-form', data: { turbo_frame: '_top' } } do %>
-                      <span aria-hidden="true">🗑︎</span>
-                    <% end %>
-                  </div>
                 </div>
               </details>
             <% end %>

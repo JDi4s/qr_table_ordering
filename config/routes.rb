@@ -35,7 +35,11 @@ Rails.application.routes.draw do
     resources :users, only: [:index, :create, :update, :destroy]
     get '/menu', to: 'menu#index', as: :menu
     resources :menu_items do
-      member { patch :toggle_availability; patch :restore }
+      member do
+        patch :toggle_availability
+        patch :restore
+        delete :purge
+      end
     end
     resources :categories do
       member do

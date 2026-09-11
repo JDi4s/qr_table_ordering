@@ -1,10 +1,11 @@
 <% status = local_assigns.fetch(:status, 'all') %>
+<% ancestor_archived = local_assigns.fetch(:ancestor_archived, false) %>
 <% children = category.children.order(:name).to_a %>
 <% matching_children = children.select do |child|
   case status
   when 'active' then !child.archived? && child.available?
   when 'unavailable' then !child.archived? && !child.available?
-  when 'archived' then child.archived?
+  when 'archived' then ancestor_archived || category.archived? || child.contains_archived_records?
   else true
   end
 end %>
@@ -12,7 +13,7 @@ end %>
   case status
   when 'active' then !item.archived? && item.available?
   when 'unavailable' then !item.archived? && !item.available?
-  when 'archived' then item.archived?
+  when 'archived' then ancestor_archived || category.archived? || item.archived?
   else true
   end
 end %>
@@ -21,7 +22,7 @@ end %>
 elsif status == 'unavailable'
   !category.archived? && !category.available?
 elsif status == 'archived'
-  category.archived? || items.any? || matching_children.any?
+  ancestor_archived || category.archived? || items.any? || matching_children.any?
 else
   true
 end %>
@@ -35,21 +36,21 @@ end %>
   <div class="category-actions">
     <% unless category.archived? %>
       <%= button_to (category.available? ? 'Desativar' : 'Ativar'),
-        toggle_availability_staff_category_path(category),
+        toggle_availability_staff_category_path(category, menu_status: status),
         method: :patch,
         class: 'secondary compact-action',
         title: category.available? ? 'Tornar categoria indisponível' : 'Tornar categoria disponível' %>
     <% end %>
 
     <% if current_user.manager? %>
-      <%= link_to 'Editar', edit_staff_category_path(category), class: 'compact-action' %>
+      <%= link_to 'Editar', edit_staff_category_path(category), class: 'compact-action', data: { turbo_frame: '_top' } %>
       <% if category.archived? %>
-        <%= button_to 'Restaurar', restore_staff_category_path(category), method: :patch, class: 'secondary compact-action' %>
+        <%= button_to 'Restaurar', restore_staff_category_path(category, menu_status: status), method: :patch, class: 'secondary compact-action' %>
       <% else %>
-        <%= button_to 'Arquivar', staff_category_path(category), method: :delete, class: 'secondary compact-action' %>
+        <%= button_to 'Arquivar', staff_category_path(category, menu_status: status), method: :delete, class: 'secondary compact-action' %>
       <% end %>
       <% unless category.uncategorized? %>
-        <%= button_to purge_staff_category_path(category), method: :delete, class: 'trash-button', title: "Eliminar categoria #{category.name}", aria: { label: "Eliminar categoria #{category.name}" }, form: { class: 'trash-button-form' } do %>
+        <%= button_to purge_staff_category_path(category, menu_status: status), method: :delete, class: 'trash-button', title: "Eliminar categoria #{category.name}", aria: { label: "Eliminar categoria #{category.name}" }, form: { class: 'trash-button-form' } do %>
           <span aria-hidden="true">🗑︎</span>
         <% end %>
       <% end %>
@@ -57,7 +58,7 @@ end %>
   </div>
   </div>
 
-  <details class="staff-category-details">
+  <details class="staff-category-details" <%= 'open' if @open_category_id == category.id %>>
     <summary>
       <%= items.count %> produtos
       <% if matching_children.any? %>
@@ -79,18 +80,21 @@ end %>
       <div>
         <% unless item.archived? %>
           <%= button_to (item.available? ? 'Desativar' : 'Ativar'),
-            toggle_availability_staff_menu_item_path(item),
+            toggle_availability_staff_menu_item_path(item, menu_status: status),
             method: :patch,
             class: 'secondary compact-action',
             title: item.available? ? 'Tornar produto indisponível' : 'Tornar produto disponível' %>
         <% end %>
 
         <% if current_user.manager? %>
-          <%= link_to 'Editar', edit_staff_menu_item_path(item), class: 'compact-action' %>
+          <%= link_to 'Editar', edit_staff_menu_item_path(item), class: 'compact-action', data: { turbo_frame: '_top' } %>
           <% if item.archived? %>
-            <%= button_to 'Restaurar', restore_staff_menu_item_path(item), method: :patch, class: 'secondary compact-action' %>
+            <%= button_to 'Restaurar', restore_staff_menu_item_path(item, menu_status: status), method: :patch, class: 'secondary compact-action' %>
           <% else %>
-            <%= button_to 'Arquivar', staff_menu_item_path(item), method: :delete, class: 'secondary compact-action' %>
+            <%= button_to 'Arquivar', staff_menu_item_path(item, menu_status: status), method: :delete, class: 'secondary compact-action' %>
+          <% end %>
+          <%= button_to purge_staff_menu_item_path(item, menu_status: status), method: :delete, class: 'trash-button', title: "Eliminar produto #{item.name}", aria: { label: "Eliminar produto #{item.name}" }, form: { class: 'trash-button-form' } do %>
+            <span aria-hidden="true">🗑︎</span>
           <% end %>
         <% end %>
       </div>
@@ -98,7 +102,7 @@ end %>
   <% end %>
 
       <% matching_children.each do |child| %>
-        <%= render 'staff/menu/category', category: child, level: level + 1, status: status %>
+        <%= render 'staff/menu/category', category: child, level: level + 1, status: status, ancestor_archived: ancestor_archived || category.archived? %>
       <% end %>
     </div>
   </details>

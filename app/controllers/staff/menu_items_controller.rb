@@ -1,6 +1,7 @@
 class Staff::MenuItemsController < Staff::BaseController
+  rescue_from Order::InvalidTransition, with: :invalid_menu_operation
   before_action :require_manager, except: [:index, :show, :toggle_availability]
-  before_action :set_menu_item, only: [:edit, :update, :destroy, :toggle_availability, :restore]
+  before_action :set_menu_item, only: [:edit, :update, :destroy, :toggle_availability, :restore, :purge]
   before_action :load_recommendation_options, only: [:new, :create, :edit, :update]
   before_action :load_production_area_options, only: [:new, :create, :edit, :update]
 
@@ -43,22 +44,47 @@ class Staff::MenuItemsController < Staff::BaseController
 
   def destroy
     @menu_item.update!(archived_at: Time.current, available: false)
-    redirect_to staff_menu_path, notice: 'Produto arquivado.', status: :see_other
+    redirect_to menu_destination(@menu_item.category_id), notice: 'Produto arquivado.', status: :see_other
   end
 
   def restore
     @menu_item.update!(archived_at: nil, available: true)
-    redirect_to staff_menu_path, notice: 'Produto restaurado.', status: :see_other
+    redirect_to menu_destination(@menu_item.category_id), notice: 'Produto restaurado.', status: :see_other
+  end
+
+  def purge
+    if @menu_item.used_by_ongoing_order?
+      raise Order::InvalidTransition, 'Este produto está num pedido em curso. Conclua ou anule primeiro o pedido.'
+    end
+
+    category_id = @menu_item.category_id
+    metadata = { deleted_menu_item_id: @menu_item.id, name: @menu_item.name, category_id: category_id }
+    @menu_item.destroy!
+    AuditLogger.record(user: current_user, action: 'menu_item_deleted', metadata: metadata)
+
+    redirect_to menu_destination(category_id), notice: 'Produto eliminado definitivamente.', status: :see_other
   end
 
   def toggle_availability
     raise Order::InvalidTransition, 'Restaure primeiro o produto arquivado.' if @menu_item.archived?
 
     @menu_item.update!(available: !@menu_item.available?)
-    redirect_to staff_menu_path, status: :see_other
+    redirect_to menu_destination(@menu_item.category_id), status: :see_other
   end
 
   private
+
+  def menu_destination(category_id = nil)
+    staff_menu_path(menu_status: menu_status, open_category_id: category_id)
+  end
+
+  def menu_status
+    %w[active unavailable archived].include?(params[:menu_status].to_s) ? params[:menu_status].to_s : 'active'
+  end
+
+  def invalid_menu_operation(error)
+    redirect_to menu_destination(@menu_item&.category_id), alert: error.message, status: :see_other
+  end
 
   def set_menu_item
     @menu_item = current_establishment.menu_items.find(params[:id])

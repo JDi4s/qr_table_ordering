@@ -42,6 +42,10 @@ class Category < ApplicationRecord
       .exists?
   end
 
+  def contains_archived_records?
+    archived? || menu_items.any?(&:archived?) || children.any?(&:contains_archived_records?)
+  end
+
   private
 
   def parent_belongs_to_same_establishment

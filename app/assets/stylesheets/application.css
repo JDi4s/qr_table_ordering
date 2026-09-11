@@ -2048,6 +2048,13 @@ small {
   gap: 5px;
 }
 
+.team-member-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .team-role-badge,
 .team-status-badge {
   white-space: nowrap;
@@ -2251,8 +2258,12 @@ small {
   }
 
   .team-member-badges {
-    grid-column: 1 / -1;
     justify-content: flex-start;
+  }
+
+  .team-member-actions {
+    grid-column: 1 / -1;
+    justify-content: space-between;
   }
 
   .team-member-meta {

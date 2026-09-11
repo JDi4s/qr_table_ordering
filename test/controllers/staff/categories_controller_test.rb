@@ -13,15 +13,15 @@ class Staff::CategoriesControllerTest < ActionDispatch::IntegrationTest
     sign_in(manager)
 
     assert_no_difference('Category.count') do
-      delete purge_staff_category_path(category)
+      delete purge_staff_category_path(category, menu_status: 'archived')
     end
 
-    assert_redirected_to staff_menu_path
+    assert_redirected_to staff_menu_path(menu_status: 'archived')
     assert_not Category.exists?(category.id)
     assert_equal 'Sem categoria', product.reload.category.name
   end
 
-  test 'manager cannot delete a category used by an ongoing order' do
+  test 'manager can delete a category used by an ongoing order because the product is preserved' do
     venue, table, product = build_venue
     manager = venue_user(venue)
     category = product.category
@@ -29,11 +29,27 @@ class Staff::CategoriesControllerTest < ActionDispatch::IntegrationTest
     sign_in(manager)
 
     assert_no_difference('Category.count') do
-      delete purge_staff_category_path(category)
+      delete purge_staff_category_path(category, menu_status: 'archived')
     end
 
-    assert_redirected_to staff_menu_path
-    assert Category.exists?(category.id)
-    assert_equal category, product.reload.category
+    assert_redirected_to staff_menu_path(menu_status: 'archived')
+    assert_not Category.exists?(category.id)
+    assert_equal 'Sem categoria', product.reload.category.name
+    assert Order.exists?(table.orders.first.id)
+  end
+
+  test 'deleting a parent category keeps and reparents its subcategories' do
+    venue, = build_venue
+    manager = venue_user(venue)
+    parent = venue.categories.create!(name: 'Parent', available: true)
+    child = venue.categories.create!(name: 'Child', parent: parent, available: true)
+    sign_in(manager)
+
+    assert_difference('Category.count', -1) do
+      delete purge_staff_category_path(parent, menu_status: 'active')
+    end
+
+    assert_redirected_to staff_menu_path(menu_status: 'active')
+    assert_nil child.reload.parent_id
   end
 end

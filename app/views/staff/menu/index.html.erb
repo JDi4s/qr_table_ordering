@@ -19,19 +19,25 @@
 <% available_count = @categories.count { |category| !category.archived? && category.available? } %>
 <% unavailable_count = @categories.count { |category| !category.archived? && !category.available? } %>
 <% archived_count = @categories.count(&:archived?) %>
-<div class="staff-menu-status" data-controller="staff-menu">
-  <div class="staff-menu-status-tabs" role="tablist" aria-label="Estado do menu">
-    <button type="button" class="staff-menu-status-tab is-active" data-staff-menu-target="tab" data-menu-status="active" data-action="staff-menu#select" aria-selected="true">Ativas <span><%= available_count %></span></button>
-    <button type="button" class="staff-menu-status-tab" data-staff-menu-target="tab" data-menu-status="unavailable" data-action="staff-menu#select" aria-selected="false">Indisponíveis <span><%= unavailable_count %></span></button>
-    <button type="button" class="staff-menu-status-tab" data-staff-menu-target="tab" data-menu-status="archived" data-action="staff-menu#select" aria-selected="false">Arquivadas <span><%= archived_count %></span></button>
+<%= turbo_frame_tag 'staff_menu_records' do %>
+  <% if request.headers['Turbo-Frame'].present? %>
+    <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
+  <% end %>
+
+  <div class="staff-menu-status" data-controller="staff-menu">
+    <div class="staff-menu-status-tabs" role="tablist" aria-label="Estado do menu">
+      <% [['active', 'Ativas', available_count], ['unavailable', 'Indisponíveis', unavailable_count], ['archived', 'Arquivadas', archived_count]].each do |value, label, count| %>
+        <button type="button" class="staff-menu-status-tab <%= 'is-active' if @menu_status == value %>" data-staff-menu-target="tab" data-menu-status="<%= value %>" data-action="staff-menu#select" aria-selected="<%= @menu_status == value %>"><%= label %> <span><%= count %></span></button>
+      <% end %>
+    </div>
+    <section data-staff-menu-target="panel" data-menu-status="active" <%= 'hidden' unless @menu_status == 'active' %>>
+      <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'active' %><% end %>
+    </section>
+    <section data-staff-menu-target="panel" data-menu-status="unavailable" <%= 'hidden' unless @menu_status == 'unavailable' %>>
+      <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'unavailable' %><% end %>
+    </section>
+    <section data-staff-menu-target="panel" data-menu-status="archived" <%= 'hidden' unless @menu_status == 'archived' %>>
+      <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'archived' %><% end %>
+    </section>
   </div>
-  <section data-staff-menu-target="panel" data-menu-status="active">
-    <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'active' %><% end %>
-  </section>
-  <section data-staff-menu-target="panel" data-menu-status="unavailable" hidden>
-    <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'unavailable' %><% end %>
-  </section>
-  <section data-staff-menu-target="panel" data-menu-status="archived" hidden>
-    <% roots.each do |category| %><%= render 'staff/menu/category', category: category, level: 0, status: 'archived' %><% end %>
-  </section>
-</div>
+<% end %>

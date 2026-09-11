@@ -84,11 +84,17 @@ class OrderTest < ActiveSupport::TestCase
     assert_not_equal @order.customer_stream, other.customer_stream
   end
 
-  test 'product rename preserves ordered name and product deletion is blocked' do
+  test 'product rename preserves ordered name and deletion is blocked only while the order is ongoing' do
     old_name = @product.name
     @product.update!(name: 'Nome novo')
     assert_equal old_name, @order.order_items.first.display_name
-    assert_not @product.destroy
+    assert_raises(Order::InvalidTransition) { @product.destroy! }
+
+    @order.finalize_review!
+    @order.serve!
+    @product.destroy!
+    assert_nil @order.order_items.first.reload.menu_item
+    assert_equal old_name, @order.order_items.first.display_name
   end
 
   test 'accepted order can be marked paid and leaves the unpaid table list' do
