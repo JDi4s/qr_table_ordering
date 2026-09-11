@@ -181,6 +181,7 @@ GEM
     pg (1.6.3-x86_64-linux-musl)
     pdf-core (0.10.0)
     prawn (2.5.0)
+      matrix (~> 0.4)
       pdf-core (~> 0.10.0)
       ttfunk (~> 1.8)
     pp (0.6.3)
