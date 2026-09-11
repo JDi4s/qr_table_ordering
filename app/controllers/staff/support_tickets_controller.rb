@@ -29,7 +29,7 @@ class Staff::SupportTicketsController < Staff::BaseController
   def show
     @ticket = current_establishment.support_tickets
       .includes(messages: [:author, { attachment_attachment: :blob }]).find(params[:id])
-    @message = @ticket.messages.new
+    @message = SupportTicketMessage.new(support_ticket: @ticket)
   end
 
   private

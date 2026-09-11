@@ -25,6 +25,9 @@ class SupportAndPlansTest < ActionDispatch::IntegrationTest
     end
     ticket = SupportTicket.last
     assert_redirected_to staff_support_ticket_path(ticket)
+    follow_redirect!
+    assert_response :success
+    assert_includes response.body, 'Não consigo alterar o menu.'
 
     delete logout_path
     sign_in(@owner)

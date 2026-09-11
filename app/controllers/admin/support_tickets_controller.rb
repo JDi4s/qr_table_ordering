@@ -9,7 +9,7 @@ class Admin::SupportTicketsController < Admin::BaseController
   end
 
   def show
-    @message = @ticket.messages.new
+    @message = SupportTicketMessage.new(support_ticket: @ticket)
   end
 
   def update

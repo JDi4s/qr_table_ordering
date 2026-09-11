@@ -8,7 +8,7 @@ class SupportTicketMessage < ApplicationRecord
   validate :attachment_is_safe
 
   def from_support?
-    author.platform_admin?
+    author&.platform_admin? || false
   end
 
   private
