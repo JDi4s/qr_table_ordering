@@ -1,6 +1,8 @@
 <p class="eyebrow">CONFIGURAÇÃO DO SERVIÇO</p><h1>Definições</h1>
 <p class="settings-intro">Organiza aqui a empresa, o menu e as preferências deste dispositivo.</p>
 
+<%= render 'staff/settings/tabs' %>
+
 <% if current_user.must_change_password? %>
   <section class="panel settings-card settings-section">
     <div class="flash alert"><strong>Altera a palavra-passe temporária antes de continuar.</strong></div>
