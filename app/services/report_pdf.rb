@@ -17,6 +17,7 @@ class ReportPdf
       setup_font(pdf)
       draw_header(pdf)
       draw_stats(pdf)
+      draw_cash_status(pdf) if @data[:status]
       pdf.move_down 18
       draw_chart(pdf) if @data[:chart_rows].present?
       draw_sections(pdf)
@@ -69,6 +70,17 @@ class ReportPdf
       end
       pdf.move_down 52
     end
+  end
+
+  def draw_cash_status(pdf)
+    ensure_space(pdf, 42)
+    pdf.fill_color INK
+    pdf.text "Estado do caixa: #{@data[:status]}", size: 10, style: :bold
+    if @data[:status_detail].present?
+      pdf.fill_color MUTED
+      pdf.text @data[:status_detail], size: 8
+    end
+    pdf.move_down 8
   end
 
   def draw_chart(pdf)
