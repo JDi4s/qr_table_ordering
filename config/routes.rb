@@ -38,7 +38,11 @@ Rails.application.routes.draw do
       member { patch :toggle_availability; patch :restore }
     end
     resources :categories do
-      member { patch :toggle_availability; patch :restore }
+      member do
+        patch :toggle_availability
+        patch :restore
+        delete :purge
+      end
     end
     resource :push_subscription, only: [:create, :destroy], controller: 'push_subscriptions'
     resource :settings, only: [:edit, :update]

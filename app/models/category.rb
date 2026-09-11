@@ -31,6 +31,17 @@ class Category < ApplicationRecord
     archived_at.present?
   end
 
+  def uncategorized?
+    name.to_s.strip.casecmp?('Sem categoria')
+  end
+
+  def used_by_ongoing_order?
+    menu_items
+      .joins(order_items: :order)
+      .where.not(orders: { status: %w[served denied] })
+      .exists?
+  end
+
   private
 
   def parent_belongs_to_same_establishment

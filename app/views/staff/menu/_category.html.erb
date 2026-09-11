@@ -46,7 +46,10 @@ end %>
       <% if category.archived? %>
         <%= button_to 'Restaurar', restore_staff_category_path(category), method: :patch, class: 'secondary compact-action' %>
       <% else %>
-            <%= button_to 'Arquivar', staff_category_path(category), method: :delete, class: 'secondary compact-action' %>
+        <%= button_to 'Arquivar', staff_category_path(category), method: :delete, class: 'secondary compact-action' %>
+      <% end %>
+      <% unless category.uncategorized? %>
+        <%= button_to 'Eliminar', purge_staff_category_path(category), method: :delete, class: 'destructive compact-action' %>
       <% end %>
     <% end %>
   </div>
