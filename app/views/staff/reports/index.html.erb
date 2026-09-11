@@ -34,11 +34,69 @@
     <% else %><section class="panel report-card"><h2>Resumo de pedidos</h2><%= render 'report_rows', rows: [['total','Todos'],['served','Servidos'],['cancelled','Cancelados']].map { |key, label| { name: label, value: @order_rows[key.to_sym], label: 'pedidos' } } %></section><% end %>
   <% else %>
     <% previous_cash_date = @date - 1; next_cash_date = @date + 1 %>
-    <section class="panel report-cash-period"><p class="eyebrow">ESCOLHER DIA</p><div class="report-cash-date-nav"><%= link_to '‹', staff_reports_path(tab: 'cash', date: previous_cash_date.iso8601), class: 'report-arrow', aria_label: 'Dia anterior' %><%= form_with url: staff_reports_path, method: :get, class: 'report-cash-date-form' do %><%= hidden_field_tag :tab, 'cash' %><%= date_field_tag :date, @date, onchange: 'this.form.submit()', aria: { label: 'Escolher dia' } %><% end %><% if next_cash_date <= Date.current %><%= link_to '›', staff_reports_path(tab: 'cash', date: next_cash_date.iso8601), class: 'report-arrow', aria_label: 'Dia seguinte' %><% else %><span class="report-arrow is-disabled">›</span><% end %></div></section>
+    <section class="panel report-cash-period"><p class="eyebrow">ESCOLHER DIA</p><div class="report-cash-date-nav"><%= link_to '‹', staff_reports_path(tab: 'cash', date: previous_cash_date.iso8601), class: 'report-arrow', aria_label: 'Dia anterior' %><button type="button" class="report-period-button" data-cash-period-dialog-open><strong><%= @date.strftime('%d/%m/%Y') %></strong><span>⌄</span></button><% if next_cash_date <= Date.current %><%= link_to '›', staff_reports_path(tab: 'cash', date: next_cash_date.iso8601), class: 'report-arrow', aria_label: 'Dia seguinte' %><% else %><span class="report-arrow is-disabled">›</span><% end %></div></section>
     <div class="report-stat-grid report-cash-summary report-cash-stat-grid"><% [['Total recebido', euros(@statistics.total)],['Pagamentos', @statistics.payments_count],['Pedidos pagos', @statistics.orders_count],['Mesas por pagar', @unpaid_tables.size]].each do |label, value| %><div class="report-stat"><strong><%= value %></strong><span><%= label %></span></div><% end %></div>
     <section class="panel report-card report-cash-status"><div class="report-section-title"><div><p class="eyebrow">ESTADO DO CAIXA</p><h2><%= @closure ? 'Caixa fechado' : 'Caixa aberto' %></h2></div><span class="badge"><%= @closure ? 'Fechado' : 'Aberto' %></span></div><% if @closure %><p>Fechado por <strong><%= @closure.user.name.presence || @closure.user.login_identifier %></strong> às <%= @closure.closed_at.strftime('%H:%M') %>.</p><% else %><p>Confirma o total recebido deste dia quando terminares o serviço.</p><%= button_to 'Fechar caixa deste dia', close_staff_reports_path(date: @date), method: :post, class: 'report-cash-close-button' %><% end %></section>
     <section class="panel report-card"><p class="eyebrow">RECEBIMENTOS</p><h2>Por método</h2><%= render 'report_rows', rows: @statistics.by_method.sort_by { |_, amount| -amount }.map { |key, value| { name: payment_method_label(key), value: value, label: '€' } } %></section>
     <section class="panel report-card"><p class="eyebrow">AÇÕES PENDENTES</p><h2>Mesas por pagar</h2><% if @unpaid_tables.any? %><div class="report-cash-pending-list"><% @unpaid_tables.each do |table| %><div class="report-cash-pending-row"><div><strong>Mesa <%= table.number %></strong><small>Tem pedidos pendentes</small></div><%= link_to 'Abrir mesa', staff_table_path(table), class: 'button secondary' %></div><% end %></div><% else %><p class="report-muted">Nenhuma mesa pendente.</p><% end %></section>
+    <dialog class="report-period-dialog" data-cash-period-dialog>
+      <div class="report-period-sheet">
+        <div class="report-period-dialog-head"><div><p class="eyebrow">ESCOLHER DIA</p><h2>Escolher data</h2></div><button type="button" class="report-dialog-close" data-cash-period-dialog-close aria-label="Fechar">×</button></div>
+        <div class="report-calendar-toolbar"><button type="button" data-cash-calendar-prev aria-label="Mês anterior">‹</button><strong data-cash-calendar-label></strong><button type="button" data-cash-calendar-next aria-label="Mês seguinte">›</button></div>
+        <div class="report-calendar-weekdays"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
+        <div class="report-calendar-grid" data-cash-calendar-grid></div>
+        <%= form_with url: staff_reports_path, method: :get, class: 'report-period-dialog-form', data: { cash_period_form: true } do %>
+          <%= hidden_field_tag :tab, 'cash' %><%= hidden_field_tag :date, @date.iso8601, data: { cash_period_date: true } %>
+          <button type="submit" class="button" data-cash-period-confirm>Confirmar dia</button><button type="button" class="button secondary" data-cash-period-dialog-close>Cancelar</button>
+        <% end %>
+      </div>
+    </dialog>
+
+    <script>
+      (() => {
+        const dialog = document.querySelector('[data-cash-period-dialog]');
+        const open = document.querySelector('[data-cash-period-dialog-open]');
+        if (!dialog || !open) return;
+        const grid = dialog.querySelector('[data-cash-calendar-grid]');
+        const label = dialog.querySelector('[data-cash-calendar-label]');
+        const date = dialog.querySelector('[data-cash-period-date]');
+        const previous = dialog.querySelector('[data-cash-calendar-prev]');
+        const next = dialog.querySelector('[data-cash-calendar-next]');
+        const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        const pad = value => String(value).padStart(2, '0');
+        const iso = value => `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let selected = new Date(`${date.value}T00:00:00`);
+        let cursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
+        const sameMonth = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+        const render = () => {
+          grid.innerHTML = '';
+          label.textContent = `${monthNames[cursor.getMonth()]} ${cursor.getFullYear()}`;
+          previous.disabled = cursor <= new Date(1900, 0, 1);
+          next.disabled = sameMonth(cursor, today);
+          const firstDay = (new Date(cursor.getFullYear(), cursor.getMonth(), 1).getDay() + 6) % 7;
+          for (let i = 0; i < firstDay; i += 1) grid.appendChild(document.createElement('span'));
+          const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+          for (let day = 1; day <= days; day += 1) {
+            const button = document.createElement('button');
+            button.type = 'button'; button.textContent = day;
+            const value = new Date(cursor.getFullYear(), cursor.getMonth(), day);
+            const future = value > today;
+            button.disabled = future;
+            button.setAttribute('aria-label', value.toLocaleDateString('pt-PT'));
+            if (value.toDateString() === selected.toDateString()) button.classList.add('is-selected');
+            if (!future) button.addEventListener('click', () => { selected = value; date.value = iso(value); render(); });
+            grid.appendChild(button);
+          }
+        };
+        open.addEventListener('click', () => { dialog.showModal(); render(); });
+        dialog.querySelectorAll('[data-cash-period-dialog-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
+        previous.addEventListener('click', () => { cursor.setMonth(cursor.getMonth() - 1); render(); });
+        next.addEventListener('click', () => { if (!sameMonth(cursor, today)) { cursor.setMonth(cursor.getMonth() + 1); render(); } });
+        dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+      })();
+    </script>
   <% end %>
 </div>
 
