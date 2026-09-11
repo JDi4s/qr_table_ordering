@@ -364,9 +364,6 @@ div[data-controller="staff-board"] .staff-page-intro { justify-content: flex-sta
 .settings-subsection:first-child { padding-top: 0; margin-top: 0; border-top: 0; }
 .settings-subsection h3 { margin: 0 0 5px; font-size: 17px; }
 .settings-subsection p { margin: 6px 0; }
-.team-card h2 { margin: 0; }
-.team-card .staff-order-card-heading p { margin: 4px 0; color: var(--muted); }
-
 .qr {
   max-width: 240px;
 }
