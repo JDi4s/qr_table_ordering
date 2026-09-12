@@ -1,5 +1,27 @@
 # Ensaio de aceitação na VPS
 
+## Simulação de serviço em tempo real
+
+Na pasta `/opt/table-qr`, executar:
+
+```bash
+bin/ensaio-servico
+```
+
+O comando só aceita o estabelecimento com o slug `cafe-teste`. Durante cerca de oito
+minutos cria pedidos e chamadas espaçados, aciona os mesmos callbacks de Turbo e push
+usados pelos clientes e aguarda que a equipa os trate no painel. No final mostra o que
+foi concluído e guarda o resumo e os logs do servidor em `tmp/service-tests/`.
+
+É possível ajustar o ensaio sem alterar código:
+
+```bash
+EVENTS=15 INTERVAL_SECONDS=20 FINAL_WAIT_SECONDS=300 bin/ensaio-servico
+```
+
+Os pedidos são permanentes, porque a aplicação preserva o histórico, e ficam claramente
+identificados nas observações com `[ENSAIO data-hora]`.
+
 Utilize dados fictícios e dois navegadores/dispositivos. Pagamentos online estão fora do âmbito.
 
 1. Como administrador, crie A e B com limite 2 e gerentes distintos. Como A, crie duas mesas; a terceira deve falhar. Repita com duas janelas em simultâneo. B também pode criar Mesa 1.
