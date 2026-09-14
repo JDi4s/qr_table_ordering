@@ -96,9 +96,13 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     build_order(@table, @product, customer: 'open-order')
     sign_in(@manager)
 
-    assert_no_changes -> { staff.reload.deleted_at } { delete staff_user_path(staff) }
+    assert_no_changes -> { staff.reload.deleted_at } do
+      delete staff_user_path(staff)
+    end
     assert_response :see_other
-    assert_no_changes -> { @table.reload.deleted_at } { delete staff_table_path(@table) }
+    assert_no_changes -> { @table.reload.deleted_at } do
+      delete staff_table_path(@table)
+    end
     assert_response :see_other
     assert call.reload.claimed?
   end
