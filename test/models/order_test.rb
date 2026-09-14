@@ -74,7 +74,7 @@ class OrderTest < ActiveSupport::TestCase
     assert messages.any? { |message| message.include?('action="append"') && message.include?('staff_orders_live') }
     @order.review_item!(@order.order_items.first.id, 'denied', reason: 'Esgotado')
     messages = capture_broadcasts(@order.customer_stream) { @order.finalize_review! }
-    assert messages.any? { |message| message.include?('Aceitar este pedido atualizado') }
+    assert messages.any? { |message| message.include?('action="replace"') && message.include?("Pedido ##{@order.id}") }
     other = build_order(@table, @product, customer: 'customer-b')
     assert_not_equal @order.customer_stream, other.customer_stream
   end

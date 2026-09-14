@@ -139,10 +139,10 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '2' }, note: 'Sem tomate' } }
     assert_response :success
     quote = css_select('input[name="quote"]').first['value']
+    assert_select '#order_note', value: 'Sem tomate'
     get new_table_order_path(@table)
     assert_response :success
     assert_select "input[name='order[items][#{@product.id}]'][value='2']"
-    assert_select '#order_note', value: 'Sem tomate'
     assert_difference('Order.count', 1) { post table_orders_path(@table), params: { quote: quote } }
     order = @table.orders.last
     assert_equal 20, order.total
@@ -266,7 +266,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
 
     get staff_table_path(@table)
     assert_response :success
-    assert_includes response.body, "1 × #{@product.name}"
+    assert_includes response.body, '1 já pago(s)'
   end
 
   test 'active tables count only unpaid orders' do
@@ -328,7 +328,8 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_no_difference('Order.count') do
       customer.post table_orders_path(@table), params: { quote: quote }
     end
-    assert_redirected_to new_table_order_path(@table)
+    assert_equal 303, customer.response.status
+    assert_equal new_table_order_url(@table), customer.response.location
   end
 
   test 'cash cannot close with unpaid tables and closes after all payments are recorded' do

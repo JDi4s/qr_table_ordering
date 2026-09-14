@@ -65,7 +65,7 @@ class Staff::ReportsController < Staff::BaseController
         return
       end
       if @unpaid_tables.any?
-        table_numbers = @unpaid_tables.map(&:display_number).join(', ')
+        table_numbers = @unpaid_tables.map { |table| "Mesa #{table.display_number}" }.join(', ')
         redirect_to staff_reports_path(tab: 'cash', date: @date),
                     alert: "Não é possível fechar o Caixa. Existem mesas por pagar: #{table_numbers}.",
                     status: :see_other
