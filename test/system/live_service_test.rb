@@ -13,7 +13,7 @@ class LiveServiceTest < ApplicationSystemTestCase
     end
     Capybara.using_session(:customer) do
       visit new_table_order_path(table)
-      fill_in "quantity_#{product.id}", with: 2
+      2.times { find('.customer-product-card', text: product.name).click }
       click_on 'Rever pedido'
       assert_text '20,00 €'
       click_on 'Enviar pedido'
