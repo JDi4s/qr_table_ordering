@@ -3,6 +3,7 @@ on:
   push:
     branches: [main, codex/multi-establishment-vps, codex/vps-merged]
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
