@@ -28,4 +28,18 @@ class Staff::MenuControllerTest < ActionDispatch::IntegrationTest
     assert_select '.staff-menu-status-panel', count: 1
     assert_select '.staff-menu-status-panel[data-menu-status="active"]', count: 1
   end
+
+  test 'empty uncategorized storage is hidden and its direct URL returns to active categories' do
+    venue, = build_venue
+    manager = venue_user(venue)
+    venue.categories.create!(name: 'Sem categoria', available: true)
+    sign_in(manager)
+
+    get staff_menu_path(menu_status: 'uncategorized')
+
+    assert_response :success
+    assert_select '.staff-menu-status-tab', count: 3
+    assert_select '.staff-menu-status-tab', text: /Sem categoria/, count: 0
+    assert_select '.staff-menu-status-panel[data-menu-status="active"]', count: 1
+  end
 end

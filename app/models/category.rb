@@ -24,7 +24,7 @@ class Category < ApplicationRecord
   end
 
   def visible_to_customers?
-    !archived? && available? && (parent.nil? || parent.visible_to_customers?)
+    !uncategorized? && !archived? && available? && (parent.nil? || parent.visible_to_customers?)
   end
 
   def archived?

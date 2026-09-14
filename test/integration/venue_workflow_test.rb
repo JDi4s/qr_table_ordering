@@ -174,6 +174,17 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_equal 404, second.response.status
   end
 
+  test 'reserved uncategorized storage never appears in the customer menu' do
+    uncategorized = @venue.categories.create!(name: 'Sem categoria', available: true)
+    uncategorized.menu_items.create!(name: 'Produto por organizar', price: 2, available: true)
+
+    get new_table_order_path(@table)
+
+    assert_response :success
+    assert_not_includes response.body, 'Sem categoria'
+    assert_not_includes response.body, 'Produto por organizar'
+  end
+
   test 'price change or tampered quote is not silently accepted' do
     get new_table_order_path(@table)
     post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '1' } } }

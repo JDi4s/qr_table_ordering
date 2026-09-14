@@ -4,7 +4,7 @@
   'Padaria' => 0, 'Pastelaria' => 1, 'Sandes' => 2
 } %>
 <% cart_quantities = local_assigns.fetch(:cart_quantities, {}) %>
-<% roots = categories.select(&:root?).sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
+<% roots = categories.select { |category| category.root? && category.visible_to_customers? }.sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
 <div class="customer-menu" data-controller="customer-menu">
   <div class="customer-menu-sticky">
     <div class="customer-menu-toolbar">

@@ -12,5 +12,6 @@ class Staff::MenuController < Staff::BaseController
       'archived' => @menu_categories.count(&:archived?) + @menu_categories.sum { |category| category.menu_items.count(&:archived?) },
       'uncategorized' => @uncategorized_category&.menu_items&.size.to_i
     }
+    @menu_status = 'active' if @menu_status == 'uncategorized' && @menu_counts['uncategorized'].zero?
   end
 end

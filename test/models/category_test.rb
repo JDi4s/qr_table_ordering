@@ -13,8 +13,9 @@ class CategoryTest < ActiveSupport::TestCase
   end
 
   test 'recognises the reserved uncategorized category' do
-    category = Category.new(name: '  sem CATEGORIA ')
+    category = Category.new(name: '  sem CATEGORIA ', available: true)
 
     assert category.uncategorized?
+    assert_not category.visible_to_customers?
   end
 end
