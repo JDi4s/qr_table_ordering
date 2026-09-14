@@ -72,6 +72,23 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "PEDIDO ##{order.id}"
   end
 
+  test 'history separates service state from payment state and shows the real order total' do
+    order = build_order(@table, @product, customer: 'served-unpaid-history')
+    order.finalize_review!
+    order.serve!
+    sign_in(@manager)
+
+    get history_staff_orders_path
+
+    assert_response :success
+    assert_select ".history-order", text: /PEDIDO ##{order.id}/ do
+      assert_select '.order-status-served', text: 'Servido'
+      assert_select '.payment-status-unpaid', text: 'Por pagar'
+      assert_select '.history-order-total strong', text: /Total 30,00 €/
+      assert_select '.history-order-total small', text: /Recebido 0,00 € · Por pagar 30,00 €/
+    end
+  end
+
   test 'history remains after members and tables are removed' do
     staff = venue_user(@venue, role: 'staff')
     AuditLogger.record(user: staff, action: 'test_activity')
@@ -254,6 +271,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
 
   test 'staff can pay one quantity and keep the table active for the remainder' do
     order = build_order(@table, @product)
+    order.update!(note: 'Croissant sem manteiga')
     order.finalize_review!
     item = order.order_items.second
     sign_in(@manager)
@@ -266,6 +284,8 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
 
     get staff_table_path(@table)
     assert_response :success
+    assert_includes response.body, 'Observações do cliente'
+    assert_includes response.body, 'Croissant sem manteiga'
     assert_includes response.body, '1 já pago(s)'
   end
 

@@ -1,4 +1,14 @@
-<% received_total = order.payments.reject(&:voided?).sum { |payment| payment.amount.to_d } %>
+<% received_total = order.paid_total %>
+<% outstanding_total = order.outstanding_total %>
+<% financial_status = if order.voided? || order.denied?
+                        nil
+                      elsif order.paid?
+                        ['Pago', 'paid']
+                      elsif received_total.positive?
+                        ['Pagamento parcial', 'partial']
+                      else
+                        ['Por pagar', 'unpaid']
+                      end %>
 <details class="panel history-order">
   <summary>
     <div class="history-order-main">
@@ -10,8 +20,19 @@
       </div>
     </div>
     <div class="history-order-total">
-      <span class="badge order-status order-status-<%= order.voided? ? 'voided' : order.status %>"><%= order_state_label(order) %></span>
-      <strong><%= euros(received_total) %></strong>
+      <div class="history-order-statuses">
+        <span class="badge order-status order-status-<%= order.voided? ? 'voided' : order.status %>"><%= order_state_label(order) %></span>
+        <% if financial_status %>
+          <span class="badge payment-status-<%= financial_status.last %>"><%= financial_status.first %></span>
+        <% end %>
+      </div>
+      <strong><span>Total</span> <%= euros(order.total) %></strong>
+      <% unless order.voided? || order.denied? %>
+        <small>
+          Recebido <%= euros(received_total) %>
+          <% if outstanding_total.positive? %> · Por pagar <%= euros(outstanding_total) %><% end %>
+        </small>
+      <% end %>
     </div>
   </summary>
 

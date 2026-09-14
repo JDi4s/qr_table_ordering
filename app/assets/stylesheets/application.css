@@ -1408,8 +1408,26 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   gap: 4px;
 }
 
+.history-order-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.payment-status-paid { color: #216044; background: #e1f1e7; }
+.payment-status-partial { color: #805a13; background: #fff0c9; }
+.payment-status-unpaid { color: #9b2f2f; background: #fce7e7; }
+
 .history-order-total strong {
   font-size: 16px;
+}
+
+.history-order-total strong span,
+.history-order-total small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .history-order-content {

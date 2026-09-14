@@ -14,6 +14,13 @@
   </summary>
 
   <div class="unpaid-order-content">
+    <% if order.note.present? %>
+      <div class="staff-order-note">
+        <strong>Observações do cliente</strong><br>
+        <%= order.note %>
+      </div>
+    <% end %>
+
     <% if order.payments.any? %>
       <details class="payment-history"><summary><%= order.payments.size %> pagamento(s) registado(s)</summary>
         <ul><%= render partial: 'staff/payments/history_item', collection: order.payments.includes(:user, :voided_by_user).order(paid_at: :desc), as: :payment, locals: { allow_void: current_user.manager? } %></ul>
