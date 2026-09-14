@@ -3,6 +3,24 @@
 
 <%= render 'staff/settings/tabs' %>
 
+<% if current_user.manager? %>
+  <section class="panel settings-card settings-section service-status-card <%= 'is-paused' unless current_establishment.accepting_orders? %>">
+    <div class="service-status-copy">
+      <div>
+        <p class="eyebrow">ESTADO DO SERVIÇO</p>
+        <h2><%= current_establishment.accepting_orders? ? 'Serviço aberto' : 'Serviço pausado' %></h2>
+      </div>
+      <span class="badge"><%= current_establishment.accepting_orders? ? 'A aceitar pedidos' : 'Pedidos bloqueados' %></span>
+    </div>
+    <p><%= current_establishment.accepting_orders? ? 'Os clientes podem enviar pedidos e chamar um funcionário através do QR.' : 'Os clientes podem consultar o menu, mas não conseguem enviar pedidos nem chamadas.' %></p>
+    <%= button_to(current_establishment.accepting_orders? ? 'Pausar novos pedidos' : 'Abrir serviço',
+                  service_status_staff_settings_path,
+                  method: :patch,
+                  params: { accepting_orders: current_establishment.accepting_orders? ? '0' : '1' },
+                  class: current_establishment.accepting_orders? ? 'secondary' : nil) %>
+  </section>
+<% end %>
+
 <% if current_user.must_change_password? %>
   <section class="panel settings-card settings-section">
     <div class="flash alert"><strong>Altera a palavra-passe temporária antes de continuar.</strong></div>

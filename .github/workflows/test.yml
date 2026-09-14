@@ -1,7 +1,7 @@
 name: Rails tests
 on:
   push:
-    branches: [main, codex/multi-establishment-vps]
+    branches: [main, codex/multi-establishment-vps, codex/vps-merged]
   pull_request:
 permissions:
   contents: read

@@ -13,6 +13,7 @@ class Establishment < ApplicationRecord
   has_many :cash_closures, dependent: :destroy
   has_many :support_tickets, dependent: :restrict_with_error
   has_many :support_sessions, dependent: :restrict_with_error
+  belongs_to :service_paused_by_user, class_name: 'User', optional: true
   validates :name, presence: true, length: { maximum: 120 }
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ }
   validates :table_limit, :monthly_fee_cents, :production_areas_limit, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -45,6 +46,18 @@ class Establishment < ApplicationRecord
 
   def management_plan?
     plan == 'management'
+  end
+
+  def pause_service!(user)
+    with_lock do
+      update!(accepting_orders: false, service_paused_at: Time.current, service_paused_by_user: user)
+    end
+  end
+
+  def open_service!
+    with_lock do
+      update!(accepting_orders: true, service_paused_at: nil, service_paused_by_user: nil)
+    end
   end
 
   def available_production_areas

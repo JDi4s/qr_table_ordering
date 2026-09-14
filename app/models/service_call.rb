@@ -8,14 +8,18 @@ class ServiceCall < ApplicationRecord
   after_update_commit :broadcast_updated
 
   def self.request_for!(table)
-    table.with_lock do
-      raise Order::InvalidTransition, 'Mesa indisponível.' unless table.active? && table.establishment.reload.active?
-      existing = table.service_calls.where(status: %w[pending claimed]).first
-      return existing if existing
-      if table.service_calls.where('created_at > ?', 60.seconds.ago).exists?
-        raise Order::InvalidTransition, 'Aguarde um minuto antes de voltar a chamar.'
+    table.establishment.with_lock do
+      table.with_lock do
+        establishment = table.establishment.reload
+        raise Order::InvalidTransition, 'Mesa indisponível.' unless table.active? && establishment.active?
+        raise Order::InvalidTransition, 'O serviço está temporariamente pausado. Ainda não é possível chamar um funcionário.' unless establishment.accepting_orders?
+        existing = table.service_calls.where(status: %w[pending claimed]).first
+        return existing if existing
+        if table.service_calls.where('created_at > ?', 60.seconds.ago).exists?
+          raise Order::InvalidTransition, 'Aguarde um minuto antes de voltar a chamar.'
+        end
+        table.service_calls.create!
       end
-      table.service_calls.create!
     end
   end
 

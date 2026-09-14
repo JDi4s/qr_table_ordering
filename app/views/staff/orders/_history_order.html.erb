@@ -1,4 +1,4 @@
-<% received_total = order.payments.sum { |payment| payment.amount.to_d } %>
+<% received_total = order.payments.reject(&:voided?).sum { |payment| payment.amount.to_d } %>
 <details class="panel history-order">
   <summary>
     <div class="history-order-main">

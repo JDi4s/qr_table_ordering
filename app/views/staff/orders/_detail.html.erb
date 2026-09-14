@@ -1,3 +1,4 @@
+<% allow_payment_correction = local_assigns.fetch(:allow_payment_correction, false) %>
 <section id="order_detail_<%= order.id %>" class="staff-order-detail">
   <p class="eyebrow">MESA <%= order.table.display_number %></p><h1>Pedido #<%= order.id %></h1>
   <p><span class="badge order-status-<%= order.voided? ? 'voided' : order.status %>"><%= order_state_label(order) %></span> · Total: <strong><%= euros(order.total) %></strong> · Por pagar: <strong><%= euros(order.outstanding_total) %></strong></p>
@@ -49,5 +50,5 @@
           <%= submit_tag 'Pagar pedido completo', class: 'secondary' %>
     <% end %>
   <% end %>
-  <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><% order.payments.order(paid_at: :desc).each do |payment| %><li><%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.display_identity %></li><% end %></ul></details><% end %>
+  <% if order.payments.any? %><details class="payment-history"><summary>Histórico de pagamentos</summary><ul><%= render partial: 'staff/payments/history_item', collection: order.payments.includes(:user, :voided_by_user).order(paid_at: :desc), as: :payment, locals: { allow_void: allow_payment_correction } %></ul></details><% end %>
 </section>

@@ -1,6 +1,7 @@
 class OrdersController < ApplicationController
   before_action :set_table
   before_action :ensure_customer_token
+  before_action :ensure_service_accepting_orders, only: [:review, :create]
 
   def new
     @categories = @table.establishment.categories.not_archived.includes(:menu_items, :children).where(available: true).order(:name)
@@ -38,28 +39,32 @@ class OrdersController < ApplicationController
     note = note.to_s.strip
     raise Order::InvalidTransition, 'As observações não podem ultrapassar 1000 caracteres.' if note.length > 1000
 
-    @table.with_lock do
-      raise Order::InvalidTransition, 'Esta mesa está desativada.' unless @table.active? && @table.establishment.reload.active?
+    @table.establishment.with_lock do
+      @table.with_lock do
+        establishment = @table.establishment.reload
+        raise Order::InvalidTransition, 'Esta mesa está desativada.' unless @table.active? && establishment.active?
+        raise Order::InvalidTransition, 'O serviço está temporariamente pausado. Ainda não é possível enviar pedidos.' unless establishment.accepting_orders?
 
-      unless customer_orders.exists?(submission_token: quote[:nonce])
-        order = @table.orders.new(note: note, customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
+        unless customer_orders.exists?(submission_token: quote[:nonce])
+          order = @table.orders.new(note: note, customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
 
-        items = quote[:items].dup
-        suggestion_items = valid_suggestion_items(quote[:items].map(&:first), params[:suggestion_quantities], params[:suggestion_ids])
-        suggestion_items.each { |id, quantity| items << [id, quantity, nil] }
+          items = quote[:items].dup
+          suggestion_items = valid_suggestion_items(quote[:items].map(&:first), params[:suggestion_quantities], params[:suggestion_ids])
+          suggestion_items.each { |id, quantity| items << [id, quantity, nil] }
 
-        items.each do |id, qty, price|
-          item = @table.establishment.menu_items.includes(:category).find(id)
+          items.each do |id, qty, price|
+            item = establishment.menu_items.includes(:category).find(id)
 
-          unless item.available? && !item.archived? && item.category.visible_to_customers? && (price.blank? || item.price == BigDecimal(price))
-            raise Order::InvalidTransition, 'O menu mudou. Reveja os produtos e preços antes de enviar.'
+            unless item.available? && !item.archived? && item.category.visible_to_customers? && (price.blank? || item.price == BigDecimal(price))
+              raise Order::InvalidTransition, 'O menu mudou. Reveja os produtos e preços antes de enviar.'
+            end
+
+            order.order_items.build(menu_item: item, quantity: qty, unit_price: item.price, status: 'pending')
           end
 
-          order.order_items.build(menu_item: item, quantity: qty, unit_price: item.price, status: 'pending')
+          order.total = order.order_items.sum { |item| item.unit_price * item.quantity }
+          order.save!
         end
-
-        order.total = order.order_items.sum { |item| item.unit_price * item.quantity }
-        order.save!
       end
     end
 
@@ -86,6 +91,14 @@ class OrdersController < ApplicationController
 
   def ensure_customer_token
     session[:customer_token] ||= SecureRandom.hex(24)
+  end
+
+  def ensure_service_accepting_orders
+    return if @table.establishment.accepting_orders?
+
+    redirect_to new_table_order_path(@table),
+                alert: 'O serviço está temporariamente pausado. Podes consultar o menu, mas ainda não é possível enviar pedidos.',
+                status: :see_other
   end
 
   def customer_orders

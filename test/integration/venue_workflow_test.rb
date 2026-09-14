@@ -280,6 +280,105 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, '2 pedido(s) em aberto'
   end
 
+  test 'manager pauses service while the menu stays visible and customer actions are blocked' do
+    sign_in(@manager)
+
+    patch service_status_staff_settings_path, params: { accepting_orders: '0' }
+
+    assert_redirected_to edit_staff_settings_path
+    assert_not @venue.reload.accepting_orders?
+    assert AuditEvent.where(establishment: @venue, user: @manager, action: 'service_paused').exists?
+
+    customer = open_session
+    customer.get new_table_order_path(@table)
+    assert_equal 200, customer.response.status
+    assert_includes customer.response.body, @product.name
+    assert_includes customer.response.body, 'Serviço temporariamente pausado'
+    assert_no_difference('ServiceCall.count') { customer.post table_service_calls_path(@table) }
+    assert_no_difference('Order.count') do
+      customer.post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '1' } } }
+    end
+
+    patch service_status_staff_settings_path, params: { accepting_orders: '1' }
+    assert @venue.reload.accepting_orders?
+    assert AuditEvent.where(establishment: @venue, user: @manager, action: 'service_opened').exists?
+  end
+
+  test 'staff cannot change the service status' do
+    staff = venue_user(@venue, role: 'staff')
+    sign_in(staff)
+
+    patch service_status_staff_settings_path, params: { accepting_orders: '0' }
+
+    assert_response :forbidden
+    assert @venue.reload.accepting_orders?
+  end
+
+  test 'an order reviewed before a pause cannot be submitted after the service pauses' do
+    customer = open_session
+    customer.get new_table_order_path(@table)
+    customer.post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '1' } } }
+    quote = Nokogiri::HTML(customer.response.body).at_css('input[name="quote"]')['value']
+    @venue.pause_service!(@manager)
+
+    assert_no_difference('Order.count') do
+      customer.post table_orders_path(@table), params: { quote: quote }
+    end
+    assert_redirected_to new_table_order_path(@table)
+  end
+
+  test 'cash cannot close with unpaid tables and closes after all payments are recorded' do
+    order = build_order(@table, @product)
+    order.finalize_review!
+    sign_in(@manager)
+
+    assert_no_difference('CashClosure.count') do
+      post close_staff_reports_path, params: { date: Date.current.iso8601 }
+    end
+    assert_redirected_to staff_reports_path(tab: 'cash', date: Date.current)
+    assert_includes flash[:alert], "Mesa #{@table.number}"
+
+    patch mark_paid_staff_order_path(order)
+    assert_difference('CashClosure.count', 1) do
+      post close_staff_reports_path, params: { date: Date.current.iso8601 }
+    end
+    assert_redirected_to staff_reports_path(tab: 'cash', date: Date.current)
+
+    closure = @venue.cash_closures.active.find_by!(business_date: Date.current)
+    patch reopen_staff_reports_path, params: { date: Date.current.iso8601, reopen_reason: 'Corrigir pagamento' }
+    assert_redirected_to staff_reports_path(tab: 'cash', date: Date.current)
+    assert closure.reload.reopened?
+    assert AuditEvent.where(establishment: @venue, user: @manager, action: 'cash_reopened').exists?
+
+    assert_difference('CashClosure.count', 1) do
+      post close_staff_reports_path, params: { date: Date.current.iso8601 }
+    end
+    assert_equal 1, @venue.cash_closures.active.where(business_date: Date.current).count
+  end
+
+  test 'manager voids a payment through the order history and staff cannot do it' do
+    order = build_order(@table, @product)
+    order.finalize_review!
+    order.mark_paid!(@manager, payment_method: 'card')
+    payment = order.payments.last
+    sign_in(@manager)
+
+    patch void_staff_payment_path(payment), params: { void_reason: 'Método incorreto' }
+
+    assert_redirected_to staff_order_path(order)
+    assert payment.reload.voided?
+    assert_not order.reload.paid?
+    assert AuditEvent.where(establishment: @venue, user: @manager, action: 'payment_voided').exists?
+
+    replacement = order.payments.create!(user: @manager, payment_method: 'cash', amount: 1, paid_at: Time.current)
+    staff_session = open_session
+    staff = venue_user(@venue, role: 'staff')
+    staff_session.post login_path, params: { identifier: staff.login_identifier, password: 'Test-password-123' }
+    staff_session.patch void_staff_payment_path(replacement), params: { void_reason: 'Sem autorização' }
+    assert_equal 403, staff_session.response.status
+    assert_not replacement.reload.voided?
+  end
+
   test 'customer can add more than one suggested item' do
     suggestion = @venue.categories.create!(name: 'Bebidas', available: true).menu_items.create!(name: 'Café', price: 0.85, available: true)
     MenuItemRecommendation.create!(menu_item: @product, recommended_menu_item: suggestion)

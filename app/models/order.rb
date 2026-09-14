@@ -107,7 +107,7 @@ class Order < ApplicationRecord
   end
 
   def mark_paid!(user, payment_method: 'cash')
-    with_lock do
+    with_payment_locks do
       ensure_payment_state!
       ensure_cash_open!
       raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
@@ -125,7 +125,7 @@ class Order < ApplicationRecord
   def pay_item!(item_id, quantity, user, payment_method: 'cash')
     quantity = Integer(quantity)
 
-    with_lock do
+    with_payment_locks do
       ensure_payment_state!
       ensure_cash_open!
       raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
@@ -149,7 +149,7 @@ class Order < ApplicationRecord
   end
 
   def pay_selected_items!(selections, user, payment_method: 'cash')
-    with_lock do
+    with_payment_locks do
       ensure_payment_state!
       ensure_cash_open!
       raise InvalidTransition, 'Este pedido já está marcado como pago.' if paid?
@@ -186,6 +186,12 @@ class Order < ApplicationRecord
 
   private
 
+  def with_payment_locks(&block)
+    establishment.with_lock do
+      with_lock(&block)
+    end
+  end
+
   def prevent_deletion
     errors.add(:base, 'Os pedidos não podem ser eliminados. Cancele o pedido para manter o histórico.')
     throw :abort
@@ -197,7 +203,7 @@ class Order < ApplicationRecord
   end
 
   def ensure_cash_open!
-    raise InvalidTransition, 'O caixa deste dia já foi fechado.' if establishment.cash_closures.exists?(business_date: Time.current.to_date)
+    raise InvalidTransition, 'O caixa deste dia já foi fechado.' if establishment.cash_closures.active.exists?(business_date: Time.current.to_date)
   end
 
   def complete_payment!(user)

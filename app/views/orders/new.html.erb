@@ -27,10 +27,19 @@
     <% end %>
     <div class="toolbar"><span class="badge">Mesa <%= @table.number %></span>
       <%= link_to "Os meus pedidos (#{@active_count})", my_table_orders_path(@table), class: 'button secondary' %>
-      <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %>
+      <% if establishment.accepting_orders? %>
+        <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %>
+      <% else %>
+        <button type="button" class="secondary" disabled>Chamadas pausadas</button>
+      <% end %>
     </div>
-    <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
-      <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>
+    <% if establishment.accepting_orders? %>
+      <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
+        <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>
+      <% end %>
+    <% else %>
+      <div class="flash notice service-paused-notice"><strong>Serviço temporariamente pausado.</strong> Podes consultar o menu, mas ainda não é possível enviar pedidos ou chamar um funcionário.</div>
+      <div class="customer-service-paused"><%= render 'menu', categories: @categories, cart_quantities: {} %></div>
     <% end %>
   </div>
 </div>

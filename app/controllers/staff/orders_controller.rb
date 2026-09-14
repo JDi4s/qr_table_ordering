@@ -111,7 +111,7 @@ class Staff::OrdersController < Staff::BaseController
     @history_served = @orders.count { |order| order.served? && !order.voided? }
     @history_denied = @orders.count { |order| order.denied? || order.voided? }
     @history_tables = @orders.map(&:table_id).uniq.size
-    @history_received = @orders.sum { |order| order.payments.sum { |payment| payment.amount.to_d } }
+    @history_received = @orders.sum { |order| order.payments.active.sum { |payment| payment.amount.to_d } }
   end
 
   private

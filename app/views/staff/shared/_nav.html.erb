@@ -18,3 +18,4 @@
   <% if support_mode? %><%= button_to 'Terminar suporte', admin_support_session_path(active_support_session), method: :delete, class: 'secondary staff-logout' %><% else %><%= button_to 'Sair', logout_path, method: :delete, class: 'secondary staff-logout' %><% end %>
 </header>
 <% if support_mode? %><div class="support-mode-banner"><span><strong>Modo Suporte</strong> · <%= current_establishment.name %></span><small>Configuração autorizada · operação apenas para consulta · termina em <%= active_support_session.expires_at.strftime('%H:%M') %></small></div><% end %>
+<% if !support_mode? && !current_establishment.accepting_orders? %><div class="service-paused-banner"><span><strong>Serviço pausado</strong> · novos pedidos e chamadas estão bloqueados</span><% if current_user.manager? %><%= button_to 'Abrir serviço', service_status_staff_settings_path, method: :patch, params: { accepting_orders: '1' } %><% end %></div><% end %>

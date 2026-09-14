@@ -58,19 +58,39 @@ class Staff::ReportsController < Staff::BaseController
   end
 
   def close
-    load_daily_report
-    if @closure
-      redirect_to staff_reports_path(tab: 'cash', date: @date), alert: 'Este dia já foi fechado.'
-      return
+    current_establishment.with_lock do
+      load_daily_report
+      if @closure
+        redirect_to staff_reports_path(tab: 'cash', date: @date), alert: 'Este dia já foi fechado.'
+        return
+      end
+      if @unpaid_tables.any?
+        table_numbers = @unpaid_tables.map(&:display_number).join(', ')
+        redirect_to staff_reports_path(tab: 'cash', date: @date),
+                    alert: "Não é possível fechar o Caixa. Existem mesas por pagar: #{table_numbers}.",
+                    status: :see_other
+        return
+      end
+      @closure = current_establishment.cash_closures.create!(
+        user: current_user, business_date: @date, total_amount: @statistics.total,
+        payments_count: @statistics.payments_count,
+        payment_breakdown: @statistics.by_method.transform_values(&:to_s), closed_at: Time.current
+      )
     end
-    @closure = current_establishment.cash_closures.create!(
-      user: current_user, business_date: @date, total_amount: @statistics.total,
-      payments_count: @statistics.payments_count,
-      payment_breakdown: @statistics.by_method.transform_values(&:to_s), closed_at: Time.current
-    )
     AuditLogger.record(user: current_user, action: 'cash_closed', record: @closure,
                       metadata: { business_date: @date.to_s, total: @statistics.total.to_s })
     redirect_to staff_reports_path(tab: 'cash', date: @date), notice: "Caixa de #{@date.strftime('%d/%m/%Y')} fechado."
+  end
+
+  def reopen
+    date = cash_date
+    closure = current_establishment.cash_closures.active.find_by!(business_date: date)
+    closure.reopen!(current_user, reason: params[:reopen_reason])
+    AuditLogger.record(user: current_user, action: 'cash_reopened', record: closure,
+                       metadata: { business_date: date.to_s, reason: closure.reopen_reason })
+    redirect_to staff_reports_path(tab: 'cash', date: date),
+                notice: "Caixa de #{date.strftime('%d/%m/%Y')} reaberto. Já podes corrigir movimentos.",
+                status: :see_other
   end
 
   private
@@ -310,12 +330,12 @@ class Staff::ReportsController < Staff::BaseController
   def load_daily_report
     @date = cash_date
     @statistics = ReportStatistics.new(report_payments(@date, @date))
-    @closure = current_establishment.cash_closures.includes(:user).find_by(business_date: @date)
+    @closure = current_establishment.cash_closures.active.includes(:user).find_by(business_date: @date)
     @unpaid_tables = current_establishment.tables.where(deleted_at: nil).joins(:orders).merge(Order.unpaid).distinct.order(:number)
   end
 
   def report_payments(first, last, employee: nil)
-    scope = current_establishment.payments.where(paid_at: first.beginning_of_day... (last + 1).beginning_of_day).includes(:user, payment_items: { order_item: :menu_item })
+    scope = current_establishment.payments.active.where(paid_at: first.beginning_of_day... (last + 1).beginning_of_day).includes(:user, payment_items: { order_item: :menu_item })
     employee ? scope.where(user_id: employee.id) : scope
   end
 

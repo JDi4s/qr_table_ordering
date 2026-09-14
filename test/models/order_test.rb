@@ -146,6 +146,43 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal cashier, payment.user
   end
 
+  test 'manager voids a payment without deleting its history and restores the balance' do
+    manager = venue_user(@venue, role: 'manager')
+    @order.finalize_review!
+    @order.mark_paid!(manager, payment_method: 'card')
+    payment = @order.payments.last
+
+    payment.void!(manager, reason: 'Cliente pagou em dinheiro')
+
+    assert payment.reload.voided?
+    assert_equal 'Cliente pagou em dinheiro', payment.void_reason
+    assert_equal manager, payment.voided_by_user
+    assert_not @order.reload.paid?
+    assert_equal @order.payable_total, @order.outstanding_total
+    assert_equal 0, @order.order_items.sum(:paid_quantity)
+    assert_not Payment.active.exists?(payment.id)
+    assert_raises(Order::InvalidTransition) { payment.void!(manager, reason: 'Repetir') }
+  end
+
+  test 'staff cannot void a payment and a closed cash day protects its movements' do
+    manager = venue_user(@venue, role: 'manager')
+    staff = venue_user(@venue, role: 'staff')
+    @order.finalize_review!
+    @order.mark_paid!(manager)
+    payment = @order.payments.last
+
+    assert_raises(Order::InvalidTransition) { payment.void!(staff, reason: 'Sem autorização') }
+    closure = @venue.cash_closures.create!(user: manager, business_date: Date.current, total_amount: payment.amount,
+                                           payments_count: 1, payment_breakdown: {}, closed_at: Time.current)
+    assert_raises(Order::InvalidTransition) { payment.void!(manager, reason: 'Caixa fechado') }
+    assert_not payment.reload.voided?
+
+    closure.reopen!(manager, reason: 'Corrigir método')
+    payment.void!(manager, reason: 'Método errado')
+    assert payment.reload.voided?
+    assert closure.reload.reopened?
+  end
+
   test 'customer cancellation is allowed for three minutes and then expires' do
     assert @order.cancellable_by_customer?
 

@@ -46,9 +46,11 @@ module ApplicationHelper
     {
       'order_accepted' => 'aceitou o pedido', 'order_rejected' => 'rejeitou o pedido',
       'order_served' => 'marcou o pedido como servido', 'order_cancelled' => 'cancelou o pedido',
-      'payment_received' => 'registou um pagamento', 'service_call_claimed' => 'assumiu uma chamada',
+      'payment_received' => 'registou um pagamento', 'payment_voided' => 'anulou um pagamento',
+      'service_call_claimed' => 'assumiu uma chamada',
       'service_call_resolved' => 'marcou uma chamada como atendida', 'order_item_reviewed' => 'avaliou um artigo',
-      'cash_closed' => 'fechou o caixa', 'order_voided' => 'anulou o pedido',
+      'cash_closed' => 'fechou o caixa', 'cash_reopened' => 'reabriu o caixa',
+      'order_voided' => 'anulou o pedido',
       'order_deleted' => 'eliminou o pedido', 'team_member_deleted' => 'eliminou um membro',
       'table_deleted' => 'eliminou uma mesa', 'category_deleted' => 'eliminou uma categoria',
       'menu_item_deleted' => 'eliminou um produto',
@@ -66,6 +68,7 @@ module ApplicationHelper
       'table_created' => 'criou uma mesa', 'table_updated' => 'alterou uma mesa',
       'team_member_created' => 'criou um membro', 'team_member_updated' => 'alterou um membro',
       'branding_updated' => 'alterou a imagem do estabelecimento',
+      'service_opened' => 'abriu o serviço', 'service_paused' => 'pausou o serviço',
       'establishment_replied_to_support' => 'respondeu ao Suporte',
       'establishment_created' => 'criou um estabelecimento',
       'establishment_contract_updated' => 'alterou o contrato ou plano'

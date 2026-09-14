@@ -1,0 +1,19 @@
+<li class="payment-history-item <%= 'is-voided' if payment.voided? %>">
+  <div>
+    <%= payment.paid_at.strftime('%d/%m %H:%M') %> · <%= euros(payment.amount) %> · <%= payment_method_label(payment.payment_method) %> · <%= payment.user.display_identity %>
+    <% if payment.voided? %>
+      <strong>· Anulado</strong>
+      <small>Motivo: <%= payment.void_reason %> · por <%= payment.voided_by_user&.display_identity || 'Gerente' %></small>
+    <% end %>
+  </div>
+  <% if local_assigns.fetch(:allow_void, false) && !payment.voided? %>
+    <details class="payment-void-control">
+      <summary>Corrigir pagamento</summary>
+      <%= form_with url: void_staff_payment_path(payment), method: :patch do %>
+        <%= label_tag "void_reason_#{payment.id}", 'Motivo da anulação' %>
+        <%= text_field_tag :void_reason, nil, id: "void_reason_#{payment.id}", required: true, maxlength: 300, placeholder: 'Ex.: método de pagamento incorreto' %>
+        <%= submit_tag 'Anular este pagamento', class: 'secondary' %>
+      <% end %>
+    </details>
+  <% end %>
+</li>

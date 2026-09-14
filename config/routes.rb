@@ -58,12 +58,17 @@ Rails.application.routes.draw do
       end
     end
     resource :push_subscription, only: [:create, :destroy], controller: 'push_subscriptions'
-    resource :settings, only: [:edit, :update]
+    resource :settings, only: [:edit, :update] do
+      patch :service_status
+    end
+    resources :payments, only: [] do
+      member { patch :void }
+    end
     resources :support_tickets, only: [:index, :new, :create, :show] do
       resources :messages, only: :create, controller: 'support_ticket_messages'
     end
     resources :reports, only: [:index] do
-      collection { get :export; get :pdf; post :close }
+      collection { get :export; get :pdf; post :close; patch :reopen }
     end
     resources :audit_events, only: [:index]
   end
