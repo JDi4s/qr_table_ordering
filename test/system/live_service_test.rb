@@ -24,7 +24,7 @@ class LiveServiceTest < ApplicationSystemTestCase
     Capybara.using_session(:staff) do
       assert_selector "#order_#{order.id}", text: product.name
       click_on 'Avaliar pedido'
-      click_on 'Alterar descrição ou preço'
+      find('summary', text: 'Alterar descrição ou preço', match: :first).click
       fill_in 'Mensagem ou alteração do artigo', with: 'Sem queijo'
       fill_in 'Novo preço por unidade (€)', with: '8.50'
       click_on 'Guardar decisão'
