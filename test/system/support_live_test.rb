@@ -84,6 +84,8 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
     fill_in 'Email', with: user.email
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'
+    assert_current_path(user.platform_admin? ? admin_establishments_path : staff_orders_path, wait: 10)
+    assert_selector(user.platform_admin? ? '.admin-header' : 'body[data-controller="staff-orders"]')
     assert_no_button 'Entrar'
   end
 end
