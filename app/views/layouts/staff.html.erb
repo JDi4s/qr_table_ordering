@@ -14,9 +14,13 @@
       data-vapid-public-key="<%= h(ENV['VAPID_PUBLIC_KEY'].to_s) %>"
       data-web-push-enabled="<%= ENV['VAPID_PUBLIC_KEY'].present? ? '1' : '0' %>">
   <%= render 'staff/shared/nav' %>
+  <% if current_user.manager? && !support_mode? %>
+    <%= turbo_stream_from 'support', channel: 'SupportTicketsChannel', data: { scope: 'notifications' } %>
+  <% end %>
   <main>
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
     <div id="staff_notifications" aria-live="assertive"></div>
+    <div id="support_notifications" aria-live="polite"></div>
     <%= yield %>
   </main>
 </body>

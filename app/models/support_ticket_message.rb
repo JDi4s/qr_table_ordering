@@ -7,11 +7,17 @@ class SupportTicketMessage < ApplicationRecord
   validate :body_or_attachment
   validate :attachment_is_safe
 
+  after_create_commit :broadcast_support_message
+
   def from_support?
     author&.platform_admin? || false
   end
 
   private
+
+  def broadcast_support_message
+    SupportTicketBroadcaster.message_created(self)
+  end
 
   def body_or_attachment
     errors.add(:base, 'Escreve uma mensagem ou anexa uma imagem.') if body.blank? && !attachment.attached?

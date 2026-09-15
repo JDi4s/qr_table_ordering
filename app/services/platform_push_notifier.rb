@@ -8,10 +8,11 @@ class PlatformPushNotifier
              url: Rails.application.routes.url_helpers.admin_support_ticket_path(ticket), tag: "support-ticket-#{ticket.id}")
     end
 
-    def notify_establishment(ticket, _message)
+    def notify_establishment(ticket, message)
       subscriptions = ticket.establishment.users.where(role: 'manager', active: true, deleted_at: nil)
         .includes(:staff_push_subscription).filter_map(&:staff_push_subscription)
-      deliver(subscriptions, title: 'Resposta do Suporte', body: ticket.subject,
+      title = message ? 'Resposta do Suporte' : 'Estado do ticket atualizado'
+      deliver(subscriptions, title: title, body: ticket.subject,
              url: Rails.application.routes.url_helpers.staff_support_ticket_path(ticket), tag: "support-ticket-#{ticket.id}")
     end
 

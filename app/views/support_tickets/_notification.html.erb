@@ -1,0 +1,4 @@
+<article class="support-live-notification" data-controller="support-notification" role="status">
+  <div><strong><%= title %></strong><%= link_to "Ticket ##{ticket.id} — #{ticket.subject}", url %></div>
+  <button type="button" class="secondary" data-action="support-notification#dismiss" aria-label="Fechar notificação">×</button>
+</article>

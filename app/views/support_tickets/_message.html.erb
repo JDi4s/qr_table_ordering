@@ -1,0 +1,5 @@
+<article id="<%= dom_id(message) %>" class="ticket-message <%= message.from_support? ? 'from-support' : 'from-establishment' %>">
+  <div><strong><%= message.from_support? ? 'Suporte' : message.author.display_identity %></strong><time><%= message.created_at.strftime('%d/%m/%Y %H:%M') %></time></div>
+  <%= simple_format(message.body) if message.body.present? %>
+  <%= link_to image_tag(message.attachment, alt: 'Imagem anexada'), rails_blob_path(message.attachment, disposition: 'attachment'), class: 'ticket-attachment', data: { turbo: false } if message.attachment.attached? %>
+</article>

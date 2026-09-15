@@ -14,7 +14,8 @@
     </nav>
     <div class="admin-header-actions"><button type="button" class="secondary admin-push-button" data-admin-push>Ativar alertas</button><%= button_to 'Sair', logout_path, method: :delete, class: 'secondary' %></div>
   </header>
-  <main class="admin-main"><% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %><%= yield %></main>
+  <%= turbo_stream_from 'support', channel: 'SupportTicketsChannel', data: { scope: 'notifications' } %>
+  <main class="admin-main"><% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %><div id="support_notifications" aria-live="polite"></div><%= yield %></main>
   <script>
     (() => {
       const button = document.querySelector('[data-admin-push]'); const publicKey = document.body.dataset.vapidPublicKey;

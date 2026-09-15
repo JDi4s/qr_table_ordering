@@ -1,0 +1,12 @@
+<section id="support_ticket_list" class="admin-ticket-list">
+  <% if tickets.any? %>
+    <% tickets.each do |ticket| %>
+      <%= link_to admin_support_ticket_path(ticket), class: 'admin-ticket-row' do %>
+        <div><span class="ticket-priority <%= 'is-urgent' if ticket.priority == 'urgent' %>"><%= ticket.priority == 'urgent' ? 'Urgente' : support_ticket_category_label(ticket.category) %></span><strong><%= ticket.subject %></strong><small><%= ticket.establishment.name %> · #<%= ticket.id %> · atualizado <%= time_ago_in_words(ticket.updated_at) %></small></div>
+        <span class="ticket-status status-<%= ticket.status %>"><%= support_ticket_status_label(ticket.status) %></span>
+      <% end %>
+    <% end %>
+  <% else %>
+    <div class="admin-empty-state"><strong>Nenhum ticket nesta lista</strong><p>Quando chegar um pedido, aparece aqui.</p></div>
+  <% end %>
+</section>
