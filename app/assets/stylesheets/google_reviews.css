@@ -1,0 +1,7 @@
+.google-review-invitation { position: relative; margin-top: 18px; padding: 18px; border-radius: 14px; background: #edf3eb; }
+.google-review-invitation[hidden] { display: none; }
+.google-review-invitation h3 { margin: 0 24px 8px 0; }
+.google-review-invitation p { margin: 0 0 14px; }
+.google-review-dismiss { position: absolute; top: 8px; right: 8px; border: 0; background: transparent; color: var(--green, #20654d); font-size: 26px; padding: 0 6px; line-height: 1; }
+.google-review-link { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; }
+.google-review-link svg { flex: 0 0 24px; }

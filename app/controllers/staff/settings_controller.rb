@@ -29,19 +29,32 @@ class Staff::SettingsController < Staff::BaseController
       current_user.update!(password: password, must_change_password: false)
     end
     redirect_to edit_staff_settings_path, notice: 'Preferências guardadas.', status: :see_other
+  rescue ActiveRecord::RecordInvalid => error
+    flash.now[:alert] = error.record.errors.full_messages.join(', ')
+    render :edit, status: :unprocessable_entity
   end
 
   private
 
   def establishment_params
-    params.require(:establishment).permit(:logo)
+    permitted = [:logo]
+    permitted << :google_review_url if current_establishment.google_reviews_enabled?
+    params.require(:establishment).permit(*permitted)
   end
 
   def save_establishment_settings
-    logo = establishment_params[:logo]
-    if logo.present?
-      current_establishment.update!(logo: logo)
-      AuditLogger.record(user: current_user, action: 'branding_updated', record: current_establishment)
+    current_establishment.with_lock do
+      attributes = establishment_params.to_h
+      attributes.delete('logo') if attributes['logo'].blank?
+      return if attributes.empty?
+
+      current_establishment.update!(attributes)
+      if attributes.key?('logo')
+        AuditLogger.record(user: current_user, action: 'branding_updated', record: current_establishment)
+      end
+      if attributes.key?('google_review_url')
+        AuditLogger.record(user: current_user, action: 'google_review_settings_updated', record: current_establishment)
+      end
     end
   end
 end

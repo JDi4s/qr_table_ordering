@@ -32,13 +32,14 @@ class Admin::EstablishmentsController < Admin::BaseController
     end
     AuditLogger.record(user: current_user, action: 'establishment_contract_updated', record: @establishment,
                        metadata: { plan: @establishment.plan, table_limit: @establishment.table_limit,
-                                   production_areas_limit: @establishment.production_areas_limit })
+                                   production_areas_limit: @establishment.production_areas_limit,
+                                   google_reviews_enabled: @establishment.google_reviews_enabled? })
     redirect_to admin_establishments_path, notice: 'Contrato atualizado.', status: :see_other
   rescue ActiveRecord::RecordInvalid
     render :edit, status: :unprocessable_entity
   end
   private
   def establishment_params
-    params.require(:establishment).permit(:name, :slug, :table_limit, :monthly_fee, :active, :production_areas_limit, :plan)
+    params.require(:establishment).permit(:name, :slug, :table_limit, :monthly_fee, :active, :production_areas_limit, :plan, :google_reviews_enabled)
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_09_14_090000) do
+ActiveRecord::Schema[7.1].define(version: 2026_09_15_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -102,6 +102,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_14_090000) do
     t.boolean "accepting_orders", default: true, null: false
     t.datetime "service_paused_at"
     t.bigint "service_paused_by_user_id"
+    t.boolean "google_reviews_enabled", default: false, null: false
+    t.string "google_review_url"
     t.index ["service_paused_by_user_id"], name: "index_establishments_on_service_paused_by_user_id"
     t.index ["slug"], name: "index_establishments_on_slug", unique: true
     t.check_constraint "plan::text = ANY (ARRAY['essential'::character varying, 'management'::character varying]::text[])", name: "valid_establishment_plan"
