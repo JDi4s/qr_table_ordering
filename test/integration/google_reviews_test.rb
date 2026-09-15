@@ -42,10 +42,11 @@ class GoogleReviewsTest < ActionDispatch::IntegrationTest
   test 'invitation appears on pending customer order and disappears when disabled or denied' do
     get new_table_order_path(@table)
     post review_table_orders_path(@table), params: { order: { items: { @product.id.to_s => '1' } } }
-    quote = response.body[/name="quote" value="([^"]+)"/, 1]
+    assert_response :success
+    quote = Nokogiri::HTML(response.body).at_css('input[name="quote"]')&.[]('value')
     assert quote.present?
     @venue.update!(google_reviews_enabled: true, google_review_url: @url)
-    post table_orders_path(@table), params: { quote: CGI.unescapeHTML(quote) }
+    post table_orders_path(@table), params: { quote: quote }
     follow_redirect!
     assert_select '.google-review-invitation', count: 1
     assert_select 'a.google-review-link[href=?][target="_blank"][rel="noopener noreferrer"]', @url
