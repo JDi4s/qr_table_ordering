@@ -6,6 +6,11 @@
   --line: #dce4dc;
 }
 
+/* Alertas de apoio em tempo real, sem alterar os alertas de pedidos. */
+.support-live-notification { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; margin: 12px 0; border: 1px solid #a8caba; border-radius: 12px; color: #203832; background: #e7f4ed; }
+.support-live-notification > div { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.support-live-notification button { flex: 0 0 auto; margin: 0; }
+
 /* Administração da plataforma, apoio e intervenção assistida. */
 .admin-body { background: #f3f6f2; }
 .admin-header { position: sticky; z-index: 50; top: 0; flex-wrap: nowrap; gap: 28px; padding: 14px max(22px, 4vw); box-shadow: 0 1px 0 #dce4dc; }

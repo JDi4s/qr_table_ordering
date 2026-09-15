@@ -16,7 +16,10 @@ class Admin::SupportTicketsController < Admin::BaseController
     @ticket.update!(ticket_params.merge(assigned_to: current_user))
     AuditLogger.record(user: current_user, action: 'support_ticket_updated', record: @ticket,
                        metadata: { status: @ticket.status, priority: @ticket.priority })
-    PlatformPushNotifier.notify_establishment(@ticket, nil) if @ticket.saved_change_to_status?
+    if @ticket.saved_change_to_status?
+      PlatformPushNotifier.notify_establishment(@ticket, nil)
+      SupportTicketBroadcaster.notify(@ticket, current_user, title: 'Estado do ticket atualizado')
+    end
     redirect_to admin_support_ticket_path(@ticket), notice: 'Ticket atualizado.', status: :see_other
   end
 

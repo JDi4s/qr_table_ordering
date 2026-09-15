@@ -1,0 +1,10 @@
+<div id="support_ticket_reply_<%= ticket.id %>">
+  <% unless ticket.resolved? %>
+    <%= form_with model: SupportTicketMessage.new, url: staff_support_ticket_messages_path(ticket), class: 'ticket-reply-form', html: { multipart: true } do |f| %>
+      <%= f.label :body, 'Responder' %><%= f.text_area :body, rows: 4, maxlength: 5000 %>
+      <%= f.file_field :attachment, accept: 'image/png,image/jpeg,image/webp' %><%= f.submit 'Enviar mensagem' %>
+    <% end %>
+  <% else %>
+    <div class="support-resolved-note"><strong>Este pedido está resolvido.</strong><span>Se surgir outro problema, abre um novo ticket.</span></div>
+  <% end %>
+</div>

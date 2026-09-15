@@ -1,0 +1,12 @@
+<section id="support_ticket_list" class="support-ticket-list">
+  <% if tickets.any? %>
+    <% tickets.each do |ticket| %>
+      <%= link_to staff_support_ticket_path(ticket), class: 'support-ticket-card' do %>
+        <div><span><%= support_ticket_category_label(ticket.category) %></span><strong><%= ticket.subject %></strong><small>#<%= ticket.id %> · Atualizado em <%= ticket.updated_at.strftime('%d/%m/%Y às %H:%M') %></small></div>
+        <span class="ticket-status status-<%= ticket.status %>"><%= support_ticket_status_label(ticket.status) %></span>
+      <% end %>
+    <% end %>
+  <% else %>
+    <div class="panel support-empty"><strong>Ainda não abriste nenhum pedido</strong><p>Quando precisares, explica o problema e anexa uma imagem.</p><%= link_to 'Pedir apoio', new_staff_support_ticket_path, class: 'button secondary' %></div>
+  <% end %>
+</section>

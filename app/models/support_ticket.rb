@@ -19,11 +19,18 @@ class SupportTicket < ApplicationRecord
   scope :unresolved, -> { where.not(status: 'resolved') }
   scope :recent_first, -> { order(updated_at: :desc) }
 
+  after_create_commit :broadcast_support_update
+  after_update_commit :broadcast_support_update
+
   def resolved?
     status == 'resolved'
   end
 
   private
+
+  def broadcast_support_update
+    SupportTicketBroadcaster.refresh(self)
+  end
 
   def creator_belongs_to_establishment
     return if created_by&.establishment_id == establishment_id && created_by&.manager?
