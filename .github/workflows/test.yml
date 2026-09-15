@@ -45,7 +45,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/mesa_rehearsal_test
           RAILS_MAX_THREADS: '8'
         run: |
-          bin/rails db:create db:migrate
+          bin/rails db:create db:schema:load
           bin/rails runner test/support/pilot_rehearsal.rb
       - uses: actions/upload-artifact@v4
         if: always()
