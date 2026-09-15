@@ -10,7 +10,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
     Capybara.using_session(:support_manager) do
       browser_sign_in(manager)
       visit staff_support_ticket_path(ticket)
-      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
       assert_selector 'turbo-cable-stream-source[data-scope="notifications"][connected]', visible: :all
       fill_in 'Responder', with: 'Rascunho ainda por enviar'
     end

@@ -12,7 +12,8 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     assert_selector 'turbo-cable-stream-source[connected]', visible: :all
     assert_selector '.google-review-invitation'
     assert_text 'Já conheces o nosso espaço?'
-    click_on 'Fechar convite de avaliação'
+    page.save_screenshot(Rails.root.join('tmp/screenshots/google-review-invitation.png'))
+    find('button[aria-label="Fechar convite de avaliação"]').click
     assert_no_selector '.google-review-invitation'
     table.orders.last.finalize_review!
     assert_text 'Aceite'
