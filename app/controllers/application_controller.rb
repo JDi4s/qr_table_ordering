@@ -5,6 +5,10 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def disable_management_page_cache
+    response.headers['Cache-Control'] = 'no-store, private'
+  end
+
   def current_user
     @current_user ||= User.find_by(id: session[:user_id], active: true, deleted_at: nil)
   end

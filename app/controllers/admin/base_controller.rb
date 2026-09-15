@@ -1,5 +1,6 @@
 class Admin::BaseController < ApplicationController
   layout 'admin'
+  before_action :disable_management_page_cache
   before_action :require_platform_admin
   before_action :enforce_support_session_boundary
 
@@ -9,7 +10,11 @@ class Admin::BaseController < ApplicationController
     return if current_user&.platform_admin?
 
     if current_user&.staff_account?
-      redirect_to staff_orders_path, alert: 'Esta área é exclusiva da administração da plataforma.'
+      if request.format.json?
+        render json: { error: 'Esta área é exclusiva da administração da plataforma.' }, status: :forbidden
+      else
+        redirect_to staff_orders_path, alert: 'Esta área é exclusiva da administração da plataforma.', status: :see_other
+      end
     else
       redirect_to login_path, alert: 'Inicia sessão com a conta da administração da plataforma.'
     end
