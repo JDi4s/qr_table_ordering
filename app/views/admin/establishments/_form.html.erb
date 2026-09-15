@@ -7,6 +7,8 @@
   <%= f.label :plan, 'Plano comercial' %><%= f.select :plan, [['Essencial — hoje e últimos 7 dias', 'essential'], ['Gestão — estatísticas completas', 'management']], {}, required: true %>
   <%= f.label :production_areas_limit, 'Limite de áreas de produção (0 desliga)' %><%= f.number_field :production_areas_limit, min: 0, required: true %>
   <label><%= f.check_box :active %> Estabelecimento ativo</label>
+  <label><%= f.check_box :google_reviews_enabled %> Ativar avaliações Google para este estabelecimento</label>
+  <small>Permite ao gerente configurar a ligação. O convite aparece ao cliente após enviar um pedido.</small>
   <% if @establishment.new_record? %>
     <h2>Acesso inicial do gerente</h2>
     <label for="manager_name">Nome</label><%= text_field_tag 'manager[name]', nil, id: 'manager_name', required: true %>

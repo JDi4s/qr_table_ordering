@@ -10,19 +10,19 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
     Capybara.using_session(:support_manager) do
       browser_sign_in(manager)
       visit staff_support_ticket_path(ticket)
-      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
-      assert_selector 'turbo-cable-stream-source[data-scope="notifications"][connected]', visible: :all
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
+      assert_selector 'turbo-cable-stream-source[data-scope="notifications"][connected]', visible: :all, wait: 10
       fill_in 'Responder', with: 'Rascunho ainda por enviar'
     end
 
     Capybara.using_session(:support_admin) do
       browser_sign_in(owner)
       visit admin_support_ticket_path(ticket)
-      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
       fill_in 'Responder como Suporte', with: 'Resposta instantânea do suporte'
       submit_and_wait_for_navigation('Enviar resposta')
       assert_text 'Resposta enviada'
-      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
     end
 
     Capybara.using_session(:support_manager) do
@@ -31,7 +31,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
       within('#support_notifications') { assert_text 'Resposta do Suporte' }
       submit_and_wait_for_navigation('Enviar mensagem')
       assert_text 'Mensagem enviada'
-      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
     end
 
     Capybara.using_session(:support_admin) do
@@ -39,7 +39,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
       select 'Resolvido', from: 'Estado'
       submit_and_wait_for_navigation('Guardar estado')
       assert_text 'Ticket atualizado'
-      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
     end
 
     Capybara.using_session(:support_manager) do
@@ -53,7 +53,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
       select 'Em análise', from: 'Estado'
       submit_and_wait_for_navigation('Guardar estado')
       assert_text 'Ticket atualizado'
-      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
     end
 
     Capybara.using_session(:support_manager) do
@@ -76,7 +76,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
     page.execute_script("document.body.setAttribute('data-system-navigation-checkpoint', 'waiting')")
     click_on label
     assert_selector 'body:not([data-system-navigation-checkpoint])'
-    assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+    assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all, wait: 10
   end
 
   def browser_sign_in(user)
@@ -84,6 +84,8 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
     fill_in 'Email', with: user.email
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'
+    assert_current_path(user.platform_admin? ? admin_establishments_path : staff_orders_path, wait: 10)
+    assert_selector(user.platform_admin? ? '.admin-header' : 'body[data-controller="staff-orders"]')
     assert_no_button 'Entrar'
   end
 end

@@ -3,6 +3,20 @@
 
 <%= render 'staff/settings/tabs' %>
 
+<% if manager_access? && current_establishment.google_reviews_enabled? %>
+  <section class="panel settings-card settings-section">
+    <p class="eyebrow">AVALIAÇÕES GOOGLE</p>
+    <h2>Convite para avaliar</h2>
+    <p>Ativado pela administração. O convite aparece após enviar um pedido. Deixa a ligação vazia para não o mostrar.</p>
+    <%= form_with model: current_establishment, url: staff_settings_path, method: :patch do |f| %>
+      <%= f.label :google_review_url, 'Ligação de avaliações do Google' %>
+      <%= f.url_field :google_review_url, placeholder: 'https://g.page/r/.../review', maxlength: 2048 %>
+      <small>Copia a ligação “Pedir avaliações” do Perfil de Empresa no Google.</small>
+      <%= f.submit 'Guardar ligação do Google' %>
+    <% end %>
+  </section>
+<% end %>
+
 <% if current_user.manager? %>
   <section class="panel settings-card settings-section service-status-card <%= 'is-paused' unless current_establishment.accepting_orders? %>">
     <div class="service-status-copy">

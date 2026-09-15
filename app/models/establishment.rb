@@ -20,6 +20,12 @@ class Establishment < ApplicationRecord
   validates :plan, inclusion: { in: %w[essential management] }
   validate :logo_must_be_an_accepted_image
   validate :limit_covers_active_tables
+  validate :google_review_url_must_be_safe
+  before_validation { self.google_review_url = google_review_url.to_s.strip.presence }
+
+  def google_reviews_available?
+    google_reviews_enabled? && google_review_url.present?
+  end
 
   def monthly_fee
     monthly_fee_cents.to_d / 100
@@ -71,6 +77,18 @@ class Establishment < ApplicationRecord
   end
 
   private
+
+  def google_review_url_must_be_safe
+    return if google_review_url.blank?
+
+    uri = URI.parse(google_review_url)
+    hosts = %w[google.com www.google.com search.google.com maps.google.com google.pt www.google.pt g.page maps.app.goo.gl goo.gl]
+    unless uri.is_a?(URI::HTTPS) && hosts.include?(uri.host) && uri.userinfo.nil? && uri.port == 443 && google_review_url.length <= 2048
+      errors.add(:google_review_url, 'deve ser uma ligação HTTPS de avaliações do Google')
+    end
+  rescue URI::InvalidURIError
+    errors.add(:google_review_url, 'deve ser uma ligação HTTPS de avaliações do Google')
+  end
 
   def logo_must_be_an_accepted_image
     return unless logo.attached?

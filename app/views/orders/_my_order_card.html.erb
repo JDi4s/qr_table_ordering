@@ -16,4 +16,7 @@
     <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary' %>
   <% end %>
   <% if order.denied? %><p><%= order.cancellation_reason.presence || order.denial_reason %></p><% end %>
+  <% if !order.denied? && order.establishment.google_reviews_available? %>
+    <%= render 'orders/google_review_invitation', establishment: order.establishment %>
+  <% end %>
 </section>
