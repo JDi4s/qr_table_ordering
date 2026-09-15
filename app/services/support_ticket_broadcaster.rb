@@ -43,7 +43,9 @@ class SupportTicketBroadcaster
     end
     refresh(ticket)
     title = message.from_support? ? 'Resposta do Suporte' : 'Nova mensagem de apoio'
-    title = 'Novo pedido de apoio' unless ticket.messages.where('id < ?', message.id).exists?
+    if !message.from_support? && !ticket.messages.where('id < ?', message.id).exists?
+      title = 'Novo pedido de apoio'
+    end
     notify(ticket, message.author, title: title)
   end
 
