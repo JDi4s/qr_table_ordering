@@ -22,6 +22,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
       fill_in 'Responder como Suporte', with: 'Resposta instantânea do suporte'
       click_on 'Enviar resposta'
       assert_text 'Resposta enviada'
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
     end
 
     Capybara.using_session(:support_manager) do
@@ -30,6 +31,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
       within('#support_notifications') { assert_text 'Resposta do Suporte' }
       click_on 'Enviar mensagem'
       assert_text 'Mensagem enviada'
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
     end
 
     Capybara.using_session(:support_admin) do
@@ -37,6 +39,7 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
       select 'Resolvido', from: 'Estado'
       click_on 'Guardar estado'
       assert_text 'Ticket atualizado'
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
     end
 
     Capybara.using_session(:support_manager) do
@@ -44,6 +47,24 @@ class SupportLiveSystemTest < ApplicationSystemTestCase
       assert_text 'Este pedido está resolvido'
       assert_no_field 'Responder'
       page.save_screenshot(Rails.root.join('tmp/screenshots/support-live.png'))
+    end
+
+    Capybara.using_session(:support_admin) do
+      select 'Em análise', from: 'Estado'
+      click_on 'Guardar estado'
+      assert_text 'Ticket atualizado'
+      assert_selector 'turbo-cable-stream-source[data-scope="ticket"][connected]', visible: :all
+    end
+
+    Capybara.using_session(:support_manager) do
+      assert_field 'Responder'
+      fill_in 'Responder', with: 'Mensagem após reabertura em direto'
+      click_on 'Enviar mensagem'
+      assert_text 'Mensagem enviada'
+    end
+
+    Capybara.using_session(:support_admin) do
+      within("#support_ticket_messages_#{ticket.id}") { assert_text 'Mensagem após reabertura em direto' }
     end
   end
 

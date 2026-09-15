@@ -1,6 +1,6 @@
 <div id="support_ticket_reply_<%= ticket.id %>">
   <% unless ticket.resolved? %>
-    <%= form_with model: SupportTicketMessage.new, url: staff_support_ticket_messages_path(ticket), class: 'ticket-reply-form', html: { multipart: true } do |f| %>
+    <%= form_with model: SupportTicketMessage.new, url: staff_support_ticket_messages_path(ticket), class: 'ticket-reply-form', authenticity_token: false, html: { multipart: true } do |f| %>
       <%= f.label :body, 'Responder' %><%= f.text_area :body, rows: 4, maxlength: 5000 %>
       <%= f.file_field :attachment, accept: 'image/png,image/jpeg,image/webp' %><%= f.submit 'Enviar mensagem' %>
     <% end %>
