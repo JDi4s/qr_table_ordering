@@ -157,15 +157,26 @@ class PilotRehearsal
 
   def parallel(values)
     gate = Queue.new
+    jobs = Queue.new
+    values.each_with_index { |value, index| jobs << [index, value] }
+    results = Array.new(values.size)
     ActiveRecord::Base.connection_handler.clear_active_connections!
-    threads = values.map do |value|
+    threads = [values.size, 30].min.times.map do
       Thread.new do
         gate.pop
-        Rails.application.executor.wrap { yield value }
+        loop do
+          begin
+            index, value = jobs.pop(true)
+          rescue ThreadError
+            break
+          end
+          results[index] = Rails.application.executor.wrap { yield value }
+        end
       end
     end
     threads.size.times { gate << true }
-    threads.map(&:value)
+    threads.each(&:value)
+    results
   ensure
     threads&.each(&:join)
   end
