@@ -1,5 +1,6 @@
 class Staff::BaseController < ApplicationController
   layout 'staff'
+  before_action :disable_management_page_cache
   before_action :require_venue_access
   before_action :require_password_change
   before_action :restrict_support_operations
@@ -10,6 +11,19 @@ class Staff::BaseController < ApplicationController
     return if current_user&.venue_access? || support_mode?
 
     if current_user&.platform_admin?
+      # A stale venue tab is not an expired support intervention. Keep the
+      # current administrator session and refuse any attempted venue action.
+      if session[:support_session_id].blank?
+        if request.format.json?
+          render json: { error: 'A sessão atual pertence à administração da plataforma.' }, status: :forbidden
+        else
+          redirect_to admin_establishments_path,
+                      alert: 'A sessão atual é da administração. Para gerir o café, inicia sessão com a conta do estabelecimento.',
+                      status: :see_other
+        end
+        return
+      end
+
       expired_session = current_user.support_sessions.find_by(id: session[:support_session_id])
       if expired_session && expired_session.ended_at.nil?
         AuditLogger.record(user: current_user, action: 'support_access_ended', record: expired_session,
