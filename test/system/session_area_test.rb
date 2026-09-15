@@ -12,7 +12,7 @@ class SessionAreaSystemTest < ApplicationSystemTestCase
     browser_login(owner)
     visit staff_menu_path
     assert_current_path admin_establishments_path
-    assert_text 'Administração'
+    assert_selector '.admin-header'
 
     browser_login(manager)
     visit admin_establishments_path
