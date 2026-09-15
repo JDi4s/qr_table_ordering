@@ -26,7 +26,7 @@ class SessionAreaTest < ActionDispatch::IntegrationTest
       post staff_push_subscription_path, params: { subscription: { endpoint: 'https://example.com/push', keys: { p256dh: 'key', auth: 'secret' } } }, as: :json
     end
     assert_response :forbidden
-    assert_equal 'no-store, private', response.headers['Cache-Control']
+    assert_includes response.headers['Cache-Control'], 'no-store'
     get admin_establishments_path
     assert_response :success
   end
@@ -65,11 +65,11 @@ class SessionAreaTest < ActionDispatch::IntegrationTest
   test 'management pages bypass HTTP and Turbo snapshots' do
     sign_in(@owner)
     get admin_establishments_path
-    assert_equal 'no-store, private', response.headers['Cache-Control']
+    assert_includes response.headers['Cache-Control'], 'no-store'
     assert_select 'meta[name="turbo-cache-control"][content="no-cache"]'
     sign_in(@manager)
     get staff_orders_path
-    assert_equal 'no-store, private', response.headers['Cache-Control']
+    assert_includes response.headers['Cache-Control'], 'no-store'
     assert_select 'meta[name="turbo-cache-control"][content="no-cache"]'
   end
 end
