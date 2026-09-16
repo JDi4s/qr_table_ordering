@@ -3,20 +3,6 @@
 
 <%= render 'staff/settings/tabs' %>
 
-<% if manager_access? && current_establishment.google_reviews_enabled? %>
-  <section class="panel settings-card settings-section">
-    <p class="eyebrow">AVALIAÇÕES GOOGLE</p>
-    <h2>Convite para avaliar</h2>
-    <p>Ativado pela administração. O convite aparece após enviar um pedido. Deixa a ligação vazia para não o mostrar.</p>
-    <%= form_with model: current_establishment, url: staff_settings_path, method: :patch do |f| %>
-      <%= f.label :google_review_url, 'Ligação de avaliações do Google' %>
-      <%= f.url_field :google_review_url, placeholder: 'https://g.page/r/.../review', maxlength: 2048 %>
-      <small>Copia a ligação “Pedir avaliações” do Perfil de Empresa no Google.</small>
-      <%= f.submit 'Guardar ligação do Google' %>
-    <% end %>
-  </section>
-<% end %>
-
 <% if current_user.manager? %>
   <section class="panel settings-card settings-section service-status-card <%= 'is-paused' unless current_establishment.accepting_orders? %>">
     <div class="service-status-copy">
@@ -32,6 +18,33 @@
                   method: :patch,
                   params: { accepting_orders: current_establishment.accepting_orders? ? '0' : '1' },
                   class: current_establishment.accepting_orders? ? 'secondary' : nil) %>
+  </section>
+<% end %>
+
+<% if manager_access? && current_establishment.google_reviews_enabled? %>
+  <section class="panel settings-card settings-section google-review-settings">
+    <div class="google-review-settings-heading">
+      <div>
+        <p class="eyebrow">REPUTAÇÃO ONLINE</p>
+        <h2>Avaliações Google</h2>
+      </div>
+      <span class="badge google-review-settings-status <%= 'is-ready' if current_establishment.google_review_url.present? %>">
+        <%= current_establishment.google_review_url.present? ? 'Configurado' : 'Por configurar' %>
+      </span>
+    </div>
+    <p class="google-review-settings-description">Convida os clientes a partilhar a experiência depois de realizarem um pedido.</p>
+    <%= form_with model: current_establishment, url: staff_settings_path, method: :patch, html: { class: 'google-review-settings-form' } do |f| %>
+      <%= f.label :google_review_url, 'Link para avaliações' %>
+      <%= f.url_field :google_review_url, placeholder: 'https://g.page/r/.../review', maxlength: 2048, inputmode: 'url', autocomplete: 'url' %>
+      <small class="google-review-settings-help">No Perfil da Empresa no Google, seleciona “Pedir avaliações” e copia o link.</small>
+      <div class="google-review-settings-actions">
+        <%= f.submit 'Guardar alterações' %>
+        <% if current_establishment.google_review_url.present? %>
+          <%= link_to 'Testar ligação', current_establishment.google_review_url, class: 'button secondary', target: '_blank', rel: 'noopener noreferrer' %>
+        <% end %>
+      </div>
+    <% end %>
+    <p class="google-review-settings-note">O convite só fica visível aos clientes depois de guardares um link válido.</p>
   </section>
 <% end %>
 
