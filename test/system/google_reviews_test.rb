@@ -11,6 +11,8 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     fill_in 'Email', with: manager.email
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'
+    assert_current_path staff_orders_path, wait: 10
+    assert_no_button 'Entrar'
     visit edit_staff_settings_path
 
     assert_selector '.service-status-card'
