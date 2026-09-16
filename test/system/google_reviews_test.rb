@@ -1,6 +1,27 @@
 require 'application_system_test_case'
 
 class GoogleReviewsSystemTest < ApplicationSystemTestCase
+  test 'manager sees compact Google review settings on mobile' do
+    venue, = build_venue
+    venue.update!(google_reviews_enabled: true, google_review_url: 'https://g.page/r/test/review')
+    manager = venue_user(venue)
+
+    page.current_window.resize_to(375, 812)
+    visit login_path
+    fill_in 'Email', with: manager.email
+    fill_in 'Palavra-passe', with: 'Test-password-123'
+    click_on 'Entrar'
+    assert_current_path staff_orders_path, wait: 10
+    assert_no_button 'Entrar'
+    visit edit_staff_settings_path
+
+    assert_selector '.service-status-card'
+    assert_selector '.google-review-settings-status.is-ready', text: 'Configurado'
+    assert_field 'Link para avaliações', with: 'https://g.page/r/test/review'
+    assert_link 'Testar ligação', href: 'https://g.page/r/test/review'
+    page.save_screenshot(Rails.root.join('tmp/screenshots/google-review-settings-mobile.png'))
+  end
+
   test 'customer can dismiss invitation and Turbo updates do not restore it' do
     venue, table, product = build_venue
     venue.update!(google_reviews_enabled: true, google_review_url: 'https://g.page/r/test/review')

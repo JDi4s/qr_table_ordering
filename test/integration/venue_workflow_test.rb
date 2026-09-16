@@ -167,6 +167,10 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     get my_table_orders_path(@table)
     assert_response :success
     assert_includes response.body, "Pedido ##{order.id}"
+    assert_includes response.body, 'Total do pedido'
+    assert_not_includes response.body, 'Total provisório'
+    assert_not_includes response.body, 'pago(s)'
+    assert_not_includes response.body, 'por pagar'
     second = open_session
     second.get my_table_orders_path(@table)
     assert_not_includes second.response.body, "Pedido ##{order.id}"

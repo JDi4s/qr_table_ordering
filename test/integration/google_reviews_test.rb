@@ -26,8 +26,16 @@ class GoogleReviewsTest < ActionDispatch::IntegrationTest
   test 'manager saves clears and validates link while staff cannot modify it' do
     @venue.update!(google_reviews_enabled: true)
     sign_in(@manager)
+    get edit_staff_settings_path
+    assert_select '.google-review-settings-status', text: 'Por configurar'
+    assert_select '.google-review-settings-actions a', count: 0
+
     patch staff_settings_path, params: { establishment: { google_review_url: @url } }
     assert_equal @url, @venue.reload.google_review_url
+    get edit_staff_settings_path
+    assert_select '.google-review-settings-status.is-ready', text: 'Configurado'
+    assert_select 'a[href=?][target="_blank"][rel="noopener noreferrer"]', @url, text: 'Testar ligação'
+
     patch staff_settings_path, params: { establishment: { google_review_url: 'https://google.com.evil.example/review' } }
     assert_response :unprocessable_entity
     assert_equal @url, @venue.reload.google_review_url

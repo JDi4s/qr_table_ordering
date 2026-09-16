@@ -5,3 +5,25 @@
 .google-review-dismiss { position: absolute; top: 8px; right: 8px; border: 0; background: transparent; color: var(--green, #20654d); font-size: 26px; padding: 0 6px; line-height: 1; }
 .google-review-link { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; }
 .google-review-link svg { flex: 0 0 24px; }
+
+.google-review-settings { border-top: 3px solid var(--green); }
+.google-review-settings-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.google-review-settings-heading .eyebrow { margin: 0 0 5px; }
+.google-review-settings-heading h2 { margin: 0; }
+.google-review-settings-status { flex: 0 0 auto; background: #fff3d9; color: #805a13; white-space: nowrap; }
+.google-review-settings-status.is-ready { background: #e1f1e7; color: #216044; }
+.google-review-settings-description { max-width: 58ch; margin: 12px 0 4px; color: var(--muted); }
+.google-review-settings-form label { margin-top: 14px; }
+.google-review-settings-form input[type="url"] { min-width: 0; }
+.google-review-settings-help { display: block; margin-top: 6px; line-height: 1.45; }
+.google-review-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.google-review-settings-actions input,
+.google-review-settings-actions .button { margin: 0; }
+.google-review-settings-note { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+
+@media (max-width: 480px) {
+  .google-review-settings-heading { align-items: center; }
+  .google-review-settings-actions { display: grid; grid-template-columns: 1fr; }
+  .google-review-settings-actions input,
+  .google-review-settings-actions .button { width: 100%; text-align: center; }
+}
