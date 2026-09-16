@@ -10,7 +10,6 @@
   <div class="line"><strong>Total do pedido</strong><strong><%= euros(order.total) %></strong></div>
   <% if order.paid? %><p class="badge">Pago no balcão</p><% elsif order.paid_total.positive? %><p class="badge">Pagamento parcial no balcão</p><% end %>
   <% if order.pending? %><p>O funcionário está a avaliar a disponibilidade. Aguarde a confirmação.</p><% end %>
-  <% if order.pending? && order.created_at < 3.minutes.ago %><p class="danger">O prazo de 3 minutos para cancelar terminou.</p><% end %>
   <% if order.cancellable_by_customer? %>
     <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary' %>
   <% end %>

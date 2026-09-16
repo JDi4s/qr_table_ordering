@@ -171,6 +171,11 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, 'Total provisório'
     assert_not_includes response.body, 'pago(s)'
     assert_not_includes response.body, 'por pagar'
+    assert_select "form[action='#{cancel_table_order_path(@table, order)}']", count: 1
+    order.update_column(:created_at, 4.minutes.ago)
+    get my_table_orders_path(@table)
+    assert_not_includes response.body, 'prazo de 3 minutos'
+    assert_select "form[action='#{cancel_table_order_path(@table, order)}']", count: 0
     second = open_session
     second.get my_table_orders_path(@table)
     assert_not_includes second.response.body, "Pedido ##{order.id}"
