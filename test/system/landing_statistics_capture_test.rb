@@ -15,14 +15,14 @@ class LandingStatisticsCaptureTest < ApplicationSystemTestCase
       order.update!(status: 'served', served_at: Time.current, total: 30,
                     paid_at: Time.current, paid_by_user: manager)
       order.payments.create!(user: manager, amount: 30, payment_method: 'card',
-                             paid_at: index.days.ago)
+                             paid_at: index.hours.ago)
     end
 
     visit login_path
     fill_in 'Email', with: manager.email
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'
-    visit staff_reports_path(tab: 'statistics', analysis: 'revenue', metric: 'total', view: 'month')
+    visit staff_reports_path(tab: 'statistics', analysis: 'revenue', metric: 'total', view: 'day', date: Date.current.iso8601)
     assert_text '120,00 €'
     page.execute_script("document.querySelector('.report-stat-grid').scrollIntoView({block: 'start'})")
     browser = page.driver.browser
