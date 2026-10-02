@@ -18,8 +18,12 @@ class LandingLanguageTest < ApplicationSystemTestCase
     assert_equal 390, page.evaluate_script('window.innerWidth')
     page.execute_script('window.scrollTo(0, 0)')
     page.save_screenshot(Rails.root.join('tmp/screenshots/landing-mobile-v2.png'))
-    page.execute_script("document.querySelector('#produto').scrollIntoView({block: 'center'})")
-    page.save_screenshot(Rails.root.join('tmp/screenshots/landing-product-mobile.png'))
+    page.execute_script("document.querySelector('.hero-visual').scrollIntoView({block: 'center'})")
+    page.save_screenshot(Rails.root.join('tmp/screenshots/landing-hero-mobile.png'))
+    page.execute_script("document.querySelectorAll('.product-phone')[0].scrollIntoView({block: 'center'})")
+    page.save_screenshot(Rails.root.join('tmp/screenshots/landing-product-first-mobile.png'))
+    page.execute_script("document.querySelectorAll('.product-phone')[1].scrollIntoView({block: 'center'})")
+    page.save_screenshot(Rails.root.join('tmp/screenshots/landing-product-second-mobile.png'))
     browser.execute_cdp('Emulation.clearDeviceMetricsOverride')
     click_on 'EN'
 
