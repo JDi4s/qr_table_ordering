@@ -7,7 +7,7 @@ class PlatformBrandingTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select 'title', text: 'Bocato — Pedidos por QR'
     assert_select 'img.platform-logo[alt="Bocato"]', count: 1
-    assert_select 'h1', text: 'Bem-vindo à Bocato.'
+    assert_select 'h1', text: 'Bem-vindo ao Bocato.'
     assert_select 'link[rel="icon"][href="/bocato-icon-v4-32.png"]', count: 1
     assert_select 'link[rel="apple-touch-icon"][href="/bocato-icon-v4-180.png"]', count: 1
     assert_not_includes response.body, 'scan, pede e paga'
