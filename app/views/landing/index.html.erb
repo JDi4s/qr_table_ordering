@@ -101,26 +101,38 @@
     @media(max-width:740px) { .wrap { width:min(100% - 32px,540px); } .nav { min-height:70px; gap:12px; } .brand img { width:125px; } .nav-actions { gap:10px; } .login { padding:8px 13px; } .hero .wrap { display:flex; flex-direction:column; align-items:stretch; padding:65px 0 55px; gap:12px; } h1 { font-size:clamp(42px,9vw,60px); } .hero-copy > p { font-size:16px; } .hero-visual { transform:none; width:100%; height:420px; } .dash-window { width:90%; top:70px; right:0; } .phone { width:160px; left:0; bottom:12px; border-width:5px; border-radius:23px; padding:6px; } .phone img { height:286px; border-radius:13px; } .float-label { font-size:11px; right:0; bottom:8px; padding:9px; } .halo { inset:30px 0 0 20px; } .intro-strip .wrap { flex-direction:column; align-items:flex-start; gap:4px; } section.section { padding:75px 0; } .steps { grid-template-columns:1fr; } .step { min-height:unset; padding:23px; } .step .number { margin-bottom:18px; } .feature,.feature.reverse { display:flex; flex-direction:column; align-items:stretch; gap:32px; } .feature.reverse .feature-copy { order:0; } .customer-screen { grid-template-columns:1fr 150px; gap:10px; } .customer-screen .screen img { height:245px; } .small-phone { width:150px; } .small-phone img { height:250px; } .closing { padding:38px 26px; flex-direction:column; align-items:flex-start; } .footer .wrap { flex-wrap:wrap; } }
     @media(max-width:380px) { .brand img { width:105px; } .nav-actions { gap:6px; } .lang { font-size:12px; } .login { font-size:12px; padding:7px 10px; } .phone { width:145px; } .hero-visual { height:365px; } .phone img { height:260px; } .float-label { display:none; } }
 
-    /* Keep the layout centered and show product screens at legible sizes. */
+    /* Center the real product screens while keeping a little movement in the composition. */
     .nav { display:grid; grid-template-columns:1fr auto 1fr; }
     .nav-links { margin:0; }
     .nav-actions { justify-self:end; }
     .hero .wrap { grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:58px; min-height:650px; padding:72px 0; }
     .hero-copy { max-width:555px; }
     h1 { font-size:clamp(43px,4.35vw,62px); }
-    .hero-visual { height:505px; display:flex; align-items:center; justify-content:center; }
+    .hero-visual { height:505px; max-width:610px; margin-inline:auto; display:flex; align-items:center; justify-content:center; }
     .halo { inset:18px 25px 10px 48px; }
-    .dash-window { top:54px; right:0; width:min(570px,100%); transform:none; }
-    .dash-window img { aspect-ratio:4 / 3; object-fit:cover; object-position:top center; }
-    .phone { left:-12px; bottom:0; width:210px; transform:none; }
+    .dash-window { top:54px; right:0; width:min(570px,95%); transform:rotate(1.5deg); overflow:hidden; }
+    .dash-window img { aspect-ratio:16 / 10; object-fit:cover; object-position:center 30%; }
+    .phone { left:0; bottom:0; width:210px; transform:rotate(-3deg); }
     .phone img { height:auto; aspect-ratio:390 / 780; object-fit:cover; object-position:top; }
-    .float-label { right:0; bottom:0; transform:none; }
-    .phone-pair { display:flex; align-items:flex-start; justify-content:center; gap:30px; }
-    .product-phone { margin:0; width:min(45%,252px); min-width:0; }
-    .product-phone:nth-child(2) { margin-top:52px; }
-    .device-frame { padding:7px; border:7px solid var(--forest); border-radius:34px; background:white; box-shadow:0 22px 45px #1e4b3524; }
+    .float-label { right:0; bottom:0; transform:rotate(2deg); }
+    .showcase { background:radial-gradient(circle at 74% 43%,#dce9d9 0 17%,transparent 17.2%),#e8eee6; }
+    .feature > .screen { width:100%; max-width:700px; justify-self:center; }
+    .feature.reverse > .screen { transform:rotate(-1.2deg); }
+    .statistics .feature > .screen { transform:rotate(1.2deg); }
+    .team-screen { overflow:hidden; }
+    .team-screen img { aspect-ratio:16 / 10; object-fit:cover; object-position:center 35%; }
+    .phone-pair { position:relative; display:flex; align-items:flex-start; justify-content:center; gap:0; width:100%; max-width:650px; margin-inline:auto; padding:35px 22px 42px; }
+    .phone-pair:before { content:""; position:absolute; z-index:0; inset:9% 6% 13%; border-radius:45% 55% 52% 48%; transform:rotate(-9deg); background:#d4e5d3; }
+    .product-phone { position:relative; z-index:1; margin:0; width:min(47%,252px); min-width:0; transform:rotate(-3deg); }
+    .product-phone:nth-child(2) { z-index:2; margin-top:56px; margin-left:-26px; transform:rotate(3deg); }
+    .device-frame { position:relative; padding:7px; border:7px solid var(--forest); border-radius:34px; background:white; box-shadow:0 22px 45px #1e4b3524; }
+    .device-frame:before { content:""; position:absolute; z-index:2; top:0; left:50%; width:64px; height:12px; transform:translateX(-50%); border-radius:0 0 12px 12px; background:var(--forest); }
     .device-frame img { width:100%; height:auto; aspect-ratio:390 / 780; object-fit:cover; object-position:top; border-radius:20px; }
     .product-phone figcaption { margin-top:14px; text-align:center; font-size:13px; font-weight:700; color:var(--green); }
+    .product-badge { position:absolute; z-index:3; display:inline-flex; align-items:center; gap:8px; padding:10px 15px; border:1px solid var(--line); border-radius:999px; background:var(--paper); box-shadow:0 12px 26px #1e4b3521; color:var(--forest); font-size:12px; font-weight:750; white-space:nowrap; }
+    .product-badge:before { content:"✓"; display:grid; place-items:center; width:18px; height:18px; border-radius:50%; background:var(--mint); color:var(--green); }
+    .product-badge.first { top:11%; left:0; transform:rotate(-4deg); }
+    .product-badge.last { right:0; bottom:12%; transform:rotate(4deg); }
     @media(max-width:1000px) { .nav { display:flex; } .hero .wrap { gap:28px; } .hero-visual { transform:none; } .phone { left:-4px; } }
     @media(max-width:740px) {
       .nav { justify-content:space-between; }
@@ -131,15 +143,19 @@
       .phone { left:0; bottom:0; width:158px; }
       .phone img { height:auto; }
       .float-label { bottom:3px; }
-      .phone-pair { justify-content:flex-start; overflow-x:auto; gap:18px; padding:4px 22px 20px; margin:0 -16px; scroll-snap-type:x mandatory; }
+      .phone-pair { justify-content:flex-start; overflow-x:auto; gap:18px; padding:28px 22px 42px; margin:0 -16px; width:calc(100% + 32px); scroll-snap-type:x mandatory; }
       .product-phone { flex:0 0 230px; width:230px; scroll-snap-align:center; }
-      .product-phone:nth-child(2) { margin-top:0; }
+      .product-phone:nth-child(2) { margin-top:22px; margin-left:0; }
+      .product-badge { display:none; }
+      .feature.reverse > .screen,.statistics .feature > .screen { transform:none; }
     }
     @media(max-width:380px) { .hero-visual { height:370px; } .phone { width:140px; } }
 
     .benefits { background:var(--paper); }
     .benefit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
     .benefit-grid article { padding:25px; border:1px solid var(--line); border-radius:16px; background:var(--cream); }
+    .benefit-grid article:nth-child(3n + 2) { background:#eaf2e8; }
+    .benefit-grid article:nth-child(3n + 3) { background:#fff8ec; }
     .benefit-grid article > span { display:grid; place-items:center; width:39px; height:39px; margin-bottom:22px; border-radius:11px; background:var(--mint); color:var(--green); font-size:13px; font-weight:800; }
     .benefit-grid h3 { margin:0 0 11px; font-size:19px; line-height:1.25; }
     .benefit-grid p { margin:0; font-size:14px; line-height:1.65; color:var(--muted); }
@@ -196,7 +212,7 @@
           <div class="hero-actions"><a class="button primary" href="#pedido" data-pt="Pedir acesso  →" data-en="Request access  →">Pedir acesso  →</a><a class="button outline" href="#produto" data-pt="Ver a aplicação" data-en="See the app">Ver a aplicação</a></div>
           <div class="hero-note"><span class="mark">✓</span><span data-pt="Sem instalação para o cliente. Basta abrir o QR da mesa." data-en="No app for guests to install. Just open the table's QR code.">Sem instalação para o cliente. Basta abrir o QR da mesa.</span></div>
         </div>
-        <div class="hero-visual" aria-label="Capturas reais da Bocato: gestão de pedidos e vista do cliente">
+        <div class="hero-visual" aria-label="Capturas reais do Bocato: gestão de pedidos e vista do cliente">
           <div class="halo"></div>
           <div class="dash-window"><img src="/landing-preview/staff-v2.png" alt="Ecrã real de pedidos e chamadas da equipa Bocato"></div>
           <div class="phone"><img src="/landing-preview/orders-v2.png" alt="Ecrã real dos pedidos do cliente no telemóvel"></div>
@@ -210,7 +226,7 @@
       <div class="steps"><article class="step"><span class="number">01</span><h3 data-pt="Abre o menu" data-en="Open the menu">Abre o menu</h3><p data-pt="Cada mesa tem o seu QR. O cliente vê os produtos, preços e detalhes no telemóvel." data-en="Each table has its own QR. Guests see products, prices and details on their phone.">Cada mesa tem o seu QR. O cliente vê os produtos, preços e detalhes no telemóvel.</p></article><article class="step"><span class="number">02</span><h3 data-pt="Faz o pedido" data-en="Place an order">Faz o pedido</h3><p data-pt="Pode acrescentar observações. A equipa recebe o pedido identificado pela mesa e confirma a disponibilidade." data-en="Guests can add notes. Your team receives a table-specific order and confirms availability.">Pode acrescentar observações. A equipa recebe o pedido identificado pela mesa e confirma a disponibilidade.</p></article><article class="step"><span class="number">03</span><h3 data-pt="Acompanha o serviço" data-en="Follow the service">Acompanha o serviço</h3><p data-pt="Pedidos e chamadas chegam à equipa em tempo real. No fim, o gerente acompanha recebimentos e caixa." data-en="Orders and calls reach your team in real time. Managers track payments and the register.">Pedidos e chamadas chegam à equipa em tempo real. No fim, o gerente acompanha recebimentos e caixa.</p></article></div>
     </div></section>
     <section id="vantagens" class="section benefits"><div class="wrap">
-      <div class="section-head"><div class="kicker" data-pt="MAIS DO QUE UM MENU QR" data-en="MORE THAN A QR MENU">MAIS DO QUE UM MENU QR</div><h2 data-pt="O serviço todo, mais claro." data-en="A clearer view of your whole service.">O serviço todo, mais claro.</h2><p data-pt="A Bocato reúne o pedido do cliente, o trabalho da equipa e os valores do negócio no mesmo percurso." data-en="Bocato connects guest orders, your team's work and your business numbers in one flow.">A Bocato reúne o pedido do cliente, o trabalho da equipa e os valores do negócio no mesmo percurso.</p></div>
+      <div class="section-head"><div class="kicker" data-pt="MAIS DO QUE UM MENU QR" data-en="MORE THAN A QR MENU">MAIS DO QUE UM MENU QR</div><h2 data-pt="O serviço todo, mais claro." data-en="A clearer view of your whole service.">O serviço todo, mais claro.</h2><p data-pt="O Bocato reúne o pedido do cliente, o trabalho da equipa e os valores do negócio no mesmo percurso." data-en="Bocato connects guest orders, your team's work and your business numbers in one flow.">O Bocato reúne o pedido do cliente, o trabalho da equipa e os valores do negócio no mesmo percurso.</p></div>
       <div class="benefit-grid">
         <article><span aria-hidden="true">01</span><h3 data-pt="Menos idas e voltas" data-en="Fewer back-and-forth trips">Menos idas e voltas</h3><p data-pt="O cliente escolhe no telemóvel. O pedido chega identificado pela mesa, com as observações que a equipa precisa de ver." data-en="Guests choose on their phone. Orders arrive with the table number and notes your team needs to see.">O cliente escolhe no telemóvel. O pedido chega identificado pela mesa, com as observações que a equipa precisa de ver.</p></article>
         <article><span aria-hidden="true">02</span><h3 data-pt="Equipa em sintonia" data-en="A coordinated team">Equipa em sintonia</h3><p data-pt="Pedidos e chamadas atualizam-se em tempo real. A equipa confirma artigos, acompanha o serviço e sabe o que falta atender." data-en="Orders and calls update live. Your team reviews items, follows service and sees what still needs attention.">Pedidos e chamadas atualizam-se em tempo real. A equipa confirma artigos, acompanha o serviço e sabe o que falta atender.</p></article>
@@ -223,12 +239,14 @@
     <section id="produto" class="section showcase"><div class="wrap feature">
       <div class="feature-copy"><div class="kicker" data-pt="VISÃO DO CLIENTE" data-en="GUEST EXPERIENCE">VISÃO DO CLIENTE</div><h2 data-pt="Pedir à mesa deve ser tão fácil como escolher." data-en="Ordering at the table should be as easy as choosing.">Pedir à mesa deve ser tão fácil como escolher.</h2><p data-pt="O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa." data-en="The menu opens in the browser. Guests send an order, see your team's changes and call a staff member when needed.">O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa.</p><ul class="feature-list"><li data-pt="QR individual por mesa" data-en="A QR code for every table">QR individual por mesa</li><li data-pt="Observações em cada pedido" data-en="Notes on every order">Observações em cada pedido</li><li data-pt="Estado do pedido sempre claro" data-en="Clear order status">Estado do pedido sempre claro</li></ul></div>
       <div class="phone-pair" aria-label="Ecrãs reais da experiência do cliente">
+        <span class="product-badge first" data-pt="Pronto para enviar" data-en="Ready to send">Pronto para enviar</span>
         <figure class="product-phone"><div class="device-frame"><img src="/landing-preview/checkout-v2.png" alt="Revisão do pedido Bocato no telemóvel"></div><figcaption data-pt="Rever pedido" data-en="Review order">Rever pedido</figcaption></figure>
         <figure class="product-phone"><div class="device-frame"><img src="/landing-preview/orders-v2.png" alt="Pedidos Bocato no telemóvel"></div><figcaption data-pt="Os meus pedidos" data-en="My orders">Os meus pedidos</figcaption></figure>
+        <span class="product-badge last" data-pt="Pedido enviado" data-en="Order sent">Pedido enviado</span>
       </div>
     </div></section>
     <section id="equipa" class="section"><div class="wrap feature reverse">
-      <div class="screen"><img src="/landing-preview/staff-v2.png" alt="Captura real da área de pedidos da equipa"><div class="screen-caption" data-pt="Vista real da aplicação · equipa" data-en="Real app view · team">Vista real da aplicação · equipa</div></div>
+      <div class="screen team-screen"><img src="/landing-preview/staff-v2.png" alt="Captura real da área de pedidos da equipa"><div class="screen-caption" data-pt="Vista real da aplicação · equipa" data-en="Real app view · team">Vista real da aplicação · equipa</div></div>
       <div class="feature-copy"><div class="kicker" data-pt="VISÃO DA EQUIPA" data-en="TEAM WORKSPACE">VISÃO DA EQUIPA</div><h2 data-pt="Um balcão mais tranquilo começa com pedidos claros." data-en="A calmer counter starts with clear orders.">Um balcão mais tranquilo começa com pedidos claros.</h2><p data-pt="Novos pedidos, chamadas e mesas com consumo aparecem na área da equipa. O gerente gere o menu, acompanha os pagamentos e fecha o caixa com os valores visíveis." data-en="New orders, calls and active tables appear in your team's workspace. Managers control the menu, track payments and close the register with a clear view of every amount.">Novos pedidos, chamadas e mesas com consumo aparecem na área da equipa. O gerente gere o menu, acompanha os pagamentos e fecha o caixa com os valores visíveis.</p><ul class="feature-list"><li data-pt="Pedidos e chamadas em tempo real" data-en="Live orders and service calls">Pedidos e chamadas em tempo real</li><li data-pt="Mesas e pagamentos organizados" data-en="Organised tables and payments">Mesas e pagamentos organizados</li><li data-pt="Relatórios para acompanhar o negócio" data-en="Reports to track the business">Relatórios para acompanhar o negócio</li></ul></div>
     </div></section>
     <section id="estatisticas" class="section statistics"><div class="wrap feature">
@@ -236,7 +254,7 @@
       <div class="screen"><img src="/landing-preview/statistics-v2.png" alt="Captura real das estatísticas Bocato com dados de demonstração"><div class="screen-caption" data-pt="Vista real da aplicação · dados de demonstração" data-en="Real app view · demonstration data">Vista real da aplicação · dados de demonstração</div></div>
     </div></section>
     <section id="pedido" class="section lead-section"><div class="wrap lead-layout">
-      <div class="lead-copy"><div class="kicker" data-pt="COMEÇAR COM A BOCATO" data-en="GET STARTED WITH BOCATO">COMEÇAR COM A BOCATO</div><h2 data-pt="Queres experimentar a Bocato no teu espaço?" data-en="Want to try Bocato at your venue?">Queres experimentar a Bocato no teu espaço?</h2><p data-pt="Conta-nos um pouco sobre o teu negócio. O teu pedido chega diretamente à equipa Bocato e entramos em contacto contigo." data-en="Tell us a little about your business. Your request goes straight to the Bocato team and we'll get in touch.">Conta-nos um pouco sobre o teu negócio. O teu pedido chega diretamente à equipa Bocato e entramos em contacto contigo.</p><div class="lead-points"><span data-pt="Sem compromisso de adesão" data-en="No commitment to sign up">Sem compromisso de adesão</span><span data-pt="Resposta personalizada" data-en="A personal reply">Resposta personalizada</span></div></div>
+      <div class="lead-copy"><div class="kicker" data-pt="COMEÇAR COM O BOCATO" data-en="GET STARTED WITH BOCATO">COMEÇAR COM O BOCATO</div><h2 data-pt="Queres experimentar o Bocato no teu espaço?" data-en="Want to try Bocato at your venue?">Queres experimentar o Bocato no teu espaço?</h2><p data-pt="Conta-nos um pouco sobre o teu negócio. O teu pedido chega diretamente à equipa Bocato e entramos em contacto contigo." data-en="Tell us a little about your business. Your request goes straight to the Bocato team and we'll get in touch.">Conta-nos um pouco sobre o teu negócio. O teu pedido chega diretamente à equipa Bocato e entramos em contacto contigo.</p><div class="lead-points"><span data-pt="Sem compromisso de adesão" data-en="No commitment to sign up">Sem compromisso de adesão</span><span data-pt="Resposta personalizada" data-en="A personal reply">Resposta personalizada</span></div></div>
       <div class="lead-card">
         <% if params[:sent] == '1' %><div class="lead-success" role="status" data-pt="Pedido recebido. Obrigado! Entraremos em contacto contigo." data-en="Request received. Thank you! We'll be in touch.">Pedido recebido. Obrigado! Entraremos em contacto contigo.</div><% end %>
         <% if @landing_request&.errors&.any? %><div class="lead-error" role="alert" data-pt="Revê os campos do formulário e tenta novamente." data-en="Please check the form fields and try again.">Revê os campos do formulário e tenta novamente.</div><% end %>
