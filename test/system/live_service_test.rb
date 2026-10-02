@@ -27,7 +27,7 @@ class LiveServiceTest < ApplicationSystemTestCase
     Capybara.using_session(:staff) do
       assert_selector "#order_#{order.id}", text: product.name
       visit staff_orders_path
-      find("#order_#{order.id}").scroll_into_view
+      page.execute_script("document.getElementById('order_#{order.id}').scrollIntoView({block: 'center'})")
       landing_screenshot('staff-orders', width: 1000, height: 730)
       click_on 'Avaliar pedido'
       find('summary', text: 'Alterar descrição ou preço', match: :first).click
