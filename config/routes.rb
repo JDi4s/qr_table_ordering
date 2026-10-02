@@ -72,5 +72,5 @@ Rails.application.routes.draw do
     end
     resources :audit_events, only: [:index]
   end
-  root 'sessions#new'
+  root 'landing#index'
 end
