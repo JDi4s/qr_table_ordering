@@ -1,4 +1,4 @@
-# Mesa — pedidos por QR para estabelecimentos
+# Bocato — pedidos por QR para estabelecimentos
 
 Rails 7.1 / Ruby 3.3.5 / PostgreSQL / Redis. Aplicação para testes de pedidos à mesa, sem pagamentos online.
 
