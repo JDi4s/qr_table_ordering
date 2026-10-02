@@ -82,6 +82,13 @@ class RequestRateLimiterTest < ActiveSupport::TestCase
     assert_equal 204, request('/login', params: { email: 'two@example.com' }).first
   end
 
+  test 'public landing requests are limited per IP' do
+    5.times { assert_equal 204, request('/landing_requests').first }
+    status, headers, = request('/landing_requests')
+    assert_equal 429, status
+    assert_equal 'landing_requests_ip_1h', headers['X-RateLimit-Rule']
+  end
+
   test 'successful login clears failures for that account' do
     9.times do
       assert_equal 204, request('/login', params: { email: 'one@example.com' }).first

@@ -14,6 +14,7 @@ class RequestRateLimiter
   DEFAULTS = {
     login_account_10m: 10,
     login_ip_10m: 100,
+    landing_requests_ip_1h: 5,
     orders_customer_10m: 15,
     orders_customer_1h: 60,
     orders_table_10m: 40,
@@ -91,6 +92,10 @@ class RequestRateLimiter
         bucket(:login_account_10m, 10.minutes, request.ip, identifier.to_s.downcase.strip),
         bucket(:login_ip_10m, 10.minutes, request.ip)
       ]
+    end
+
+    if request.path == '/landing_requests'
+      return [bucket(:landing_requests_ip_1h, 1.hour, request.ip)]
     end
 
     match = request.path.match(%r{\A/tables/([^/]+)/orders\z})

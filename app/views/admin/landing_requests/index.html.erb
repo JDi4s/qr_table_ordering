@@ -1,0 +1,15 @@
+<div class="admin-page-heading"><div><p class="eyebrow">NOVOS CLIENTES</p><h1>Pedidos de adesão</h1><p>Contactos enviados através da página Bocato.</p></div></div>
+<nav class="admin-filter-tabs" aria-label="Estado dos pedidos">
+  <% [['new', 'Novos'], ['contacted', 'Contactados'], ['closed', 'Fechados']].each do |value, label| %>
+    <%= link_to label, admin_landing_requests_path(status: value), class: (@status == value ? 'is-active' : '') %>
+  <% end %>
+</nav>
+<div class="landing-lead-list">
+  <% if @requests.empty? %><p class="panel landing-lead-empty">Ainda não existem pedidos neste estado.</p><% end %>
+  <% @requests.each do |request| %>
+    <article class="landing-lead-card">
+      <div><small><%= request.created_at.in_time_zone.strftime('%d/%m/%Y %H:%M') %> · <%= LandingRequest::BUSINESS_TYPES.fetch(request.business_type) %> · <%= request.region %></small><h2><%= request.first_name %> <%= request.last_name %></h2><p><%= request.business_email %> · <%= request.phone %></p></div>
+      <%= link_to 'Abrir pedido', admin_landing_request_path(request), class: 'button secondary' %>
+    </article>
+  <% end %>
+</div>

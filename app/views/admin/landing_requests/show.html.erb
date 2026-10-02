@@ -1,0 +1,14 @@
+<div class="admin-page-heading"><div><p class="eyebrow">PEDIDO DE ADESÃO</p><h1><%= @request.first_name %> <%= @request.last_name %></h1><p>Recebido em <%= @request.created_at.in_time_zone.strftime('%d/%m/%Y às %H:%M') %></p></div><%= link_to 'Voltar aos pedidos', admin_landing_requests_path(status: @request.status), class: 'button secondary' %></div>
+<section class="panel landing-lead-detail">
+  <dl>
+    <div><dt>Email profissional</dt><dd><%= mail_to @request.business_email %></dd></div>
+    <div><dt>Contacto telefónico</dt><dd><%= link_to @request.phone, "tel:#{@request.phone.gsub(/[^\d+]/, '')}" %></dd></div>
+    <div><dt>Região</dt><dd><%= @request.region %></dd></div>
+    <div><dt>Tipo de negócio</dt><dd><%= LandingRequest::BUSINESS_TYPES.fetch(@request.business_type) %></dd></div>
+  </dl>
+  <%= form_with model: @request, url: admin_landing_request_path(@request), method: :patch, class: 'landing-lead-status' do |form| %>
+    <%= form.label :status, 'Estado' %>
+    <%= form.select :status, [['Novo', 'new'], ['Contactado', 'contacted'], ['Fechado', 'closed']] %>
+    <%= form.submit 'Guardar estado', class: 'button' %>
+  <% end %>
+</section>
