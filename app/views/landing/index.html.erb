@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#092f27">
+  <title>Bocato — Pedidos à mesa, com tudo no seu lugar</title>
+  <meta name="description" content="Bocato liga o menu QR, os pedidos à mesa e a equipa numa só experiência de serviço.">
+  <link rel="icon" href="/bocato-icon-v4-32.png" type="image/png">
+  <style>
+    :root { --forest:#092f27; --green:#155943; --mint:#dbece1; --cream:#f8f5ed; --paper:#fffefa; --coral:#de5b34; --yellow:#f7bf72; --ink:#14342d; --muted:#587268; --line:#dce7df; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--cream); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; line-height:1.5; }
+    a { color:inherit; }
+    button { font:inherit; }
+    img { display:block; max-width:100%; }
+    .wrap { width:min(1180px,calc(100% - 48px)); margin:auto; }
+    .site-header { position:relative; z-index:10; background:var(--paper); border-bottom:1px solid var(--line); }
+    .nav { display:flex; align-items:center; gap:32px; min-height:88px; }
+    .brand { flex:0 0 auto; display:flex; align-items:center; }
+    .brand img { width:157px; height:auto; }
+    .nav-links { margin:auto; display:flex; gap:28px; align-items:center; }
+    .nav-links a { text-decoration:none; font-size:14px; font-weight:650; color:#36574a; }
+    .nav-links a:hover, .footer a:hover { color:var(--coral); }
+    .nav-actions { display:flex; align-items:center; gap:18px; margin-left:auto; }
+    .lang { display:flex; align-items:center; gap:4px; font-size:13px; font-weight:750; }
+    .lang button { border:0; background:none; color:#71887d; padding:7px 4px; cursor:pointer; }
+    .lang button[aria-pressed="true"] { color:var(--forest); text-decoration:underline; text-decoration-color:var(--coral); text-underline-offset:6px; }
+    .login { border:1.5px solid var(--green); border-radius:9px; padding:10px 22px; text-decoration:none; font-size:14px; font-weight:750; color:var(--forest); white-space:nowrap; }
+    .login:hover { background:var(--mint); }
+    .hero { position:relative; overflow:hidden; background:linear-gradient(117deg,#fffdf7 0%,#f5f2e8 61%,#e8ede3 100%); }
+    .hero:before { content:""; position:absolute; width:640px; height:640px; border-radius:50%; background:#e5eddf; right:-190px; top:-170px; opacity:.75; }
+    .hero .wrap { position:relative; display:grid; grid-template-columns: .9fr 1.1fr; align-items:center; min-height:690px; gap:24px; padding:70px 0 84px; }
+    .kicker { display:inline-flex; align-items:center; gap:9px; color:var(--green); font-size:12px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+    .kicker:before { content:""; width:8px; height:8px; border-radius:50%; background:var(--coral); }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { max-width:620px; margin:24px 0; color:var(--forest); font-size:clamp(42px,5vw,72px); line-height:1.08; letter-spacing:-.055em; font-weight:790; }
+    h1 em { color:var(--coral); font-style:normal; }
+    .hero-copy > p { max-width:460px; margin:0 0 30px; color:#50675d; font-size:18px; line-height:1.65; }
+    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .button { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:52px; border-radius:10px; padding:13px 21px; text-decoration:none; font-size:14px; font-weight:750; }
+    .button.primary { background:var(--green); color:white; box-shadow:0 9px 21px #15594322; }
+    .button.primary:hover { background:#0c4837; }
+    .button.outline { border:1px solid #b5c8bb; background:#ffffff9e; color:var(--forest); }
+    .button.outline:hover { background:#fff; }
+    .hero-note { display:flex; gap:10px; align-items:center; margin-top:30px; font-size:13px; color:var(--muted); }
+    .hero-note .mark { display:grid; place-items:center; width:23px; height:23px; flex:0 0 auto; border-radius:50%; color:var(--green); background:var(--mint); font-weight:800; }
+    .hero-visual { position:relative; height:540px; min-width:0; }
+    .halo { position:absolute; inset:40px 0 8px 50px; border-radius:47% 53% 48% 52%; background:#dce9d6; transform:rotate(-10deg); }
+    .dash-window { position:absolute; z-index:1; top:64px; right:-18px; width:min(590px,100%); padding:11px; border:1px solid #dee7df; border-radius:18px; background:var(--paper); box-shadow:0 26px 60px #183d2d26; transform:rotate(2deg); }
+    .dash-window:before { content:"●  ●  ●"; display:block; height:22px; padding-left:12px; color:#c8d8ce; font-size:11px; letter-spacing:4px; }
+    .dash-window img { width:100%; aspect-ratio:1280 / 757; object-fit:cover; object-position:top left; border-radius:8px; }
+    .phone { position:absolute; z-index:2; bottom:4px; left:4px; width:214px; padding:8px; border:6px solid #113d31; border-radius:31px; background:white; box-shadow:0 22px 45px #113d3138; transform:rotate(-6deg); }
+    .phone:before { content:""; position:absolute; z-index:2; width:58px; height:12px; top:0; left:calc(50% - 29px); border-radius:0 0 12px 12px; background:#113d31; }
+    .phone img { height:382px; width:100%; object-fit:cover; object-position:top center; border-radius:19px; }
+    .float-label { position:absolute; z-index:3; right:-22px; bottom:16px; display:flex; align-items:center; gap:10px; background:#fff; padding:13px 18px; border:1px solid #e5e9e0; border-radius:11px; box-shadow:0 12px 26px #24483619; color:var(--forest); font-size:13px; font-weight:750; transform:rotate(4deg); }
+    .float-label i { width:10px; height:10px; background:#30a46c; border-radius:50%; }
+    .intro-strip { background:var(--forest); color:#eaf3e9; }
+    .intro-strip .wrap { display:flex; justify-content:space-between; gap:30px; padding:25px 0; align-items:center; }
+    .intro-strip strong { font-size:16px; font-weight:700; }
+    .intro-strip span { color:#b9d3c8; font-size:14px; }
+    section.section { padding:106px 0; }
+    .section-head { max-width:720px; margin-bottom:46px; }
+    h2 { margin:14px 0 14px; font-size:clamp(32px,3.4vw,49px); line-height:1.13; letter-spacing:-.04em; color:var(--forest); }
+    .section-head > p:last-child { max-width:610px; color:var(--muted); font-size:17px; }
+    .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    .step { min-height:230px; border:1px solid var(--line); background:var(--paper); border-radius:18px; padding:30px; }
+    .step .number { display:inline-grid; place-items:center; width:40px; height:40px; margin-bottom:28px; border-radius:12px; background:#e6efe5; color:var(--green); font-size:14px; font-weight:800; }
+    .step:nth-child(2) .number { background:#fce8db; color:#b84422; }
+    .step h3 { margin:0 0 10px; font-size:21px; letter-spacing:-.025em; }
+    .step p { margin:0; color:var(--muted); font-size:15px; line-height:1.65; }
+    .showcase { background:#e8eee6; }
+    .feature { display:grid; grid-template-columns: .72fr 1.28fr; gap:60px; align-items:center; }
+    .feature-copy h2 { max-width:450px; }
+    .feature-copy p { max-width:400px; color:#526b5f; font-size:17px; line-height:1.7; }
+    .feature-list { list-style:none; padding:0; margin:27px 0 0; }
+    .feature-list li { display:flex; gap:12px; margin:12px 0; font-size:15px; font-weight:650; }
+    .feature-list li:before { content:"✓"; display:grid; place-items:center; width:22px; height:22px; flex:0 0 auto; color:#fff; background:var(--green); border-radius:50%; font-size:12px; }
+    .screen { padding:12px; background:var(--paper); border:1px solid #d0ddcf; border-radius:18px; box-shadow:0 25px 55px #1e4b3521; }
+    .screen img { width:100%; border-radius:9px; }
+    .screen-caption { padding:11px 4px 1px; font-size:12px; color:#647f71; }
+    .feature.reverse { grid-template-columns:1.08fr .92fr; }
+    .feature.reverse .feature-copy { order:2; }
+    .customer-screen { display:grid; grid-template-columns:1fr 205px; align-items:center; gap:18px; }
+    .customer-screen .screen { overflow:hidden; }
+    .customer-screen .screen img { height:285px; object-fit:cover; object-position:top left; }
+    .small-phone { width:205px; overflow:hidden; border:6px solid var(--forest); border-radius:23px; background:white; box-shadow:0 20px 40px #1e4b3524; }
+    .small-phone img { width:100%; height:343px; object-fit:cover; object-position:top; }
+    .last { background:var(--paper); }
+    .closing { border-radius:26px; background:var(--forest); color:#eaf6ea; padding:68px; display:flex; align-items:center; justify-content:space-between; gap:34px; }
+    .closing h2 { color:#fff; max-width:570px; margin:0 0 15px; }
+    .closing p { color:#bcd5c5; margin:0; max-width:500px; }
+    .closing .button { background:var(--yellow); color:#1d3328; white-space:nowrap; }
+    .footer { background:#05231d; color:#aec8b8; }
+    .footer .wrap { padding:35px 0; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .footer img { width:124px; filter:brightness(0) invert(1); }
+    .footer a { text-decoration:none; font-size:14px; }
+    :focus-visible { outline:3px solid var(--coral); outline-offset:3px; }
+    @media(max-width:1000px) { .nav-links { display:none; } .hero .wrap { grid-template-columns:1fr 1fr; } .hero-visual { transform:scale(.87); transform-origin:center; } .float-label { right:0; } .feature { gap:30px; } }
+    @media(max-width:740px) { .wrap { width:min(100% - 32px,540px); } .nav { min-height:70px; gap:12px; } .brand img { width:125px; } .nav-actions { gap:10px; } .login { padding:8px 13px; } .hero .wrap { display:flex; flex-direction:column; align-items:stretch; padding:65px 0 55px; gap:12px; } h1 { font-size:clamp(42px,9vw,60px); } .hero-copy > p { font-size:16px; } .hero-visual { transform:none; width:100%; height:420px; } .dash-window { width:90%; top:70px; right:0; } .phone { width:160px; left:0; bottom:12px; border-width:5px; border-radius:23px; padding:6px; } .phone img { height:286px; border-radius:13px; } .float-label { font-size:11px; right:0; bottom:8px; padding:9px; } .halo { inset:30px 0 0 20px; } .intro-strip .wrap { flex-direction:column; align-items:flex-start; gap:4px; } section.section { padding:75px 0; } .steps { grid-template-columns:1fr; } .step { min-height:unset; padding:23px; } .step .number { margin-bottom:18px; } .feature,.feature.reverse { display:flex; flex-direction:column; align-items:stretch; gap:32px; } .feature.reverse .feature-copy { order:0; } .customer-screen { grid-template-columns:1fr 150px; gap:10px; } .customer-screen .screen img { height:245px; } .small-phone { width:150px; } .small-phone img { height:250px; } .closing { padding:38px 26px; flex-direction:column; align-items:flex-start; } .footer .wrap { flex-wrap:wrap; } }
+    @media(max-width:380px) { .brand img { width:105px; } .nav-actions { gap:6px; } .lang { font-size:12px; } .login { font-size:12px; padding:7px 10px; } .phone { width:145px; } .hero-visual { height:365px; } .phone img { height:260px; } .float-label { display:none; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="brand" href="#inicio" aria-label="Bocato — início"><img src="/landing-preview/logo.png" alt="Bocato"></a>
+      <nav class="nav-links" aria-label="Página">
+        <a href="#como-funciona" data-pt="Como funciona" data-en="How it works">Como funciona</a>
+        <a href="#produto" data-pt="O produto" data-en="The product">O produto</a>
+        <a href="#equipa" data-pt="Para a equipa" data-en="For your team">Para a equipa</a>
+      </nav>
+      <div class="nav-actions">
+        <div class="lang" role="group" aria-label="Language / Idioma"><button type="button" data-language="pt" aria-pressed="true">PT</button><span aria-hidden="true">/</span><button type="button" data-language="en" aria-pressed="false">EN</button></div>
+        <a class="login" href="/login" data-pt="Entrar" data-en="Log in">Entrar</a>
+      </div>
+    </div>
+  </header>
+  <main id="inicio">
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-copy">
+          <div class="kicker" data-pt="FEITO PARA O RITMO DO TEU ESPAÇO" data-en="MADE FOR YOUR VENUE'S RHYTHM">FEITO PARA O RITMO DO TEU ESPAÇO</div>
+          <h1><span data-pt="Mais pedidos à mesa." data-en="Table orders, made simple.">Mais pedidos à mesa.</span> <em data-pt="Mais controlo no serviço." data-en="More control for your team.">Mais controlo no serviço.</em></h1>
+          <p data-pt="O cliente vê o menu e faz o pedido pelo telemóvel. A equipa recebe, acompanha e organiza tudo num só lugar — do primeiro pedido ao fecho do caixa." data-en="Guests browse the menu and order from their phone. Your team receives and manages every request in one place — from the first order to closing the register.">O cliente vê o menu e faz o pedido pelo telemóvel. A equipa recebe, acompanha e organiza tudo num só lugar — do primeiro pedido ao fecho do caixa.</p>
+          <div class="hero-actions"><a class="button primary" href="#como-funciona" data-pt="Descobrir a Bocato  →" data-en="Explore Bocato  →">Descobrir a Bocato  →</a><a class="button outline" href="#produto" data-pt="Ver a aplicação" data-en="See the app">Ver a aplicação</a></div>
+          <div class="hero-note"><span class="mark">✓</span><span data-pt="Sem instalação para o cliente. Basta abrir o QR da mesa." data-en="No app for guests to install. Just open the table's QR code.">Sem instalação para o cliente. Basta abrir o QR da mesa.</span></div>
+        </div>
+        <div class="hero-visual" aria-label="Capturas reais da Bocato: gestão de pedidos e vista do cliente">
+          <div class="halo"></div>
+          <div class="dash-window"><img src="/landing-preview/staff.png" alt="Ecrã real de pedidos e chamadas da equipa Bocato"></div>
+          <div class="phone"><img src="/landing-preview/review.png" alt="Ecrã real dos pedidos do cliente no telemóvel"></div>
+          <div class="float-label"><i></i><span data-pt="Equipa e mesa, em sintonia" data-en="Team and table, in sync">Equipa e mesa, em sintonia</span></div>
+        </div>
+      </div>
+    </section>
+    <div class="intro-strip"><div class="wrap"><strong data-pt="A mesa pede. A equipa sabe. O serviço segue." data-en="Guests order. Your team knows. Service keeps moving.">A mesa pede. A equipa sabe. O serviço segue.</strong><span data-pt="Uma experiência simples para cafés, bares e restaurantes." data-en="A simple experience for cafés, bars and restaurants.">Uma experiência simples para cafés, bares e restaurantes.</span></div></div>
+    <section id="como-funciona" class="section"><div class="wrap">
+      <div class="section-head"><div class="kicker" data-pt="COMO FUNCIONA" data-en="HOW IT WORKS">COMO FUNCIONA</div><h2 data-pt="Do QR na mesa ao pedido servido." data-en="From the table QR to the served order.">Do QR na mesa ao pedido servido.</h2><p data-pt="O cliente faz a parte dele com poucos toques. A equipa mantém a decisão e o controlo em cada passo." data-en="Guests order in a few taps. Your team keeps control of every step.">O cliente faz a parte dele com poucos toques. A equipa mantém a decisão e o controlo em cada passo.</p></div>
+      <div class="steps"><article class="step"><span class="number">01</span><h3 data-pt="Abre o menu" data-en="Open the menu">Abre o menu</h3><p data-pt="Cada mesa tem o seu QR. O cliente vê os produtos, preços e detalhes no telemóvel." data-en="Each table has its own QR. Guests see products, prices and details on their phone.">Cada mesa tem o seu QR. O cliente vê os produtos, preços e detalhes no telemóvel.</p></article><article class="step"><span class="number">02</span><h3 data-pt="Faz o pedido" data-en="Place an order">Faz o pedido</h3><p data-pt="Pode acrescentar observações. A equipa recebe o pedido identificado pela mesa e confirma a disponibilidade." data-en="Guests can add notes. Your team receives a table-specific order and confirms availability.">Pode acrescentar observações. A equipa recebe o pedido identificado pela mesa e confirma a disponibilidade.</p></article><article class="step"><span class="number">03</span><h3 data-pt="Acompanha o serviço" data-en="Follow the service">Acompanha o serviço</h3><p data-pt="Pedidos e chamadas chegam à equipa em tempo real. No fim, o gerente acompanha recebimentos e caixa." data-en="Orders and calls reach your team in real time. Managers track payments and the register.">Pedidos e chamadas chegam à equipa em tempo real. No fim, o gerente acompanha recebimentos e caixa.</p></article></div>
+    </div></section>
+    <section id="produto" class="section showcase"><div class="wrap feature">
+      <div class="feature-copy"><div class="kicker" data-pt="VISÃO DO CLIENTE" data-en="GUEST EXPERIENCE">VISÃO DO CLIENTE</div><h2 data-pt="Pedir à mesa deve ser tão fácil como escolher." data-en="Ordering at the table should be as easy as choosing.">Pedir à mesa deve ser tão fácil como escolher.</h2><p data-pt="O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa." data-en="The menu opens in the browser. Guests send an order, see your team's changes and call a staff member when needed.">O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa.</p><ul class="feature-list"><li data-pt="QR individual por mesa" data-en="A QR code for every table">QR individual por mesa</li><li data-pt="Observações em cada pedido" data-en="Notes on every order">Observações em cada pedido</li><li data-pt="Estado do pedido sempre claro" data-en="Clear order status">Estado do pedido sempre claro</li></ul></div>
+      <div class="customer-screen"><div class="screen"><img src="/landing-preview/customer.png" alt="Captura real da vista dos pedidos do cliente"><div class="screen-caption" data-pt="Vista real da aplicação · cliente" data-en="Real app view · guest">Vista real da aplicação · cliente</div></div><div class="small-phone"><img src="/landing-preview/review.png" alt="Vista real em telemóvel da Bocato"></div></div>
+    </div></section>
+    <section id="equipa" class="section"><div class="wrap feature reverse">
+      <div class="screen"><img src="/landing-preview/staff.png" alt="Captura real da área de pedidos da equipa"><div class="screen-caption" data-pt="Vista real da aplicação · equipa" data-en="Real app view · team">Vista real da aplicação · equipa</div></div>
+      <div class="feature-copy"><div class="kicker" data-pt="VISÃO DA EQUIPA" data-en="TEAM WORKSPACE">VISÃO DA EQUIPA</div><h2 data-pt="Um balcão mais tranquilo começa com pedidos claros." data-en="A calmer counter starts with clear orders.">Um balcão mais tranquilo começa com pedidos claros.</h2><p data-pt="Novos pedidos, chamadas e mesas com consumo aparecem na área da equipa. O gerente gere o menu, acompanha os pagamentos e fecha o caixa com os valores visíveis." data-en="New orders, calls and active tables appear in your team's workspace. Managers control the menu, track payments and close the register with a clear view of every amount.">Novos pedidos, chamadas e mesas com consumo aparecem na área da equipa. O gerente gere o menu, acompanha os pagamentos e fecha o caixa com os valores visíveis.</p><ul class="feature-list"><li data-pt="Pedidos e chamadas em tempo real" data-en="Live orders and service calls">Pedidos e chamadas em tempo real</li><li data-pt="Mesas e pagamentos organizados" data-en="Organised tables and payments">Mesas e pagamentos organizados</li><li data-pt="Relatórios para acompanhar o negócio" data-en="Reports to track the business">Relatórios para acompanhar o negócio</li></ul></div>
+    </div></section>
+    <section class="section last"><div class="wrap"><div class="closing"><div><div class="kicker" style="color:#addfc4" data-pt="BOCATO" data-en="BOCATO">BOCATO</div><h2 data-pt="Tudo o que acontece à mesa, no sítio certo." data-en="Everything happening at the table, in the right place.">Tudo o que acontece à mesa, no sítio certo.</h2><p data-pt="Uma experiência simples para o cliente. Uma visão clara para quem está a servir." data-en="A simple experience for guests. A clear view for the people serving them.">Uma experiência simples para o cliente. Uma visão clara para quem está a servir.</p></div><a class="button" href="/login" data-pt="Entrar na plataforma  →" data-en="Log in to the platform  →">Entrar na plataforma  →</a></div></div></section>
+  </main>
+  <footer class="footer"><div class="wrap"><a href="#inicio"><img src="/landing-preview/logo.png" alt="Bocato"></a><span>© 2026 Bocato</span><a href="/login" data-pt="Acesso da equipa" data-en="Team login">Acesso da equipa</a></div></footer>
+  <script>
+    const switchLanguage = (lang) => {
+      document.documentElement.lang = lang === 'en' ? 'en' : 'pt-PT';
+      document.querySelectorAll('[data-pt][data-en]').forEach(el => { el.textContent = el.dataset[lang]; });
+      document.querySelectorAll('[data-language]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.language === lang)); });
+      document.title = lang === 'en' ? 'Bocato — Table orders, everything in its place' : 'Bocato — Pedidos à mesa, com tudo no seu lugar';
+      history.replaceState(null, '', lang === 'en' ? '?lang=en' + location.hash : location.pathname + location.hash);
+    };
+    document.querySelectorAll('[data-language]').forEach(button => button.addEventListener('click', () => switchLanguage(button.dataset.language)));
+    if (new URLSearchParams(location.search).get('lang') === 'en') switchLanguage('en');
+  </script>
+</body>
+</html>
