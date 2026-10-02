@@ -100,6 +100,75 @@
     @media(max-width:1000px) { .nav-links { display:none; } .hero .wrap { grid-template-columns:1fr 1fr; } .hero-visual { transform:scale(.87); transform-origin:center; } .float-label { right:0; } .feature { gap:30px; } }
     @media(max-width:740px) { .wrap { width:min(100% - 32px,540px); } .nav { min-height:70px; gap:12px; } .brand img { width:125px; } .nav-actions { gap:10px; } .login { padding:8px 13px; } .hero .wrap { display:flex; flex-direction:column; align-items:stretch; padding:65px 0 55px; gap:12px; } h1 { font-size:clamp(42px,9vw,60px); } .hero-copy > p { font-size:16px; } .hero-visual { transform:none; width:100%; height:420px; } .dash-window { width:90%; top:70px; right:0; } .phone { width:160px; left:0; bottom:12px; border-width:5px; border-radius:23px; padding:6px; } .phone img { height:286px; border-radius:13px; } .float-label { font-size:11px; right:0; bottom:8px; padding:9px; } .halo { inset:30px 0 0 20px; } .intro-strip .wrap { flex-direction:column; align-items:flex-start; gap:4px; } section.section { padding:75px 0; } .steps { grid-template-columns:1fr; } .step { min-height:unset; padding:23px; } .step .number { margin-bottom:18px; } .feature,.feature.reverse { display:flex; flex-direction:column; align-items:stretch; gap:32px; } .feature.reverse .feature-copy { order:0; } .customer-screen { grid-template-columns:1fr 150px; gap:10px; } .customer-screen .screen img { height:245px; } .small-phone { width:150px; } .small-phone img { height:250px; } .closing { padding:38px 26px; flex-direction:column; align-items:flex-start; } .footer .wrap { flex-wrap:wrap; } }
     @media(max-width:380px) { .brand img { width:105px; } .nav-actions { gap:6px; } .lang { font-size:12px; } .login { font-size:12px; padding:7px 10px; } .phone { width:145px; } .hero-visual { height:365px; } .phone img { height:260px; } .float-label { display:none; } }
+
+    /* Keep the layout centered and show product screens at legible sizes. */
+    .nav { display:grid; grid-template-columns:1fr auto 1fr; }
+    .nav-links { margin:0; }
+    .nav-actions { justify-self:end; }
+    .hero .wrap { grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:58px; min-height:650px; padding:72px 0; }
+    .hero-copy { max-width:555px; }
+    h1 { font-size:clamp(43px,4.35vw,62px); }
+    .hero-visual { height:505px; display:flex; align-items:center; justify-content:center; }
+    .halo { inset:18px 25px 10px 48px; }
+    .dash-window { top:54px; right:0; width:min(570px,100%); transform:none; }
+    .dash-window img { aspect-ratio:4 / 3; object-fit:cover; object-position:top center; }
+    .phone { left:-12px; bottom:0; width:210px; transform:none; }
+    .phone img { height:auto; aspect-ratio:390 / 780; object-fit:cover; object-position:top; }
+    .float-label { right:0; bottom:0; transform:none; }
+    .phone-pair { display:flex; align-items:flex-start; justify-content:center; gap:30px; }
+    .product-phone { margin:0; width:min(45%,252px); min-width:0; }
+    .product-phone:nth-child(2) { margin-top:52px; }
+    .device-frame { padding:7px; border:7px solid var(--forest); border-radius:34px; background:white; box-shadow:0 22px 45px #1e4b3524; }
+    .device-frame img { width:100%; height:auto; aspect-ratio:390 / 780; object-fit:cover; object-position:top; border-radius:20px; }
+    .product-phone figcaption { margin-top:14px; text-align:center; font-size:13px; font-weight:700; color:var(--green); }
+    @media(max-width:1000px) { .nav { display:flex; } .hero .wrap { gap:28px; } .hero-visual { transform:none; } .phone { left:-4px; } }
+    @media(max-width:740px) {
+      .nav { justify-content:space-between; }
+      .hero .wrap { display:flex; flex-direction:column; align-items:stretch; gap:22px; padding:56px 0; }
+      .hero-visual { width:100%; height:420px; }
+      .dash-window { top:45px; right:0; width:92%; }
+      .dash-window img { aspect-ratio:4 / 3; }
+      .phone { left:0; bottom:0; width:158px; }
+      .phone img { height:auto; }
+      .float-label { bottom:3px; }
+      .phone-pair { justify-content:flex-start; overflow-x:auto; gap:18px; padding:4px 22px 20px; margin:0 -16px; scroll-snap-type:x mandatory; }
+      .product-phone { flex:0 0 230px; width:230px; scroll-snap-align:center; }
+      .product-phone:nth-child(2) { margin-top:0; }
+    }
+    @media(max-width:380px) { .hero-visual { height:370px; } .phone { width:140px; } }
+
+    .benefits { background:var(--paper); }
+    .benefit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+    .benefit-grid article { padding:25px; border:1px solid var(--line); border-radius:16px; background:var(--cream); }
+    .benefit-grid article > span { display:grid; place-items:center; width:39px; height:39px; margin-bottom:22px; border-radius:11px; background:var(--mint); color:var(--green); font-size:13px; font-weight:800; }
+    .benefit-grid h3 { margin:0 0 11px; font-size:19px; line-height:1.25; }
+    .benefit-grid p { margin:0; font-size:14px; line-height:1.65; color:var(--muted); }
+    .statistics { background:#f1f4eb; }
+    .statistics .feature { grid-template-columns:.8fr 1.2fr; }
+    .statistics .screen { overflow:hidden; }
+    .statistics .screen img { max-height:440px; object-fit:cover; object-position:top; }
+    .lead-section { background:var(--forest); color:#eaf6ea; }
+    .lead-layout { display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr); align-items:center; gap:90px; }
+    .lead-copy .kicker { color:#b7dfc5; }
+    .lead-copy h2 { color:#fff; }
+    .lead-copy p { max-width:440px; color:#c6dcd0; font-size:17px; line-height:1.7; }
+    .lead-points { display:grid; gap:12px; margin-top:30px; color:#d7eade; font-weight:650; }
+    .lead-points span:before { content:'✓'; margin-right:11px; color:var(--yellow); }
+    .lead-card { padding:36px; border-radius:20px; background:var(--paper); color:var(--forest); box-shadow:0 24px 55px #001f162b; }
+    .lead-card h3 { margin:0 0 22px; font-size:26px; }
+    .lead-form { display:grid; gap:16px; }
+    .lead-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+    .lead-form label { display:block; margin-bottom:6px; font-size:13px; font-weight:700; }
+    .lead-form input:not([type=hidden]):not([type=submit]), .lead-form select { display:block; width:100%; height:47px; padding:10px 12px; border:1px solid #b9cfc0; border-radius:8px; background:#fff; color:var(--forest); font:inherit; }
+    .lead-form input:focus,.lead-form select:focus { outline:2px solid var(--green); outline-offset:1px; }
+    .lead-form .button { width:100%; margin-top:7px; border:0; cursor:pointer; }
+    .lead-privacy { margin:0; color:var(--muted); font-size:12px; }
+    .lead-success,.lead-error { padding:13px 16px; margin-bottom:18px; border-radius:9px; background:#dcefe2; color:var(--forest); font-weight:700; }
+    .lead-error { background:#fff0e8; color:#9b3d22; }
+    .lead-honeypot { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+    @media(max-width:1000px) { .benefit-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .lead-layout { gap:35px; } }
+    @media(max-width:740px) { .benefit-grid { grid-template-columns:1fr; } .statistics .feature { display:flex; } .lead-layout { grid-template-columns:1fr; gap:30px; } .lead-card { padding:24px; } }
+    @media(max-width:380px) { .lead-row { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -108,8 +177,8 @@
       <a class="brand" href="#inicio" aria-label="Bocato — início"><img src="/landing-preview/logo.png" alt="Bocato"></a>
       <nav class="nav-links" aria-label="Página">
         <a href="#como-funciona" data-pt="Como funciona" data-en="How it works">Como funciona</a>
-        <a href="#produto" data-pt="O produto" data-en="The product">O produto</a>
-        <a href="#equipa" data-pt="Para a equipa" data-en="For your team">Para a equipa</a>
+        <a href="#vantagens" data-pt="Vantagens" data-en="Benefits">Vantagens</a>
+        <a href="#estatisticas" data-pt="Estatísticas" data-en="Insights">Estatísticas</a>
       </nav>
       <div class="nav-actions">
         <div class="lang" role="group" aria-label="Language / Idioma"><button type="button" data-language="pt" aria-pressed="true">PT</button><span aria-hidden="true">/</span><button type="button" data-language="en" aria-pressed="false">EN</button></div>
@@ -123,14 +192,14 @@
         <div class="hero-copy">
           <div class="kicker" data-pt="FEITO PARA O RITMO DO TEU ESPAÇO" data-en="MADE FOR YOUR VENUE'S RHYTHM">FEITO PARA O RITMO DO TEU ESPAÇO</div>
           <h1><span data-pt="Mais pedidos à mesa." data-en="Table orders, made simple.">Mais pedidos à mesa.</span> <em data-pt="Mais controlo no serviço." data-en="More control for your team.">Mais controlo no serviço.</em></h1>
-          <p data-pt="O cliente vê o menu e faz o pedido pelo telemóvel. A equipa recebe, acompanha e organiza tudo num só lugar — do primeiro pedido ao fecho do caixa." data-en="Guests browse the menu and order from their phone. Your team receives and manages every request in one place — from the first order to closing the register.">O cliente vê o menu e faz o pedido pelo telemóvel. A equipa recebe, acompanha e organiza tudo num só lugar — do primeiro pedido ao fecho do caixa.</p>
-          <div class="hero-actions"><a class="button primary" href="#como-funciona" data-pt="Descobrir a Bocato  →" data-en="Explore Bocato  →">Descobrir a Bocato  →</a><a class="button outline" href="#produto" data-pt="Ver a aplicação" data-en="See the app">Ver a aplicação</a></div>
+          <p data-pt="O cliente vê o menu e faz o pedido pelo telemóvel. A equipa recebe, acompanha e organiza tudo num só lugar, do primeiro pedido ao fecho do caixa." data-en="Guests browse the menu and order from their phone. Your team receives and manages every request in one place, from the first order to closing the register.">O cliente vê o menu e faz o pedido pelo telemóvel. A equipa recebe, acompanha e organiza tudo num só lugar, do primeiro pedido ao fecho do caixa.</p>
+          <div class="hero-actions"><a class="button primary" href="#pedido" data-pt="Pedir acesso  →" data-en="Request access  →">Pedir acesso  →</a><a class="button outline" href="#produto" data-pt="Ver a aplicação" data-en="See the app">Ver a aplicação</a></div>
           <div class="hero-note"><span class="mark">✓</span><span data-pt="Sem instalação para o cliente. Basta abrir o QR da mesa." data-en="No app for guests to install. Just open the table's QR code.">Sem instalação para o cliente. Basta abrir o QR da mesa.</span></div>
         </div>
         <div class="hero-visual" aria-label="Capturas reais da Bocato: gestão de pedidos e vista do cliente">
           <div class="halo"></div>
-          <div class="dash-window"><img src="/landing-preview/staff.png" alt="Ecrã real de pedidos e chamadas da equipa Bocato"></div>
-          <div class="phone"><img src="/landing-preview/review.png" alt="Ecrã real dos pedidos do cliente no telemóvel"></div>
+          <div class="dash-window"><img src="/landing-preview/staff-v2.png" alt="Ecrã real de pedidos e chamadas da equipa Bocato"></div>
+          <div class="phone"><img src="/landing-preview/orders-v2.png" alt="Ecrã real dos pedidos do cliente no telemóvel"></div>
           <div class="float-label"><i></i><span data-pt="Equipa e mesa, em sintonia" data-en="Team and table, in sync">Equipa e mesa, em sintonia</span></div>
         </div>
       </div>
@@ -140,24 +209,63 @@
       <div class="section-head"><div class="kicker" data-pt="COMO FUNCIONA" data-en="HOW IT WORKS">COMO FUNCIONA</div><h2 data-pt="Do QR na mesa ao pedido servido." data-en="From the table QR to the served order.">Do QR na mesa ao pedido servido.</h2><p data-pt="O cliente faz a parte dele com poucos toques. A equipa mantém a decisão e o controlo em cada passo." data-en="Guests order in a few taps. Your team keeps control of every step.">O cliente faz a parte dele com poucos toques. A equipa mantém a decisão e o controlo em cada passo.</p></div>
       <div class="steps"><article class="step"><span class="number">01</span><h3 data-pt="Abre o menu" data-en="Open the menu">Abre o menu</h3><p data-pt="Cada mesa tem o seu QR. O cliente vê os produtos, preços e detalhes no telemóvel." data-en="Each table has its own QR. Guests see products, prices and details on their phone.">Cada mesa tem o seu QR. O cliente vê os produtos, preços e detalhes no telemóvel.</p></article><article class="step"><span class="number">02</span><h3 data-pt="Faz o pedido" data-en="Place an order">Faz o pedido</h3><p data-pt="Pode acrescentar observações. A equipa recebe o pedido identificado pela mesa e confirma a disponibilidade." data-en="Guests can add notes. Your team receives a table-specific order and confirms availability.">Pode acrescentar observações. A equipa recebe o pedido identificado pela mesa e confirma a disponibilidade.</p></article><article class="step"><span class="number">03</span><h3 data-pt="Acompanha o serviço" data-en="Follow the service">Acompanha o serviço</h3><p data-pt="Pedidos e chamadas chegam à equipa em tempo real. No fim, o gerente acompanha recebimentos e caixa." data-en="Orders and calls reach your team in real time. Managers track payments and the register.">Pedidos e chamadas chegam à equipa em tempo real. No fim, o gerente acompanha recebimentos e caixa.</p></article></div>
     </div></section>
+    <section id="vantagens" class="section benefits"><div class="wrap">
+      <div class="section-head"><div class="kicker" data-pt="MAIS DO QUE UM MENU QR" data-en="MORE THAN A QR MENU">MAIS DO QUE UM MENU QR</div><h2 data-pt="O serviço todo, mais claro." data-en="A clearer view of your whole service.">O serviço todo, mais claro.</h2><p data-pt="A Bocato reúne o pedido do cliente, o trabalho da equipa e os valores do negócio no mesmo percurso." data-en="Bocato connects guest orders, your team's work and your business numbers in one flow.">A Bocato reúne o pedido do cliente, o trabalho da equipa e os valores do negócio no mesmo percurso.</p></div>
+      <div class="benefit-grid">
+        <article><span aria-hidden="true">01</span><h3 data-pt="Menos idas e voltas" data-en="Fewer back-and-forth trips">Menos idas e voltas</h3><p data-pt="O cliente escolhe no telemóvel. O pedido chega identificado pela mesa, com as observações que a equipa precisa de ver." data-en="Guests choose on their phone. Orders arrive with the table number and notes your team needs to see.">O cliente escolhe no telemóvel. O pedido chega identificado pela mesa, com as observações que a equipa precisa de ver.</p></article>
+        <article><span aria-hidden="true">02</span><h3 data-pt="Equipa em sintonia" data-en="A coordinated team">Equipa em sintonia</h3><p data-pt="Pedidos e chamadas atualizam-se em tempo real. A equipa confirma artigos, acompanha o serviço e sabe o que falta atender." data-en="Orders and calls update live. Your team reviews items, follows service and sees what still needs attention.">Pedidos e chamadas atualizam-se em tempo real. A equipa confirma artigos, acompanha o serviço e sabe o que falta atender.</p></article>
+        <article><span aria-hidden="true">03</span><h3 data-pt="Cobrança sem confusão" data-en="Clearer payments">Cobrança sem confusão</h3><p data-pt="A mesa mostra o total, os pagamentos parciais e o valor por pagar. O Caixa não fecha com mesas pendentes." data-en="Each table shows its total, partial payments and outstanding amount. The register flags unpaid tables before closing.">A mesa mostra o total, os pagamentos parciais e o valor por pagar. O Caixa não fecha com mesas pendentes.</p></article>
+        <article><span aria-hidden="true">04</span><h3 data-pt="Decisões com dados" data-en="Decisions backed by data">Decisões com dados</h3><p data-pt="Consulta vendas, pedidos, produtos e desempenho da equipa. Exporta relatórios conforme o plano do estabelecimento." data-en="Explore revenue, orders, products and team activity. Export reports according to your venue's plan.">Consulta vendas, pedidos, produtos e desempenho da equipa. Exporta relatórios conforme o plano do estabelecimento.</p></article>
+        <article><span aria-hidden="true">05</span><h3 data-pt="Menu nas tuas mãos" data-en="You control the menu">Menu nas tuas mãos</h3><p data-pt="Organiza categorias e produtos, ajusta preços e disponibilidade, e mantém a ementa pronta para cada mesa." data-en="Organise products and categories, update prices and availability, and keep your menu ready for every table.">Organiza categorias e produtos, ajusta preços e disponibilidade, e mantém a ementa pronta para cada mesa.</p></article>
+        <article><span aria-hidden="true">06</span><h3 data-pt="Mais proximidade" data-en="Stay connected">Mais proximidade</h3><p data-pt="Fala com o Suporte na aplicação e, se ativares o convite, facilita uma avaliação honesta no Google após o pedido." data-en="Contact Support in the app and, if enabled, invite guests to leave an honest Google review after ordering.">Fala com o Suporte na aplicação e, se ativares o convite, facilita uma avaliação honesta no Google após o pedido.</p></article>
+      </div>
+    </div></section>
     <section id="produto" class="section showcase"><div class="wrap feature">
       <div class="feature-copy"><div class="kicker" data-pt="VISÃO DO CLIENTE" data-en="GUEST EXPERIENCE">VISÃO DO CLIENTE</div><h2 data-pt="Pedir à mesa deve ser tão fácil como escolher." data-en="Ordering at the table should be as easy as choosing.">Pedir à mesa deve ser tão fácil como escolher.</h2><p data-pt="O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa." data-en="The menu opens in the browser. Guests send an order, see your team's changes and call a staff member when needed.">O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa.</p><ul class="feature-list"><li data-pt="QR individual por mesa" data-en="A QR code for every table">QR individual por mesa</li><li data-pt="Observações em cada pedido" data-en="Notes on every order">Observações em cada pedido</li><li data-pt="Estado do pedido sempre claro" data-en="Clear order status">Estado do pedido sempre claro</li></ul></div>
-      <div class="customer-screen"><div class="screen"><img src="/landing-preview/customer.png" alt="Captura real da vista dos pedidos do cliente"><div class="screen-caption" data-pt="Vista real da aplicação · cliente" data-en="Real app view · guest">Vista real da aplicação · cliente</div></div><div class="small-phone"><img src="/landing-preview/review.png" alt="Vista real em telemóvel da Bocato"></div></div>
+      <div class="phone-pair" aria-label="Ecrãs reais da experiência do cliente">
+        <figure class="product-phone"><div class="device-frame"><img src="/landing-preview/checkout-v2.png" alt="Revisão do pedido Bocato no telemóvel"></div><figcaption data-pt="Rever pedido" data-en="Review order">Rever pedido</figcaption></figure>
+        <figure class="product-phone"><div class="device-frame"><img src="/landing-preview/orders-v2.png" alt="Pedidos Bocato no telemóvel"></div><figcaption data-pt="Os meus pedidos" data-en="My orders">Os meus pedidos</figcaption></figure>
+      </div>
     </div></section>
     <section id="equipa" class="section"><div class="wrap feature reverse">
-      <div class="screen"><img src="/landing-preview/staff.png" alt="Captura real da área de pedidos da equipa"><div class="screen-caption" data-pt="Vista real da aplicação · equipa" data-en="Real app view · team">Vista real da aplicação · equipa</div></div>
+      <div class="screen"><img src="/landing-preview/staff-v2.png" alt="Captura real da área de pedidos da equipa"><div class="screen-caption" data-pt="Vista real da aplicação · equipa" data-en="Real app view · team">Vista real da aplicação · equipa</div></div>
       <div class="feature-copy"><div class="kicker" data-pt="VISÃO DA EQUIPA" data-en="TEAM WORKSPACE">VISÃO DA EQUIPA</div><h2 data-pt="Um balcão mais tranquilo começa com pedidos claros." data-en="A calmer counter starts with clear orders.">Um balcão mais tranquilo começa com pedidos claros.</h2><p data-pt="Novos pedidos, chamadas e mesas com consumo aparecem na área da equipa. O gerente gere o menu, acompanha os pagamentos e fecha o caixa com os valores visíveis." data-en="New orders, calls and active tables appear in your team's workspace. Managers control the menu, track payments and close the register with a clear view of every amount.">Novos pedidos, chamadas e mesas com consumo aparecem na área da equipa. O gerente gere o menu, acompanha os pagamentos e fecha o caixa com os valores visíveis.</p><ul class="feature-list"><li data-pt="Pedidos e chamadas em tempo real" data-en="Live orders and service calls">Pedidos e chamadas em tempo real</li><li data-pt="Mesas e pagamentos organizados" data-en="Organised tables and payments">Mesas e pagamentos organizados</li><li data-pt="Relatórios para acompanhar o negócio" data-en="Reports to track the business">Relatórios para acompanhar o negócio</li></ul></div>
     </div></section>
-    <section class="section last"><div class="wrap"><div class="closing"><div><div class="kicker" style="color:#addfc4" data-pt="BOCATO" data-en="BOCATO">BOCATO</div><h2 data-pt="Tudo o que acontece à mesa, no sítio certo." data-en="Everything happening at the table, in the right place.">Tudo o que acontece à mesa, no sítio certo.</h2><p data-pt="Uma experiência simples para o cliente. Uma visão clara para quem está a servir." data-en="A simple experience for guests. A clear view for the people serving them.">Uma experiência simples para o cliente. Uma visão clara para quem está a servir.</p></div><a class="button" href="/login" data-pt="Entrar na plataforma  →" data-en="Log in to the platform  →">Entrar na plataforma  →</a></div></div></section>
+    <section id="estatisticas" class="section statistics"><div class="wrap feature">
+      <div class="feature-copy"><div class="kicker" data-pt="ESTATÍSTICAS E CAIXA" data-en="INSIGHTS AND REGISTER">ESTATÍSTICAS E CAIXA</div><h2 data-pt="Sabe o que acontece depois de servir." data-en="See what happens after service.">Sabe o que acontece depois de servir.</h2><p data-pt="Acompanha o total recebido, pedidos e ticket médio. Analisa períodos, produtos, mesas e equipa para perceber a evolução do teu espaço." data-en="Track revenue, orders and average spend. Explore periods, products, tables and team performance to understand your venue's progress.">Acompanha o total recebido, pedidos e ticket médio. Analisa períodos, produtos, mesas e equipa para perceber a evolução do teu espaço.</p><ul class="feature-list"><li data-pt="Total recebido e pagamentos" data-en="Revenue and payments">Total recebido e pagamentos</li><li data-pt="Produtos e pedidos ao longo do tempo" data-en="Products and orders over time">Produtos e pedidos ao longo do tempo</li><li data-pt="Caixa com mesas pendentes visíveis" data-en="Register with outstanding tables shown">Caixa com mesas pendentes visíveis</li></ul></div>
+      <div class="screen"><img src="/landing-preview/statistics-v2.png" alt="Captura real das estatísticas Bocato com dados de demonstração"><div class="screen-caption" data-pt="Vista real da aplicação · dados de demonstração" data-en="Real app view · demonstration data">Vista real da aplicação · dados de demonstração</div></div>
+    </div></section>
+    <section id="pedido" class="section lead-section"><div class="wrap lead-layout">
+      <div class="lead-copy"><div class="kicker" data-pt="COMEÇAR COM A BOCATO" data-en="GET STARTED WITH BOCATO">COMEÇAR COM A BOCATO</div><h2 data-pt="Queres experimentar a Bocato no teu espaço?" data-en="Want to try Bocato at your venue?">Queres experimentar a Bocato no teu espaço?</h2><p data-pt="Conta-nos um pouco sobre o teu negócio. O teu pedido chega diretamente à equipa Bocato e entramos em contacto contigo." data-en="Tell us a little about your business. Your request goes straight to the Bocato team and we'll get in touch.">Conta-nos um pouco sobre o teu negócio. O teu pedido chega diretamente à equipa Bocato e entramos em contacto contigo.</p><div class="lead-points"><span data-pt="Sem compromisso de adesão" data-en="No commitment to sign up">Sem compromisso de adesão</span><span data-pt="Resposta personalizada" data-en="A personal reply">Resposta personalizada</span></div></div>
+      <div class="lead-card">
+        <% if params[:sent] == '1' %><div class="lead-success" role="status" data-pt="Pedido recebido. Obrigado! Entraremos em contacto contigo." data-en="Request received. Thank you! We'll be in touch.">Pedido recebido. Obrigado! Entraremos em contacto contigo.</div><% end %>
+        <% if @landing_request&.errors&.any? %><div class="lead-error" role="alert" data-pt="Revê os campos do formulário e tenta novamente." data-en="Please check the form fields and try again.">Revê os campos do formulário e tenta novamente.</div><% end %>
+        <h3 data-pt="Pedir acesso" data-en="Request access">Pedir acesso</h3>
+        <%= form_with model: @landing_request, url: landing_requests_path, class: 'lead-form' do |form| %>
+          <input type="hidden" name="lang" value="<%= params[:lang] == 'en' ? 'en' : 'pt' %>" data-lead-language>
+          <div class="lead-honeypot" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" autocomplete="off" tabindex="-1"></div>
+          <div class="lead-row"><div><label for="landing_request_first_name" data-pt="Primeiro nome" data-en="First name">Primeiro nome</label><%= form.text_field :first_name, required: true, maxlength: 100, autocomplete: 'given-name' %></div><div><label for="landing_request_last_name" data-pt="Apelido" data-en="Last name">Apelido</label><%= form.text_field :last_name, required: true, maxlength: 100, autocomplete: 'family-name' %></div></div>
+          <div><label for="landing_request_business_email" data-pt="Email profissional" data-en="Work email">Email profissional</label><%= form.email_field :business_email, required: true, maxlength: 254, autocomplete: 'email' %></div>
+          <div><label for="landing_request_phone" data-pt="Contacto telefónico" data-en="Phone number">Contacto telefónico</label><%= form.telephone_field :phone, required: true, maxlength: 30, autocomplete: 'tel' %></div>
+          <div class="lead-row"><div><label for="landing_request_region" data-pt="Região" data-en="Region">Região</label><%= form.text_field :region, required: true, maxlength: 100, autocomplete: 'address-level1' %></div><div><label for="landing_request_business_type" data-pt="Tipo de negócio" data-en="Business type">Tipo de negócio</label><%= form.select :business_type, [['Seleciona', '', { 'data-pt': 'Seleciona', 'data-en': 'Select' }]] + LandingRequest::BUSINESS_TYPES.map { |value, name| [name, value, { 'data-pt': name, 'data-en': value == 'other' ? 'Other' : name }] }, {}, required: true %></div></div>
+          <%= form.submit 'Enviar pedido', class: 'button primary', data: { pt: 'Enviar pedido', en: 'Send request' } %>
+          <p class="lead-privacy" data-pt="Usamos estes dados apenas para responder ao teu pedido." data-en="We use these details only to respond to your request.">Usamos estes dados apenas para responder ao teu pedido.</p>
+        <% end %>
+      </div>
+    </div></section>
+
   </main>
   <footer class="footer"><div class="wrap"><a href="#inicio"><img src="/landing-preview/logo.png" alt="Bocato"></a><span>© 2026 Bocato</span><a href="/login" data-pt="Acesso da equipa" data-en="Team login">Acesso da equipa</a></div></footer>
   <script>
     const switchLanguage = (lang) => {
       document.documentElement.lang = lang === 'en' ? 'en' : 'pt-PT';
-      document.querySelectorAll('[data-pt][data-en]').forEach(el => { el.textContent = el.dataset[lang]; });
+      document.querySelectorAll('[data-pt][data-en]').forEach(el => { if (el instanceof HTMLInputElement) el.value = el.dataset[lang]; else el.textContent = el.dataset[lang]; });
       document.querySelectorAll('[data-language]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.language === lang)); });
       document.title = lang === 'en' ? 'Bocato — Table orders, everything in its place' : 'Bocato — Pedidos à mesa, com tudo no seu lugar';
-      history.replaceState(null, '', lang === 'en' ? '?lang=en' + location.hash : location.pathname + location.hash);
+      document.querySelector('[data-lead-language]').value = lang;
+      const url = new URL(location.href);
+      if (lang === 'en') url.searchParams.set('lang', 'en'); else url.searchParams.delete('lang');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
     };
     document.querySelectorAll('[data-language]').forEach(button => button.addEventListener('click', () => switchLanguage(button.dataset.language)));
     if (new URLSearchParams(location.search).get('lang') === 'en') switchLanguage('en');

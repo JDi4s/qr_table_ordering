@@ -5,12 +5,14 @@
   <title>Bocato — Administração</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#192d24"><%= render 'layouts/brand_icons' %>
   <%= csrf_meta_tags %><%= csp_meta_tag %><%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %><%= javascript_importmap_tags %>
   <%= stylesheet_link_tag 'google_reviews', 'data-turbo-track': 'reload' %>
+  <%= stylesheet_link_tag 'landing_admin', 'data-turbo-track': 'reload' %>
 </head>
 <body class="admin-body" data-vapid-public-key="<%= h(ENV['VAPID_PUBLIC_KEY'].to_s) %>">
   <header class="admin-header">
     <div class="admin-brand"><%= image_tag 'bocato-logo.png', alt: 'Bocato', class: 'platform-logo' %><small>Administração</small></div>
     <nav class="admin-main-nav" aria-label="Administração da plataforma">
       <%= link_to 'Clientes', admin_establishments_path, class: ('is-active' if controller_path == 'admin/establishments') %>
+      <%= link_to admin_landing_requests_path, class: ('is-active' if controller_path == 'admin/landing_requests') do %>Pedidos de adesão<% if LandingRequest.where(status: 'new').exists? %><span><%= LandingRequest.where(status: 'new').count %></span><% end %><% end %>
       <%= link_to admin_support_tickets_path, class: ('is-active' if controller_path.include?('support_ticket')) do %>Tickets<% if SupportTicket.unresolved.exists? %><span><%= SupportTicket.unresolved.count %></span><% end %><% end %>
       <%= link_to 'Logs', admin_audit_events_path, class: ('is-active' if controller_path == 'admin/audit_events') %>
     </nav>

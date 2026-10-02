@@ -3,8 +3,10 @@ Rails.application.routes.draw do
   get 'up', to: 'rails/health#show'
   get 'login', to: 'sessions#new'
   post 'login', to: 'sessions#create'
+  post 'landing_requests', to: 'landing_requests#create'
   delete 'logout', to: 'sessions#destroy'
   namespace :admin do
+    resources :landing_requests, only: [:index, :show, :update]
     resources :establishments, except: [:show, :destroy]
     resources :support_tickets, only: [:index, :show, :update] do
       resources :messages, only: :create, controller: 'support_ticket_messages'

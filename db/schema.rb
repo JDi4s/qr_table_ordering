@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_09_15_190000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_02_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -109,6 +109,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_15_190000) do
     t.check_constraint "plan::text = ANY (ARRAY['essential'::character varying, 'management'::character varying]::text[])", name: "valid_establishment_plan"
     t.check_constraint "production_areas_limit >= 0", name: "production_areas_limit_positive"
     t.check_constraint "table_limit >= 0 AND monthly_fee_cents >= 0", name: "establishment_limits_positive"
+  end
+
+  create_table "landing_requests", force: :cascade do |t|
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "business_email", null: false
+    t.string "phone", null: false
+    t.string "region", null: false
+    t.string "business_type", null: false
+    t.string "status", default: "new", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status", "created_at"], name: "index_landing_requests_on_status_and_created_at"
   end
 
   create_table "menu_item_recommendations", force: :cascade do |t|
