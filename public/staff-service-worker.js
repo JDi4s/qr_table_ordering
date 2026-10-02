@@ -3,8 +3,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Bocato'
   const options = {
     body: data.body || 'Existe uma nova notificação.',
-    icon: data.icon || '/bocato-icon-v3-192.png',
-    badge: '/bocato-icon-v3-192.png',
+    icon: data.icon || '/bocato-icon-v4-192.png',
+    badge: '/bocato-icon-v4-192.png',
     tag: data.tag || 'bocato-notification',
     data: { url: data.url || '/staff/orders' }
   }
