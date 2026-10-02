@@ -1,11 +1,11 @@
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {}
-  const title = data.title || 'Mesa'
+  const title = data.title || 'Bocato'
   const options = {
     body: data.body || 'Existe uma nova notificação.',
-    icon: data.icon || '/icon.svg',
-    badge: '/icon.svg',
-    tag: data.tag || 'mesa-notification',
+    icon: data.icon || '/bocato-icon-192.png',
+    badge: '/bocato-icon-192.png',
+    tag: data.tag || 'bocato-notification',
     data: { url: data.url || '/staff/orders' }
   }
 
