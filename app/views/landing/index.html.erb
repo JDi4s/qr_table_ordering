@@ -110,9 +110,9 @@
     h1 { font-size:clamp(43px,4.35vw,62px); }
     .hero-visual { width:100%; height:505px; max-width:610px; margin-inline:auto; display:flex; align-items:center; justify-content:center; }
     .halo { inset:18px 25px 10px 48px; }
-    .dash-window { top:54px; right:0; width:min(570px,95%); transform:rotate(1.5deg); overflow:hidden; }
-    .dash-window img { aspect-ratio:16 / 10; object-fit:cover; object-position:center 30%; }
-    .phone { left:0; bottom:0; width:210px; transform:rotate(-3deg); }
+    .dash-window { top:82px; right:0; width:calc(100% - 224px); transform:rotate(1.5deg); overflow:hidden; }
+    .dash-window img { width:100%; height:auto; aspect-ratio:auto; object-fit:contain; }
+    .phone { left:0; bottom:42px; width:190px; transform:rotate(-2deg); }
     .phone img { height:auto; aspect-ratio:390 / 780; object-fit:cover; object-position:top; }
     .float-label { right:0; bottom:0; transform:rotate(2deg); }
     .showcase { background:radial-gradient(circle at 74% 43%,#dce9d9 0 17%,transparent 17.2%),#e8eee6; }
@@ -120,11 +120,11 @@
     .feature.reverse > .screen { transform:rotate(-1.2deg); }
     .statistics .feature > .screen { transform:rotate(1.2deg); }
     .team-screen { overflow:hidden; }
-    .team-screen img { aspect-ratio:16 / 10; object-fit:cover; object-position:center 35%; }
-    .phone-pair { position:relative; display:flex; align-items:flex-start; justify-content:center; gap:0; width:100%; max-width:650px; margin-inline:auto; padding:35px 22px 86px; }
+    .team-screen img { width:100%; height:auto; aspect-ratio:auto; object-fit:contain; }
+    .phone-pair { position:relative; display:flex; align-items:flex-start; justify-content:center; gap:28px; width:100%; max-width:650px; margin-inline:auto; padding:35px 22px 86px; }
     .phone-pair:before { content:""; position:absolute; z-index:0; inset:9% 6% 13%; border-radius:45% 55% 52% 48%; transform:rotate(-9deg); background:#d4e5d3; }
-    .product-phone { position:relative; z-index:1; margin:0; width:min(47%,252px); min-width:0; transform:rotate(-3deg); }
-    .product-phone:nth-child(2) { z-index:2; margin-top:56px; margin-left:-26px; transform:rotate(3deg); }
+    .product-phone { position:relative; z-index:1; margin:0; width:min(43%,244px); min-width:0; transform:rotate(-2deg); }
+    .product-phone:nth-child(2) { margin-top:40px; transform:rotate(2deg); }
     .device-frame { position:relative; padding:7px; border:7px solid var(--forest); border-radius:34px; background:white; box-shadow:0 22px 45px #1e4b3524; }
     .device-frame:before { content:""; position:absolute; z-index:2; top:0; left:50%; width:64px; height:12px; transform:translateX(-50%); border-radius:0 0 12px 12px; background:var(--forest); }
     .device-frame img { width:100%; height:auto; aspect-ratio:390 / 780; object-fit:cover; object-position:top; border-radius:20px; }
@@ -133,23 +133,22 @@
     .product-badge:before { content:"✓"; display:grid; place-items:center; width:18px; height:18px; border-radius:50%; background:var(--mint); color:var(--green); }
     .product-badge.first { top:11%; left:0; transform:rotate(-4deg); }
     .product-badge.last { right:0; bottom:14px; transform:rotate(4deg); }
-    @media(max-width:1000px) { .nav { display:flex; } .hero .wrap { gap:28px; } .hero-visual { transform:none; } .phone { left:-4px; } }
+    @media(max-width:1000px) { .nav { display:flex; } .hero .wrap { gap:28px; } .hero-visual { transform:none; } .dash-window { width:calc(100% - 174px); } .phone { width:155px; } }
     @media(max-width:740px) {
       .nav { justify-content:space-between; }
       .hero .wrap { display:flex; flex-direction:column; align-items:stretch; gap:22px; padding:56px 0; }
-      .hero-visual { width:100%; height:420px; }
-      .dash-window { top:45px; right:0; width:92%; }
-      .dash-window img { aspect-ratio:4 / 3; }
-      .phone { left:0; bottom:0; width:158px; }
+      .hero-visual { width:100%; height:365px; }
+      .dash-window { top:76px; right:0; width:calc(100% - 164px); }
+      .phone { left:0; top:14px; bottom:auto; width:148px; }
       .phone img { height:auto; }
-      .float-label { bottom:3px; }
-      .phone-pair { justify-content:flex-start; overflow-x:auto; gap:18px; padding:28px 22px 42px; margin:0 -16px; width:calc(100% + 32px); scroll-snap-type:x mandatory; }
-      .product-phone { flex:0 0 230px; width:230px; scroll-snap-align:center; }
-      .product-phone:nth-child(2) { margin-top:22px; margin-left:0; }
+      .float-label { bottom:3px; max-width:180px; }
+      .phone-pair { flex-direction:column; align-items:center; overflow:visible; gap:30px; padding:32px 12px 48px; margin:0 auto; width:100%; }
+      .product-phone { flex:0 0 auto; width:min(72vw,260px); }
+      .product-phone:nth-child(2) { margin-top:0; }
       .product-badge { display:none; }
       .feature.reverse > .screen,.statistics .feature > .screen { transform:none; }
     }
-    @media(max-width:380px) { .hero-visual { height:370px; } .phone { width:140px; } }
+    @media(max-width:380px) { .hero-visual { height:350px; } .phone { width:135px; } .dash-window { width:calc(100% - 150px); } }
 
     .benefits { background:var(--paper); }
     .benefit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
