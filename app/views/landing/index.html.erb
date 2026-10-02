@@ -129,10 +129,6 @@
     .device-frame:before { content:""; position:absolute; z-index:2; top:0; left:50%; width:64px; height:12px; transform:translateX(-50%); border-radius:0 0 12px 12px; background:var(--forest); }
     .device-frame img { width:100%; height:auto; aspect-ratio:390 / 780; object-fit:cover; object-position:top; border-radius:20px; }
     .product-phone figcaption { margin-top:14px; text-align:center; font-size:13px; font-weight:700; color:var(--green); }
-    .product-badge { position:absolute; z-index:3; display:inline-flex; align-items:center; gap:8px; padding:10px 15px; border:1px solid var(--line); border-radius:999px; background:var(--paper); box-shadow:0 12px 26px #1e4b3521; color:var(--forest); font-size:12px; font-weight:750; white-space:nowrap; }
-    .product-badge:before { content:"✓"; display:grid; place-items:center; width:18px; height:18px; border-radius:50%; background:var(--mint); color:var(--green); }
-    .product-badge.first { top:11%; left:0; transform:rotate(-4deg); }
-    .product-badge.last { right:0; bottom:14px; transform:rotate(4deg); }
     @media(max-width:1000px) { .nav { display:flex; } .hero .wrap { gap:28px; } .hero-visual { transform:none; } .dash-window { width:calc(100% - 174px); } .phone { width:155px; } }
     @media(max-width:740px) {
       .nav { justify-content:space-between; }
@@ -145,7 +141,6 @@
       .phone-pair { flex-direction:column; align-items:center; overflow:visible; gap:30px; padding:32px 12px 48px; margin:0 auto; width:100%; }
       .product-phone { flex:0 0 auto; width:min(72vw,260px); }
       .product-phone:nth-child(2) { margin-top:0; }
-      .product-badge { display:none; }
       .feature.reverse > .screen,.statistics .feature > .screen { transform:none; }
     }
     @media(max-width:380px) { .hero-visual { height:350px; } .phone { width:135px; } .dash-window { width:calc(100% - 150px); } }
@@ -238,10 +233,8 @@
     <section id="produto" class="section showcase"><div class="wrap feature">
       <div class="feature-copy"><div class="kicker" data-pt="VISÃO DO CLIENTE" data-en="GUEST EXPERIENCE">VISÃO DO CLIENTE</div><h2 data-pt="Pedir à mesa deve ser tão fácil como escolher." data-en="Ordering at the table should be as easy as choosing.">Pedir à mesa deve ser tão fácil como escolher.</h2><p data-pt="O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa." data-en="The menu opens in the browser. Guests send an order, see your team's changes and call a staff member when needed.">O menu abre diretamente no navegador. O cliente envia o pedido, vê as alterações da equipa e pode chamar um funcionário quando precisa.</p><ul class="feature-list"><li data-pt="QR individual por mesa" data-en="A QR code for every table">QR individual por mesa</li><li data-pt="Observações em cada pedido" data-en="Notes on every order">Observações em cada pedido</li><li data-pt="Estado do pedido sempre claro" data-en="Clear order status">Estado do pedido sempre claro</li></ul></div>
       <div class="phone-pair" aria-label="Ecrãs reais da experiência do cliente">
-        <span class="product-badge first" data-pt="Pronto para enviar" data-en="Ready to send">Pronto para enviar</span>
         <figure class="product-phone"><div class="device-frame"><img src="/landing-preview/checkout-v2.png" alt="Revisão do pedido Bocato no telemóvel"></div><figcaption data-pt="Rever pedido" data-en="Review order">Rever pedido</figcaption></figure>
         <figure class="product-phone"><div class="device-frame"><img src="/landing-preview/orders-v2.png" alt="Pedidos Bocato no telemóvel"></div><figcaption data-pt="Os meus pedidos" data-en="My orders">Os meus pedidos</figcaption></figure>
-        <span class="product-badge last" data-pt="Pedido enviado" data-en="Order sent">Pedido enviado</span>
       </div>
     </div></section>
     <section id="equipa" class="section"><div class="wrap feature reverse">
