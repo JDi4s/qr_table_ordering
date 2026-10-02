@@ -19,6 +19,7 @@ class LiveServiceTest < ApplicationSystemTestCase
       2.times { find('.customer-product-card', text: product.name).click }
       click_on 'Rever pedido'
       assert_text '20,00 €'
+      landing_screenshot('checkout', width: 390, height: 780)
       click_on 'Enviar pedido'
       assert_text 'Os meus pedidos'
       assert_selector 'turbo-cable-stream-source[connected]', visible: :all
