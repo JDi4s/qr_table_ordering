@@ -64,7 +64,7 @@ class LiveServiceTest < ApplicationSystemTestCase
         demo_order.update!(status: 'served', served_at: Time.current, total: 30,
                            paid_at: Time.current, paid_by_user: manager)
         demo_order.payments.create!(user: manager, amount: 30, payment_method: 'card',
-                                    paid_at: index.hours.ago)
+                                    paid_at: Time.current)
       end
       visit staff_reports_path(tab: 'statistics', analysis: 'revenue', metric: 'total',
                                view: 'day', date: Date.current.iso8601)
