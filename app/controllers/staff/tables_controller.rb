@@ -14,6 +14,13 @@ class Staff::TablesController < Staff::BaseController
       .distinct
       .includes(orders: [{ order_items: :menu_item }, { payments: :user }])
       .order(:number)
+    @table_rows = @tables.map do |table|
+      orders = table.orders.select { |order| order.paid_at.nil? && !order.denied? && !order.voided? }
+      [table, orders]
+    end
+    @amount_to_collect = @table_rows.sum do |_, orders|
+      orders.select { |order| order.accepted? || order.served? }.sum(&:outstanding_total)
+    end
   end
 
   def show

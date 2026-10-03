@@ -320,8 +320,33 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     get active_staff_tables_path
 
     assert_response :success
-    assert_select '.table-card p', text: /1 pedido\(s\) em aberto/
-    assert_not_includes response.body, '2 pedido(s) em aberto'
+    assert_select '.active-table-card' do
+      assert_select '.active-table-card-detail', text: /1 pedido em aberto/
+    end
+    assert_not_includes response.body, '2 pedidos em aberto'
+  end
+
+  test 'active tables separate pending orders from collectible debt' do
+    pending_order = build_order(@table, @product)
+    second_table = @venue.tables.create!(number: 12)
+    accepted_order = build_order(second_table, @product, customer: 'second-table')
+    accepted_order.finalize_review!
+    accepted_order.pay_item!(accepted_order.order_items.first.id, 1, @manager)
+    sign_in(@manager)
+
+    get active_staff_tables_path
+
+    assert_response :success
+    assert_select '.active-tables-stat strong', text: '2'
+    assert_select '.active-tables-stat strong', text: '20,00 €'
+    assert_select "#table_#{@table.id}[data-amount-cents='0']" do
+      assert_select '.active-table-waiting', text: '1 pedido por avaliar'
+      assert_select '.active-table-amount', count: 0
+    end
+    assert_select "#table_#{second_table.id}[data-amount-cents='2000']" do
+      assert_select '.active-table-amount', text: /20,00 €/
+    end
+    assert_equal 30, pending_order.reload.total
   end
 
   test 'manager pauses service while the menu stays visible and customer actions are blocked' do

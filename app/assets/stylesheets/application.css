@@ -2558,3 +2558,30 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .staff-orders-board .staff-card-actions { flex-wrap: wrap; }
   .staff-orders-board .staff-card-actions > .button, .staff-orders-board .staff-card-actions form { flex: 1 1 100%; max-width: none; }
 }
+
+/* Mesas com consumo */
+.active-tables { max-width: 720px; }
+.active-tables > h1 { margin: 0 0 4px; }
+.active-tables-intro { margin: 0 0 20px; color: var(--muted); }
+.active-tables-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-width: 520px; margin-bottom: 20px; }
+.active-tables-stat { display: grid; place-content: center; justify-items: center; min-height: 84px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: white; text-align: center; }
+.active-tables-stat strong { color: var(--green); font-size: 28px; line-height: 1; }
+.active-tables-stat span { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.25; }
+.active-tables-search-label { display: block; margin: 0 0 7px; color: var(--ink); font-size: 14px; font-weight: 700; }
+.active-tables-search { display: block; width: 100%; max-width: 520px; height: 44px; margin: 0 0 19px; padding: 0 13px; border: 1px solid #c9d7cb; border-radius: 10px; background: white; color: var(--ink); font: inherit; }
+.active-tables-search:focus { outline: 2px solid var(--green); outline-offset: 2px; }
+.active-tables-list-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 9px; color: var(--muted); font-size: 12px; }
+.active-tables-list-heading strong { color: var(--green); font-size: 13px; }
+.active-tables-list { display: grid; gap: 9px; }
+.active-table-card { display: block; padding: 14px 15px; border: 1px solid var(--line); border-radius: 14px; background: white; color: var(--ink); text-decoration: none; box-shadow: 0 4px 16px #20383204; }
+.active-table-card:hover { border-color: var(--green); }
+.active-table-card[hidden] { display: none; }
+.active-table-card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.active-table-card-top > strong { color: var(--ink); font-size: 18px; }
+.active-table-amount b { color: var(--green); font-size: 18px; white-space: nowrap; }
+.active-table-amount small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; text-align: right; }
+.active-table-card-detail { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; color: var(--muted); font-size: 13px; }
+.active-table-chevron { color: var(--green); font-size: 17px; font-weight: 700; }
+.active-table-waiting { display: inline-block; margin-top: 9px; padding: 5px 8px; border-radius: 8px; background: #fff3d8; color: #825614; font-size: 12px; }
+.active-tables-empty { padding: 18px 0; color: var(--muted); font-size: 13px; }
+.active-tables-empty[hidden] { display: none; }

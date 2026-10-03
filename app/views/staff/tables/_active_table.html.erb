@@ -1,13 +1,13 @@
-<% table_orders = table.unpaid_orders.to_a %>
+<% table_orders = local_assigns.fetch(:table_orders) { table.unpaid_orders.includes(:order_items).to_a } %>
 <% waiting_orders = table_orders.count(&:pending?) %>
-<% payable_orders = table_orders.count { |order| order.accepted? || order.served? } %>
-<%= link_to staff_table_path(table), class: 'table-card', id: dom_id(table) do %>
-  <%= table_svg(table) %>
-  <div>
-    <h2>Mesa <%= table.number %></h2>
-    <p><strong><%= table_orders.size %></strong> pedido(s) em aberto</p>
-    <% if waiting_orders.positive? %><p class="table-warning"><strong><%= waiting_orders %></strong> a aguardar avaliação</p><% end %>
-    <p><strong><%= payable_orders %></strong> pronto(s) para pagamento</p>
-    <p><strong><%= euros(table_orders.sum(&:outstanding_total)) %></strong> por pagar</p>
+<% amount_to_collect = table_orders.select { |order| order.accepted? || order.served? }.sum(&:outstanding_total) %>
+<%= link_to staff_table_path(table), class: 'active-table-card', id: dom_id(table), data: { active_tables_target: 'card', number: table.number, amount_cents: (amount_to_collect * 100).round } do %>
+  <div class="active-table-card-top">
+    <strong>Mesa <%= table.number %></strong>
+    <% if amount_to_collect.positive? %>
+      <span class="active-table-amount"><b><%= euros(amount_to_collect) %></b><small>por cobrar</small></span>
+    <% end %>
   </div>
+  <div class="active-table-card-detail"><span><%= pluralize(table_orders.size, 'pedido', 'pedidos') %> em aberto</span><span aria-hidden="true" class="active-table-chevron">›</span></div>
+  <% if waiting_orders.positive? %><span class="active-table-waiting"><%= pluralize(waiting_orders, 'pedido', 'pedidos') %> por avaliar</span><% end %>
 <% end %>

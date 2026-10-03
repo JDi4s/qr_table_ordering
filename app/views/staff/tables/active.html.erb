@@ -1,15 +1,22 @@
-<p class="eyebrow">CONTROLO DE PAGAMENTOS</p>
-<h1>Mesas com consumo</h1>
-<p>Escolha uma mesa para consultar pedidos, estados e pagamentos individuais.</p>
-
 <%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
+<section class="active-tables" data-controller="active-tables">
+  <h1>Mesas</h1>
+  <p class="active-tables-intro">Acompanha os consumos em aberto.</p>
 
-<div class="table-dashboard" data-controller="staff-live-refresh">
-  <% @tables.each do |table| %>
-    <%= render 'staff/tables/active_table', table: table %>
-  <% end %>
-</div>
+  <div class="active-tables-summary">
+    <div class="active-tables-stat"><strong data-active-tables-target="count"><%= @table_rows.size %></strong><span>Mesas com consumo</span></div>
+    <div class="active-tables-stat"><strong data-active-tables-target="total"><%= euros(@amount_to_collect) %></strong><span>Por cobrar</span></div>
+  </div>
 
-<% if @tables.empty? %>
-  <section class="panel empty-state"><strong>Não existem mesas com pedidos por pagar.</strong><p>Quando entrar um pedido, a mesa aparecerá aqui.</p></section>
-<% end %>
+  <label class="active-tables-search-label" for="active-tables-search">Encontrar mesa</label>
+  <input id="active-tables-search" class="active-tables-search" type="search" inputmode="numeric" placeholder="Número da mesa" autocomplete="off" data-active-tables-target="input" data-action="input->active-tables#filter">
+
+  <div class="active-tables-list-heading"><strong>Mesas com consumo</strong><span>Por número de mesa</span></div>
+  <div class="active-tables-list" data-controller="staff-live-refresh">
+    <% @table_rows.each do |table, orders| %>
+      <%= render 'staff/tables/active_table', table: table, table_orders: orders %>
+    <% end %>
+  </div>
+
+  <p class="active-tables-empty" data-active-tables-target="empty" <%= 'hidden' unless @table_rows.empty? %>><%= @table_rows.empty? ? 'Não há mesas com consumo em aberto.' : 'Não há mesas com esse número.' %></p>
+</section>
