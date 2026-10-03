@@ -7,7 +7,7 @@
   <% if order.note.present? %><p class="staff-order-note">Observação: <%= truncate(order.note, length: 90) %></p><% end %>
   <div class="staff-card-actions">
     <%= link_to(order.pending? ? 'Avaliar pedido' : 'Abrir pedido', staff_order_path(order), class: 'button secondary') %>
-    <% if order.pending? %><%= button_to 'Aceitar sem alterações', staff_order_path(order, status: 'accepted'), method: :patch %><% end %>
+    <% if order.pending? %><%= button_to 'Aceitar', staff_order_path(order, status: 'accepted'), method: :patch, aria: { label: 'Aceitar pedido sem alterações' } %><% end %>
     <% if order.accepted? %><%= button_to 'Marcar servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
   </div>
 </article>

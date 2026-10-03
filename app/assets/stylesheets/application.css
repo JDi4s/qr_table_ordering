@@ -2523,9 +2523,9 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 .staff-orders-board .staff-order-items li + li { margin-top: 5px; }
 .staff-orders-board .staff-order-note { margin: 0 0 13px; padding: 9px 11px; border-radius: 8px; background: #f4f7f1; font-size: 12px; overflow-wrap: anywhere; }
 .staff-orders-board .staff-card-actions { display: flex; flex-wrap: nowrap; gap: 8px; }
-.staff-orders-board .staff-card-actions > .button { display: inline-flex; flex: 0 1 auto; align-items: center; justify-content: center; min-height: 42px; margin: 0; text-align: center; }
+.staff-orders-board .staff-card-actions > .button { display: inline-flex; flex: 0 1 auto; align-items: center; justify-content: center; min-height: 42px; margin: 0; padding: 9px 10px; font-size: 13px; text-align: center; }
 .staff-orders-board .staff-card-actions form { flex: 1; min-width: 0; }
-.staff-orders-board .staff-card-actions button { width: 100%; min-height: 42px; margin: 0; white-space: normal; }
+.staff-orders-board .staff-card-actions button { width: 100%; min-height: 42px; margin: 0; font-size: 13px; white-space: normal; }
 
 @media (max-width: 600px) {
   .staff-header { align-items: center; gap: 0 10px; padding: 11px 16px; }
