@@ -16,6 +16,7 @@ class StaffOrdersBoardTest < ApplicationSystemTestCase
     assert_selector "#order_#{order.id}", text: 'Mesa 1'
     assert_selector "#order_#{order.id}", text: 'Avaliar pedido'
     assert_selector '.staff-nav-toggle[aria-expanded="false"]'
+    assert_selector '.staff-nav-toggle svg path', visible: :all
     assert_no_selector '.staff-main-nav a', visible: true
 
     find('.staff-nav-toggle').click
