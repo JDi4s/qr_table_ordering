@@ -1,8 +1,9 @@
-<% received_total = order.paid_total %>
-<% outstanding_total = order.outstanding_total %>
-<% financial_status = if order.voided? || order.denied?
-                        nil
-                      elsif order.paid?
+<% cancelled = order.voided? || order.denied? %>
+<% received_total = cancelled ? 0.to_d : order.paid_total %>
+<% outstanding_total = cancelled ? 0.to_d : order.outstanding_total %>
+<% financial_status = if cancelled
+                        [order_state_label(order), 'cancelled']
+                      elsif outstanding_total.zero?
                         ['Pago', 'paid']
                       elsif received_total.positive?
                         ['Pagamento parcial', 'partial']
@@ -12,27 +13,16 @@
 <details class="panel history-order">
   <summary>
     <div class="history-order-main">
-      <p class="eyebrow">PEDIDO #<%= order.id %></p>
-      <h2>Mesa <%= order.table.display_number %></h2>
+      <h2>Mesa <%= order.table.display_number %> · #<%= order.id %></h2>
       <div class="history-order-meta">
-        <span><%= order.created_at.strftime('%H:%M') %></span>
+        <span><%= order.created_at.in_time_zone.strftime('%d/%m/%Y · %H:%M') %></span>
         <span><%= order.order_items.sum(&:quantity) %> artigos</span>
+        <% unless cancelled %><span><%= order_state_label(order) %></span><% end %>
       </div>
     </div>
     <div class="history-order-total">
-      <div class="history-order-statuses">
-        <span class="badge order-status order-status-<%= order.voided? ? 'voided' : order.status %>"><%= order_state_label(order) %></span>
-        <% if financial_status %>
-          <span class="badge payment-status-<%= financial_status.last %>"><%= financial_status.first %></span>
-        <% end %>
-      </div>
-      <strong><span>Total</span> <%= euros(order.total) %></strong>
-      <% unless order.voided? || order.denied? %>
-        <small>
-          Recebido <%= euros(received_total) %>
-          <% if outstanding_total.positive? %> · Por pagar <%= euros(outstanding_total) %><% end %>
-        </small>
-      <% end %>
+      <strong><%= euros(order.total) %></strong>
+      <span class="badge payment-status-<%= financial_status.last %>"><%= financial_status.first %></span>
     </div>
   </summary>
 
@@ -40,15 +30,19 @@
     <% if order.note.present? %>
       <p class="history-order-note">Nota: <%= order.note %></p>
     <% end %>
-
     <ul class="history-order-items">
       <% order.order_items.each do |item| %>
         <li><%= item.quantity %> × <%= item.display_name %><%= ' · rejeitado' if item.denied? %></li>
       <% end %>
     </ul>
-
+    <% unless cancelled %>
+      <dl class="history-order-money">
+        <dt>Recebido</dt><dd><%= euros(received_total) %></dd>
+        <dt>Por pagar</dt><dd><%= euros(outstanding_total) %></dd>
+      </dl>
+    <% end %>
     <div class="history-order-actions">
-      <%= link_to 'Abrir pedido completo', staff_order_path(order), class: 'button secondary history-order-open' %>
+      <%= link_to 'Abrir pedido completo', staff_order_path(order), class: 'button secondary history-order-open', data: { turbo_frame: '_top' } %>
     </div>
   </div>
 </details>

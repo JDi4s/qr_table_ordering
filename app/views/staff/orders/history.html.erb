@@ -1,71 +1,77 @@
-<div class="history-page">
+<div class="history-page history-compact">
   <div class="history-heading">
-    <div>
-      <h1>Histórico</h1>
-      <p>Consulta todos os pedidos terminados e filtra por período ou estado.</p>
-    </div>
+    <h1>Histórico</h1>
+    <p>Encontra pedidos por mesa, número ou data.</p>
   </div>
 
-  <div class="history-summary-grid">
-    <div class="history-summary-card">
-      <strong><%= @history_total %></strong>
-      <span>Pedidos encontrados</span>
-    </div>
-    <div class="history-summary-card">
-      <strong><%= euros(@history_received) %></strong>
-      <span>Total recebido</span>
-    </div>
-    <div class="history-summary-card">
-      <strong><%= @history_tables %></strong>
-      <span>Mesas utilizadas</span>
-    </div>
-  </div>
+  <%= turbo_frame_tag 'history_results' do %>
+    <% filters = { period: @history_period, status: @history_status, q: @history_query.presence } %>
+    <% filters[:from] = @history_from_value if @history_period == 'custom' && @history_from_value.present? %>
+    <% filters[:to] = @history_to_value if @history_period == 'custom' && @history_to_value.present? %>
 
-  <section class="panel history-filters">
-    <h2>Escolher período</h2>
-    <div class="history-quick-filters">
-      <%= link_to 'Todos', history_staff_orders_path(status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'all' ? 'is-active' : '') %>
-      <%= link_to 'Hoje', history_staff_orders_path(period: 'today', status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'today' ? 'is-active' : '') %>
-      <%= link_to 'Ontem', history_staff_orders_path(period: 'yesterday', status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'yesterday' ? 'is-active' : '') %>
-      <%= link_to 'Últimos 7 dias', history_staff_orders_path(period: 'last_7_days', status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'last_7_days' ? 'is-active' : '') %>
-      <%= link_to 'Personalizado', history_staff_orders_path(period: 'custom', from: @history_from_value, to: @history_to_value, status: (@history_status == 'all' ? nil : @history_status)), class: (@history_period == 'custom' ? 'is-active' : '') %>
-    </div>
-
-    <%= form_with url: history_staff_orders_path, method: :get, class: 'history-filter-form' do %>
-      <%= hidden_field_tag :period, 'custom' %>
-      <div>
-        <%= label_tag :from, 'De' %>
-        <div class="history-date-control" data-controller="history-date">
-          <%= datetime_local_field_tag :from, @history_from_value, data: { history_date_target: 'input', action: 'input->history-date#update change->history-date#update' } %>
-          <span class="history-date-display" data-history-date-target="display" aria-hidden="true"></span>
-        </div>
-      </div>
-      <div>
-        <%= label_tag :to, 'Até' %>
-        <div class="history-date-control" data-controller="history-date">
-          <%= datetime_local_field_tag :to, @history_to_value, data: { history_date_target: 'input', action: 'input->history-date#update change->history-date#update' } %>
-          <span class="history-date-display" data-history-date-target="display" aria-hidden="true"></span>
-        </div>
-      </div>
-      <div>
-        <%= label_tag :status, 'Estado' %>
-        <%= select_tag :status, options_for_select([['Todos', 'all'], ['Servidos', 'served'], ['Cancelados', 'denied']], @history_status) %>
-      </div>
-      <%= submit_tag 'Aplicar intervalo', class: 'secondary' %>
-      <%= link_to 'Limpar', history_staff_orders_path, class: 'button secondary history-clear-filter' %>
-    <% end %>
-  </section>
-
-  <% if @orders.any? %>
-    <div class="history-list">
-      <% @orders.each do |order| %>
-        <%= render 'history_order', order: order %>
+    <%= form_with url: history_staff_orders_path, method: :get, class: 'history-search' do %>
+      <%= hidden_field_tag :period, @history_period %>
+      <%= hidden_field_tag :status, @history_status %>
+      <% if @history_period == 'custom' %>
+        <%= hidden_field_tag :from, @history_from_value %>
+        <%= hidden_field_tag :to, @history_to_value %>
       <% end %>
+      <%= search_field_tag :q, @history_query, placeholder: 'Pesquisar mesa ou pedido', aria: { label: 'Pesquisar mesa ou pedido' } %>
+      <%= submit_tag 'Pesquisar', class: 'secondary' %>
+    <% end %>
+
+    <nav class="history-quick-filters" aria-label="Período">
+      <% [['today', 'Hoje'], ['yesterday', 'Ontem'], ['last_7_days', '7 dias'], ['all', 'Todos']].each do |period, label| %>
+        <%= link_to label, history_staff_orders_path(filters.except(:from, :to).merge(period: period)),
+                    class: (@history_period == period ? 'is-active' : ''), aria: { current: (@history_period == period ? 'page' : nil) } %>
+      <% end %>
+    </nav>
+
+    <details class="history-more-filters" <%= 'open' if @history_period == 'custom' || @history_status != 'all' %>>
+      <summary><span><strong>Mais filtros</strong><small>Datas e estado</small></span></summary>
+      <%= form_with url: history_staff_orders_path, method: :get, class: 'history-filter-form' do %>
+        <%= hidden_field_tag :period, @history_period %>
+        <%= hidden_field_tag :q, @history_query %>
+        <div>
+          <%= label_tag :status, 'Estado' %>
+          <%= select_tag :status, options_for_select([['Todos', 'all'], ['Servidos', 'served'], ['Cancelados', 'denied']], @history_status) %>
+        </div>
+        <div>
+          <%= label_tag :from, 'De' %>
+          <div class="history-date-control" data-controller="history-date">
+            <%= datetime_local_field_tag :from, (@history_period == 'custom' ? @history_from_value : nil), data: { history_date_target: 'input', action: 'input->history-date#update change->history-date#update' } %>
+            <span class="history-date-display" data-history-date-target="display" aria-hidden="true"></span>
+          </div>
+        </div>
+        <div>
+          <%= label_tag :to, 'Até' %>
+          <div class="history-date-control" data-controller="history-date">
+            <%= datetime_local_field_tag :to, (@history_period == 'custom' ? @history_to_value : nil), data: { history_date_target: 'input', action: 'input->history-date#update change->history-date#update' } %>
+            <span class="history-date-display" data-history-date-target="display" aria-hidden="true"></span>
+          </div>
+        </div>
+        <%= submit_tag 'Aplicar filtros', class: 'secondary' %>
+        <%= link_to 'Limpar', history_staff_orders_path, class: 'button secondary history-clear-filter' %>
+      <% end %>
+    </details>
+
+    <div class="history-list-heading">
+      <strong><%= { 'today' => 'Pedidos de hoje', 'yesterday' => 'Pedidos de ontem', 'last_7_days' => 'Últimos 7 dias', 'custom' => 'Intervalo escolhido', 'all' => 'Todos os pedidos' }.fetch(@history_period) %></strong>
+      <span><%= @history_total %> <%= @history_total == 1 ? 'pedido' : 'pedidos' %><% if @history_tables.positive? %> · <%= @history_tables %> <%= @history_tables == 1 ? 'mesa' : 'mesas' %><% end %></span>
     </div>
-  <% else %>
-    <section class="panel empty-state">
-      <strong>Não existem pedidos neste filtro.</strong>
-      <p>Tenta escolher outro período ou estado.</p>
-    </section>
+
+    <% if @orders.any? %>
+      <div class="history-list" id="history-list">
+        <%= render partial: 'history_order', collection: @orders, as: :order %>
+      </div>
+      <div id="history-more">
+        <%= render 'history_more', filters: filters %>
+      </div>
+    <% else %>
+      <section class="panel empty-state">
+        <strong>Não existem pedidos neste filtro.</strong>
+        <p>Tenta escolher outro período, estado ou número.</p>
+      </section>
+    <% end %>
   <% end %>
 </div>

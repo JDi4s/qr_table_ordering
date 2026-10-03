@@ -69,10 +69,10 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert order.cancelled_at.present?
     get history_staff_orders_path
     assert_response :success
-    assert_includes response.body, "PEDIDO ##{order.id}"
+    assert_includes response.body, "Mesa #{@table.display_number} · ##{order.id}"
   end
 
-  test 'history separates service state from payment state and shows the real order total' do
+  test 'history shows date, total and separate payment state for an unpaid served order' do
     order = build_order(@table, @product, customer: 'served-unpaid-history')
     order.finalize_review!
     order.serve!
@@ -81,12 +81,44 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     get history_staff_orders_path
 
     assert_response :success
-    assert_select ".history-order", text: /PEDIDO ##{order.id}/ do
-      assert_select '.order-status-served', text: 'Servido'
+    assert_select '.history-order', text: /Mesa #{order.table.display_number} · ##{order.id}/ do
       assert_select '.payment-status-unpaid', text: 'Por pagar'
-      assert_select '.history-order-total strong', text: /Total 30,00 €/
-      assert_select '.history-order-total small', text: /Recebido 0,00 € · Por pagar 30,00 €/
+      assert_select '.history-order-total strong', text: /30,00 €/
+      assert_includes response.body, order.created_at.in_time_zone.strftime('%d/%m/%Y')
+      assert_select '.history-order-money', text: /Recebido.*0,00 €.*Por pagar.*30,00 €/m
     end
+  end
+
+  test 'history searches the full venue and appends the next page' do
+    first = nil
+    21.times do |index|
+      order = build_order(@table, @product, customer: "history-page-#{index}")
+      order.finalize_review!
+      order.serve!
+      first ||= order
+    end
+    sign_in(@manager)
+
+    get history_staff_orders_path
+    assert_response :success
+    assert_select '.history-order', count: 20
+    assert_select '#history-more', text: /Mostrar mais pedidos/
+    assert_not_includes response.body, "Mesa #{@table.display_number} · ##{first.id}"
+
+    get history_staff_orders_path(page: 2), headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    assert_response :success
+    assert_match %r{<turbo-stream action="append" target="history-list">}, response.body
+    assert_includes response.body, "Mesa #{@table.display_number} · ##{first.id}"
+
+    get history_staff_orders_path(q: "pedido #{first.id}")
+    assert_response :success
+    assert_select '.history-order', count: 1
+    assert_includes response.body, "Mesa #{@table.display_number} · ##{first.id}"
+
+    get history_staff_orders_path(q: "mesa #{@table.display_number}")
+    assert_response :success
+    assert_select '.history-order', count: 20
+    assert_not_includes response.body, @other_product.name
   end
 
   test 'history remains after members and tables are removed' do

@@ -65,7 +65,8 @@ class Staff::OrdersController < Staff::BaseController
 
   def history
     @history_status = %w[served denied].include?(params[:status].to_s) ? params[:status].to_s : 'all'
-    @history_period = %w[today yesterday last_7_days custom].include?(params[:period].to_s) ? params[:period].to_s : 'all'
+    requested_period = params[:from].present? || params[:to].present? ? 'custom' : params[:period].to_s
+    @history_period = %w[today yesterday last_7_days custom all].include?(requested_period) ? requested_period : 'today'
 
     now = Time.zone.now
     case @history_period
@@ -106,12 +107,33 @@ class Staff::OrdersController < Staff::BaseController
 
     @history_from_value = @history_from&.strftime('%Y-%m-%dT%H:%M')
     @history_to_value = @history_to&.strftime('%Y-%m-%dT%H:%M')
-    @orders = scope.order(created_at: :desc).to_a
-    @history_total = @orders.size
-    @history_served = @orders.count { |order| order.served? && !order.voided? }
-    @history_denied = @orders.count { |order| order.denied? || order.voided? }
-    @history_tables = @orders.map(&:table_id).uniq.size
-    @history_received = @orders.sum { |order| order.payments.active.sum { |payment| payment.amount.to_d } }
+    @history_query = params[:q].to_s.strip.first(40)
+
+    if @history_query.present?
+      match = @history_query.match(/\A(?:(mesa|pedido)\s*#?\s*|#)?(\d+)\z/i)
+      if match
+        number = match[2].to_i
+        scope = scope.joins(:table)
+        scope = case match[1]&.downcase
+                when 'mesa' then scope.where(tables: { number: number })
+                when 'pedido' then scope.where(id: number)
+                else scope.where('orders.id = :number OR tables.number = :number', number: number)
+                end
+      else
+        scope = scope.none
+      end
+    end
+
+    @history_total = scope.count
+    @history_tables = scope.distinct.count(:table_id)
+    @history_page_count = [(@history_total.to_f / 20).ceil, 1].max
+    @history_page = [[params[:page].to_i, 1].max, @history_page_count].min
+    @orders = scope.order(created_at: :desc, id: :desc).limit(20).offset((@history_page - 1) * 20).to_a
+
+    respond_to do |format|
+      format.html
+      format.turbo_stream
+    end
   end
 
   private

@@ -1,0 +1,6 @@
+<%= turbo_stream.append 'history-list' do %>
+  <%= render partial: 'history_order', collection: @orders, as: :order %>
+<% end %>
+<%= turbo_stream.replace 'history-more' do %>
+  <div id="history-more"><%= render 'history_more', filters: { period: @history_period, status: @history_status, q: @history_query.presence, from: (@history_period == 'custom' ? @history_from_value : nil), to: (@history_period == 'custom' ? @history_to_value : nil) }.compact %></div>
+<% end %>
