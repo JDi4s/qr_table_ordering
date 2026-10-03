@@ -1,8 +1,10 @@
-<header class="staff-header">
+<header class="staff-header" data-controller="staff-navigation" data-action="keydown.esc@window->staff-navigation#close">
   <div class="staff-identity">
     <%= image_tag 'bocato-logo.png', alt: 'Bocato', class: 'platform-logo' %><strong><%= current_establishment.name %></strong>
   </div>
-  <nav class="staff-main-nav" aria-label="Navegação principal">
+  <button type="button" class="staff-nav-toggle" aria-label="Abrir menu" aria-controls="staff-main-nav" aria-expanded="false" data-staff-navigation-target="toggle" data-action="staff-navigation#toggle"><span aria-hidden="true">☰</span></button>
+  <div class="staff-mobile-context"><strong><%= current_establishment.name %></strong><span class="staff-service-indicator <%= 'is-paused' unless current_establishment.accepting_orders? %>"><%= current_establishment.accepting_orders? ? 'Serviço aberto' : 'Serviço pausado' %></span></div>
+  <nav class="staff-main-nav" id="staff-main-nav" aria-label="Navegação principal" data-staff-navigation-target="nav">
     <div class="staff-nav-group">
       <%= link_to 'Pedidos', staff_orders_path, class: ('is-active' if staff_nav_active?(:orders)), aria: { current: (staff_nav_active?(:orders) ? 'page' : nil) } %>
       <%= link_to 'Mesas', active_staff_tables_path, class: ('is-active' if staff_nav_active?(:tables)), aria: { current: (staff_nav_active?(:tables) ? 'page' : nil) } %>
