@@ -2631,3 +2631,42 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .staff-menu-page .menu-actions .button { min-width: 0; padding: 9px 5px; text-align: center; }
   .staff-menu-page .staff-menu-status-tabs { margin: 0 -16px 18px; padding: 0 16px 3px; }
 }
+
+/* Gestão compacta de mesas e QR */
+.staff-qr-tables { max-width: 720px; }
+.staff-qr-tables > h1 { margin: 0 0 5px; }
+.staff-qr-intro { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+.staff-qr-overview { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 15px; margin-bottom: 13px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+.staff-qr-overview strong { color: var(--green); font-size: 23px; line-height: 1.1; }
+.staff-qr-overview span { display: block; color: var(--muted); font-size: 12px; }
+.staff-qr-overview a { max-width: 160px; color: var(--green); font-size: 12px; font-weight: 700; text-align: right; text-decoration: none; }
+.staff-qr-overview a:hover { text-decoration: underline; }
+.staff-qr-create { margin-bottom: 19px; }
+.staff-qr-create > summary { display: grid; place-items: center; min-height: 43px; border: 1px solid var(--green); border-radius: 9px; background: var(--green); color: white; font-size: 13px; font-weight: 700; list-style: none; cursor: pointer; }
+.staff-qr-create > summary::-webkit-details-marker { display: none; }
+.staff-qr-create[open] > summary { border-radius: 9px 9px 0 0; }
+.staff-qr-create form { display: grid; gap: 8px; padding: 13px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; background: white; }
+.staff-qr-create label { margin: 0; font-size: 12px; }
+.staff-qr-create input[type='number'] { height: 42px; margin: 0; }
+.staff-qr-create input[type='submit'] { min-height: 40px; margin: 0; }
+.staff-qr-list-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+.staff-qr-list-heading strong { color: var(--green); font-size: 14px; }
+.staff-qr-list-heading span { color: var(--muted); font-size: 12px; }
+.staff-qr-search { height: 42px; margin: 0 0 12px; }
+.staff-qr-list { display: grid; gap: 10px; }
+.staff-qr-card { padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: white; box-shadow: 0 4px 16px #20383204; }
+.staff-qr-card[hidden], .staff-qr-empty[hidden] { display: none; }
+.staff-qr-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.staff-qr-card-heading h2 { margin: 0; color: var(--ink); font-size: 18px; }
+.staff-qr-card-heading .category-status { font-size: 11px; }
+.staff-qr-card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.staff-qr-card-actions .button { display: grid; place-items: center; min-width: 0; min-height: 40px; margin: 0; padding: 7px 5px; border-radius: 9px; font-size: 12px; text-align: center; }
+.staff-qr-more { margin-top: 10px; padding-top: 8px; border-top: 1px solid #edf1ed; }
+.staff-qr-more > summary { width: fit-content; color: var(--green); font-size: 12px; font-weight: 700; cursor: pointer; }
+.staff-qr-more-content { padding-top: 12px; }
+.staff-qr-edit-form { display: grid; gap: 8px; }
+.staff-qr-edit-form label { margin: 0; }
+.staff-qr-edit-form label:has(input[type='checkbox']) { display: flex; align-items: center; gap: 8px; }
+.staff-qr-edit-form input { margin: 0; }
+.staff-qr-more-content .record-delete { margin-top: 14px; }
+.staff-qr-empty { padding: 14px 0; color: var(--muted); font-size: 13px; }

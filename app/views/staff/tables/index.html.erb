@@ -1,59 +1,63 @@
-<h1>Mesas e QR codes</h1>
-<p><strong><%= @tables.where(active: true).count %> / <%= current_establishment.table_limit %></strong> mesas ativas. Os QR codes existentes podem ser descarregados novamente.</p>
-<p><%= link_to "Ver mesas com consumo (#{@tables_with_consumption_count})", active_staff_tables_path, class: 'button' %></p>
+<section class="staff-qr-tables" data-controller="staff-table-list">
+  <h1>Mesas / QR</h1>
+  <p class="staff-qr-intro">Gere as mesas e os códigos que os clientes usam para abrir o menu.</p>
 
-<% if manager_access? %>
-  <section class="panel">
-    <h2>Criar mesa</h2>
-    <%= form_with model: [:staff, @table] do |f| %>
-      <%= f.label :number, 'Número da mesa' %>
-      <%= f.number_field :number, min: 1, required: true %>
-      <%= f.submit 'Criar mesa e QR' %>
-    <% end %>
-  </section>
-<% end %>
+  <div class="staff-qr-overview">
+    <div><strong><%= @tables.count(&:active?) %>/<%= current_establishment.table_limit %></strong><span>mesas ativas</span></div>
+    <%= link_to "Ver mesas com consumo (#{@tables_with_consumption_count}) →", active_staff_tables_path %>
+  </div>
 
-<div class="grid">
-  <% @tables.each do |table| %>
-    <section class="panel table-admin-card">
-      <div class="table-admin-heading">
-        <h2>Mesa <%= table.number %></h2>
-        <small class="category-status <%= table.active? ? 'is-available' : 'is-unavailable' %>"><%= table.active? ? 'Ativa' : 'Desativada' %></small>
-      </div>
+  <% if manager_access? %>
+    <details class="staff-qr-create">
+      <summary>+ Criar mesa</summary>
+      <%= form_with model: [:staff, @table] do |f| %>
+        <%= f.label :number, 'Número da mesa' %>
+        <%= f.number_field :number, min: 1, required: true %>
+        <%= f.submit 'Criar mesa e QR' %>
+      <% end %>
+    </details>
+  <% end %>
 
-      <% if table.active? %>
-        <%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener', class: 'button table-primary-action' %>
+  <div class="staff-qr-list-heading"><strong>Mesas criadas</strong><span>Por número de mesa</span></div>
+  <input id="staff-qr-search" class="staff-qr-search" type="search" inputmode="numeric" aria-label="Encontrar mesa pelo número" placeholder="Encontrar mesa pelo número" data-staff-table-list-target="query" data-action="input->staff-table-list#filter">
 
-        <div class="table-admin-dropdowns">
-          <details class="table-admin-details">
-            <summary>QR code</summary>
-            <div class="table-admin-details-content">
-              <%= link_to 'Ver QR', qr_code_staff_table_path(table), target: '_blank', rel: 'noopener', data: { turbo: false }, class: 'button secondary compact-action' %>
-              <%= link_to 'Descarregar', qr_code_staff_table_path(table, download: 1), data: { turbo: false }, class: 'button secondary compact-action' %>
+  <div class="staff-qr-list">
+    <% @tables.each do |table| %>
+      <section class="staff-qr-card" data-staff-table-list-target="card" data-number="<%= table.number %>">
+        <div class="staff-qr-card-heading">
+          <h2>Mesa <%= table.number %></h2>
+          <small class="category-status <%= table.active? ? 'is-available' : 'is-unavailable' %>"><%= table.active? ? 'Ativa' : 'Desativada' %></small>
+        </div>
+
+        <% if table.active? %>
+          <div class="staff-qr-card-actions">
+            <%= link_to 'Ver QR', qr_code_staff_table_path(table), target: '_blank', rel: 'noopener', data: { turbo: false }, class: 'button' %>
+            <%= link_to 'Descarregar', qr_code_staff_table_path(table, download: 1), data: { turbo: false }, class: 'button secondary' %>
+            <%= link_to 'Abrir menu', new_table_order_path(table), target: '_blank', rel: 'noopener', class: 'button secondary' %>
+          </div>
+        <% end %>
+
+        <% if manager_access? %>
+          <details class="staff-qr-more">
+            <summary>Mais ações</summary>
+            <div class="staff-qr-more-content">
+              <%= form_with model: [:staff, table], class: 'staff-qr-edit-form' do |f| %>
+                <%= f.label :number, 'Número' %>
+                <%= f.number_field :number, min: 1, required: true %>
+                <label><%= f.check_box :active %> Mesa ativa</label>
+                <%= f.submit 'Guardar alterações', class: 'secondary' %>
+              <% end %>
+              <div class="record-delete table-delete">
+                <div><strong>Eliminar mesa</strong><small>Desaparece do serviço; o histórico anterior é preservado.</small></div>
+                <%= button_to staff_table_path(table), method: :delete, class: 'trash-button', title: "Eliminar Mesa #{table.number}", aria: { label: "Eliminar Mesa #{table.number}" }, form: { class: 'trash-button-form' } do %>
+                  <span aria-hidden="true">🗑︎</span>
+                <% end %>
+              </div>
             </div>
           </details>
-        </div>
-      <% end %>
-
-      <% if manager_access? %>
-        <details class="table-admin-details">
-          <summary>Editar mesa</summary>
-          <div class="table-admin-details-content">
-            <%= form_with model: [:staff, table], class: 'table-admin-form' do |f| %>
-              <%= f.label :number, 'Número' %>
-              <%= f.number_field :number, min: 1, required: true %>
-              <label><%= f.check_box :active %> Mesa ativa</label>
-              <%= f.submit 'Guardar', class: 'secondary' %>
-            <% end %>
-          </div>
-        </details>
-        <div class="record-delete table-delete">
-          <div><strong>Eliminar mesa</strong><small>Desaparece do serviço; o histórico anterior é preservado.</small></div>
-          <%= button_to staff_table_path(table), method: :delete, class: 'trash-button', title: "Eliminar Mesa #{table.number}", aria: { label: "Eliminar Mesa #{table.number}" }, form: { class: 'trash-button-form' } do %>
-            <span aria-hidden="true">🗑︎</span>
-          <% end %>
-        </div>
-      <% end %>
-    </section>
-  <% end %>
-</div>
+        <% end %>
+      </section>
+    <% end %>
+  </div>
+  <p class="staff-qr-empty" data-staff-table-list-target="empty" <%= 'hidden' if @tables.any? %>><%= @tables.any? ? 'Não há mesas com esse número.' : 'Ainda não existem mesas.' %></p>
+</section>
