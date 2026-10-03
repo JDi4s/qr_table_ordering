@@ -9,7 +9,7 @@ module ApplicationHelper
     }
 
     return false unless paths.key?(section)
-    return true if section == :history && controller_name == 'orders' && action_name == 'history'
+    return controller_path == 'staff/orders' && action_name == 'history' if section == :history
 
     paths.fetch(section).any? { |path| controller_path.start_with?(path) } &&
       !(section == :orders && action_name == 'history')

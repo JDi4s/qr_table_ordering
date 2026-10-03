@@ -17,6 +17,8 @@ class StaffOrdersBoardTest < ApplicationSystemTestCase
     assert_selector "#order_#{order.id}", text: 'Avaliar pedido'
     assert_selector '.staff-nav-toggle[aria-expanded="false"]'
     assert_selector '.staff-nav-toggle svg path', visible: :all
+    assert_selector '.staff-main-nav a.is-active', text: 'Pedidos', visible: :all
+    assert_no_selector '.staff-main-nav a.is-active', text: 'Histórico', visible: :all
     assert_no_selector '.staff-main-nav a', visible: true
 
     find('.staff-nav-toggle').click
@@ -30,5 +32,9 @@ class StaffOrdersBoardTest < ApplicationSystemTestCase
     find('.staff-board-tab', text: 'Novos').click
     assert_selector "#order_#{order.id}", text: product.name
     page.save_screenshot(Rails.root.join('tmp/screenshots/staff-orders-mobile.png'))
+
+    visit history_staff_orders_path
+    assert_selector '.staff-main-nav a.is-active', text: 'Histórico', visible: :all
+    assert_no_selector '.staff-main-nav a.is-active', text: 'Pedidos', visible: :all
   end
 end
