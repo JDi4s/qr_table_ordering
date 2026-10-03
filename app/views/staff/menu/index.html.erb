@@ -1,19 +1,13 @@
-<p class="eyebrow">GESTÃO DO MENU</p><h1>Menu</h1>
+<div class="staff-menu-page">
+<h1>Menu</h1>
+<p class="staff-menu-intro">Organiza as categorias e os produtos do teu espaço.</p>
 
 <% if manager_access? %>
   <div class="toolbar menu-actions">
-    <%= link_to 'Criar categoria', new_staff_category_path, class: 'button' %>
-    <%= link_to 'Criar produto', new_staff_menu_item_path, class: 'button secondary' %>
+    <%= link_to 'Criar produto', new_staff_menu_item_path, class: 'button' %>
+    <%= link_to 'Criar categoria', new_staff_category_path, class: 'button secondary' %>
   </div>
 <% end %>
-
-<div class="panel menu-help" data-controller="dismissible" data-dismissible-key-value="staff-menu-organization-help" data-dismissible-duration-value="86400000">
-  <div>
-    <strong>Organização rápida</strong>
-    <span>As categorias estão agrupadas. Abre apenas a secção que queres editar.</span>
-  </div>
-  <%= button_tag '×', type: 'button', class: 'menu-help-close', data: { action: 'dismissible#close' }, aria: { label: 'Fechar ajuda' } %>
-</div>
 
 <%= turbo_frame_tag 'staff_menu_records' do %>
   <% if request.headers['Turbo-Frame'].present? %>
@@ -22,9 +16,7 @@
 
   <div class="staff-menu-status">
     <nav class="staff-menu-status-tabs" aria-label="Estado do menu">
-      <% menu_tabs = [['active', 'Ativas'], ['unavailable', 'Indisponíveis'], ['archived', 'Arquivadas']] %>
-      <% menu_tabs << ['uncategorized', 'Sem categoria'] if @menu_counts['uncategorized'].positive? %>
-      <% menu_tabs.each do |value, label| %>
+      <% [['active', 'Ativas'], ['unavailable', 'Indisponíveis'], ['archived', 'Arquivadas'], ['uncategorized', 'Sem categoria']].each do |value, label| %>
         <%= link_to staff_menu_path(menu_status: value),
           class: "staff-menu-status-tab #{'is-active' if @menu_status == value}",
           aria: { current: ('page' if @menu_status == value) },
@@ -72,9 +64,10 @@
           </div>
         <% end %>
 
+        <div class="staff-menu-list-heading"><strong>Categorias <%= @menu_status == 'active' ? 'ativas' : (@menu_status == 'unavailable' ? 'indisponíveis' : 'arquivadas') %></strong><span>Toque para ver os produtos</span></div>
         <% rendered_category = false %>
         <% @menu_roots.each do |category| %>
-          <% content = render('staff/menu/category', category: category, level: 0, status: @menu_status) %>
+          <% content = render('staff/menu/category', category: category, level: 0, status: @menu_status, initially_open: !rendered_category) %>
           <% if content.present? %>
             <% rendered_category = true %>
             <%= content %>
@@ -87,3 +80,4 @@
     </section>
   </div>
 <% end %>
+</div>

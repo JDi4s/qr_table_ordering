@@ -1,29 +1,27 @@
-<div class="line">
-  <div>
+<div class="menu-product-row">
+  <div class="menu-product-info">
     <strong><%= item.name %></strong>
     <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
-    <p><%= euros(item.price) %> · <%= item.archived? ? 'Arquivado' : (item.available? ? 'Disponível' : 'Indisponível') %></p>
+    <small><%= item.archived? ? 'Arquivado' : (item.available? ? 'Disponível' : 'Indisponível') %></small>
   </div>
-
-  <div>
-    <% unless item.archived? %>
-      <%= button_to (item.available? ? 'Desativar' : 'Ativar'),
-        toggle_availability_staff_menu_item_path(item, menu_status: status),
-        method: :patch,
-        class: 'secondary compact-action',
-        title: item.available? ? 'Tornar produto indisponível' : 'Tornar produto disponível' %>
-    <% end %>
-
-    <% if manager_access? %>
-      <%= link_to 'Editar', edit_staff_menu_item_path(item), class: 'compact-action', data: { turbo_frame: '_top' } %>
-      <% if item.archived? %>
-        <%= button_to 'Restaurar', restore_staff_menu_item_path(item, menu_status: status), method: :patch, class: 'secondary compact-action' %>
-      <% else %>
-        <%= button_to 'Arquivar', staff_menu_item_path(item, menu_status: status), method: :delete, class: 'secondary compact-action' %>
+  <strong class="menu-product-price"><%= euros(item.price) %></strong>
+  <% if manager_access? %><%= link_to 'Editar', edit_staff_menu_item_path(item), class: 'menu-edit-link', data: { turbo_frame: '_top' } %><% end %>
+  <details class="menu-record-actions menu-product-actions">
+    <summary aria-label="Mais ações de <%= item.name %>">⋯</summary>
+    <div class="menu-record-actions-list">
+      <% unless item.archived? %>
+        <%= button_to (item.available? ? 'Desativar' : 'Ativar'), toggle_availability_staff_menu_item_path(item, menu_status: status), method: :patch, class: 'secondary compact-action' %>
       <% end %>
-      <%= button_to purge_staff_menu_item_path(item, menu_status: status), method: :delete, class: 'trash-button', title: "Eliminar produto #{item.name}", aria: { label: "Eliminar produto #{item.name}" }, form: { class: 'trash-button-form' } do %>
-        <span aria-hidden="true">🗑︎</span>
+      <% if manager_access? %>
+        <% if item.archived? %>
+          <%= button_to 'Restaurar', restore_staff_menu_item_path(item, menu_status: status), method: :patch, class: 'secondary compact-action' %>
+        <% else %>
+          <%= button_to 'Arquivar', staff_menu_item_path(item, menu_status: status), method: :delete, class: 'secondary compact-action' %>
+        <% end %>
+        <%= button_to purge_staff_menu_item_path(item, menu_status: status), method: :delete, class: 'trash-button', title: "Eliminar produto #{item.name}", aria: { label: "Eliminar produto #{item.name}" }, form: { class: 'trash-button-form' } do %>
+          <span aria-hidden="true">🗑︎</span>
+        <% end %>
       <% end %>
-    <% end %>
-  </div>
+    </div>
+  </details>
 </div>

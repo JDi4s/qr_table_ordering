@@ -42,4 +42,20 @@ class Staff::MenuControllerTest < ActionDispatch::IntegrationTest
     assert_select '.staff-menu-status-tab', text: /Sem categoria/, count: 0
     assert_select '.staff-menu-status-panel[data-menu-status="active"]', count: 1
   end
+  test 'category opens with compact products and keeps secondary actions available' do
+    venue, _table, product = build_venue
+    manager = venue_user(venue)
+    sign_in(manager)
+
+    get staff_menu_path(menu_status: 'active')
+
+    assert_response :success
+    assert_select '.menu-category-card details.staff-category-details[open]', count: 1
+    assert_select '.menu-product-row', text: /#{Regexp.escape(product.name)}/
+    assert_select '.menu-product-price', text: '10,00 €'
+    assert_select '.menu-product-actions summary[aria-label]', count: 1
+    assert_select "form[action='#{toggle_availability_staff_menu_item_path(product, menu_status: 'active')}']", count: 1
+    assert_select "form[action='#{staff_menu_item_path(product, menu_status: 'active')}']", count: 1
+  end
+
 end
