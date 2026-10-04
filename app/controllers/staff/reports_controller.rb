@@ -305,8 +305,10 @@ class Staff::ReportsController < Staff::BaseController
 
   def staff_table_rows
     return [] unless defined?(AuditEvent) && current_establishment.respond_to?(:audit_events)
-    events = current_establishment.audit_events.where(action: %w[order_served order_accepted], created_at: @period.from.beginning_of_day...(@period.to + 1).beginning_of_day).where.not(user_id: nil)
-    events.group(:user_id).count.map do |id, count|
+    events = current_establishment.audit_events.where(action: %w[order_served order_accepted], auditable_type: 'Order', created_at: @period.from.beginning_of_day...(@period.to + 1).beginning_of_day).where.not(user_id: nil)
+    counts = events.joins('INNER JOIN orders ON orders.id = audit_events.auditable_id AND orders.table_id IN (SELECT id FROM tables WHERE establishment_id = audit_events.establishment_id)')
+                   .group(:user_id).distinct.count('orders.table_id')
+    counts.map do |id, count|
       user = current_establishment.users.find_by(id: id)
       { name: user ? user.display_identity : 'Funcionário', value: count, label: 'mesas' }
     end.sort_by { |row| [-row[:value], row[:name]] }
@@ -332,6 +334,11 @@ class Staff::ReportsController < Staff::BaseController
     @statistics = ReportStatistics.new(report_payments(@date, @date))
     @closure = current_establishment.cash_closures.active.includes(:user).find_by(business_date: @date)
     @unpaid_tables = current_establishment.tables.where(deleted_at: nil).joins(:orders).merge(Order.unpaid).distinct.order(:number)
+    @unpaid_amount_by_table = Hash.new(0.to_d)
+    current_establishment.orders.unpaid.where(table_id: @unpaid_tables.reorder(nil).select(:id)).includes(:order_items).find_each(batch_size: 500) do |order|
+      @unpaid_amount_by_table[order.table_id] += order.outstanding_total
+    end
+    @unpaid_total = @unpaid_amount_by_table.values.sum(0.to_d)
   end
 
   def report_payments(first, last, employee: nil)

@@ -2714,3 +2714,27 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 @media (prefers-reduced-motion: reduce) {
   .history-compact .history-more-filters > summary::after { transition: none; }
 }
+
+/* Relatórios: hierarquia mobile e ações do Caixa com a paleta Bocato. */
+.report-v2 .report-heading-intro { margin: 0; color: var(--muted); font-size: 13px; }
+.report-v2 .report-first-label { margin-top: 0; }
+.report-v2 .report-explorer { border-color: var(--line); }
+.report-v2 .report-explorer .report-field-label { letter-spacing: .04em; text-transform: uppercase; font-size: 12px; }
+.report-v2 .report-choice-grid a, .report-v2 .report-choice-list a { min-height: 42px; }
+.report-v2 .report-choice-grid a.is-active, .report-v2 .report-choice-list a.is-active,
+.report-v2 .report-period-switch a.is-active { background: var(--green); color: #fff; border-color: var(--green); }
+.report-v2 .report-chart-kpis strong { font-variant-numeric: tabular-nums; }
+.report-v2 .report-cash-close-button:disabled { background: var(--line); color: var(--muted); cursor: not-allowed; border-color: var(--line); }
+.report-v2 .report-cash-pending-row small { font-size: 13px; }
+@media (max-width: 600px) {
+  .report-v2 .report-heading { align-items: flex-start; }
+  .report-v2 .report-heading h1 { font-size: 25px; }
+  .report-v2 .report-export { min-width: 88px; }
+  .report-v2 .report-choice-grid a { font-size: 13px; padding: 10px 7px; }
+  .report-v2 .report-choice-list a, .report-v2 .report-period-switch a { font-size: 12px; min-height: 40px; }
+  .report-v2 .report-choice-grid a small, .report-v2 .report-choice-list a small { font-size: 11px; }
+  .report-v2 .report-stat span { font-size: 12px; }
+  .report-v2 .report-stat strong { font-size: 19px; }
+  .report-v2 .report-chart-label { font-size: 11px; }
+  .report-v2 .report-chart-kpis { flex-wrap: wrap; }
+}

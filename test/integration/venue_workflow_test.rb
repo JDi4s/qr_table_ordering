@@ -429,6 +429,33 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_equal new_table_order_url(@table), customer.response.location
   end
 
+  test 'cash shows the amount owed by each table before closing' do
+    order = build_order(@table, @product)
+    order.finalize_review!
+    sign_in(@manager)
+
+    get staff_reports_path(tab: 'cash', date: Date.current.iso8601)
+    assert_response :success
+    page = Nokogiri::HTML(response.body)
+    assert_includes page.at_css('.report-cash-pending-row').text, 'Por receber: 30,00 €'
+    assert_equal '30,00 €', page.css('.report-cash-stat-grid .report-stat strong').last.text.strip
+    assert page.at_css('.report-cash-close-button[disabled]')
+  end
+
+  test 'employee table chart counts distinct tables and uses a count unit' do
+    @venue.update!(plan: 'management')
+    order = build_order(@table, @product)
+    @venue.audit_events.create!(user: @manager, action: 'order_accepted', auditable: order)
+    @venue.audit_events.create!(user: @manager, action: 'order_served', auditable: order)
+    sign_in(@manager)
+
+    get staff_reports_path(tab: 'statistics', analysis: 'employees', metric: 'tables', view: 'day')
+    assert_response :success
+    page = Nokogiri::HTML(response.body)
+    assert_equal '1', page.at_css('.report-chart-kpis strong').text.strip
+    assert_equal '1', page.css('.report-chart-kpis strong').last.text.strip
+  end
+
   test 'cash cannot close with unpaid tables and closes after all payments are recorded' do
     order = build_order(@table, @product)
     order.finalize_review!
