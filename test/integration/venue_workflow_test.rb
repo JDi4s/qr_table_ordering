@@ -437,7 +437,9 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     get staff_reports_path(tab: 'cash', date: Date.current.iso8601)
     assert_response :success
     page = Nokogiri::HTML(response.body)
-    assert_includes page.at_css('.report-cash-pending-row').text, 'Por receber: 30,00 €'
+    pending_row = page.at_css('.report-cash-pending-row')
+    assert_includes pending_row.text, '30,00 €'
+    assert_equal staff_table_path(@table), pending_row['href']
     assert_equal '30,00 €', page.css('.report-cash-figure strong')[1].text.strip
     assert_equal %w[report-cash-period report-cash-status report-cash-primary report-cash-pending-card report-cash-method-card],
                  page.css('.report-cash-period, .report-cash-status, .report-cash-primary, .report-cash-pending-card, .report-cash-method-card').map { |node| node['class'].split.find { |name| name.start_with?('report-cash-') } }
