@@ -2738,3 +2738,41 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .report-v2 .report-chart-label { font-size: 11px; }
   .report-v2 .report-chart-kpis { flex-wrap: wrap; }
 }
+
+/* Ecrã de Relatórios e Caixa: hierarquia da proposta aprovada. */
+.report-v2 .report-period-panel { padding: 17px 20px; margin-bottom: 12px; background: #fff; }
+.report-v2 .report-period-panel .report-field-label { margin: 0 0 10px; color: var(--muted); }
+.report-v2 .report-period-panel .report-period-switch { margin-bottom: 0; }
+.report-v2 .report-period-panel .report-period-nav { margin: 12px auto 0; }
+.report-v2 .report-explorer { margin-bottom: 16px; background: #fff; }
+.report-v2 .report-explorer h2 { margin-bottom: 12px; font-size: 19px; }
+.report-v2 .report-explorer .report-first-label { margin: 0 0 8px; }
+.report-v2 .report-explorer .report-choice-grid { margin-bottom: 4px; }
+.report-v2 .report-explorer .report-choice-list { padding-bottom: 3px; }
+.report-v2 .report-focus-card { border-color: var(--line); background: #fff; }
+.report-v2 .report-focus-card .report-chart-heading h2 { color: var(--ink); }
+.report-v2 .report-stat-grid-compact { margin: 12px 0 18px; }
+.report-v2 .report-cash-period { margin-bottom: 12px; }
+.report-v2 .report-cash-status { border: 1px solid #b8d6c5; border-left: 4px solid var(--green); background: #eaf3eb; }
+.report-v2 .report-cash-status .badge { color: var(--green); background: #fff; }
+.report-v2 .report-cash-summary { margin: 12px 0; }
+.report-v2 .report-cash-summary .report-stat:nth-child(-n+2) { border-color: #c7dccc; background: #fff; }
+.report-v2 .report-cash-summary .report-stat:nth-child(-n+2) strong { color: var(--green); }
+.report-v2 .report-cash-pending-card { margin-bottom: 12px; }
+.report-v2 .report-cash-pending-row small { color: var(--green); font-weight: 700; }
+@media (max-width: 600px) {
+  .report-v2 .report-heading { align-items: flex-start; }
+  .report-v2 .report-heading h1 { font-size: 25px; }
+  .report-v2 .report-period-panel { padding: 14px; }
+  .report-v2 .report-period-panel .report-period-switch { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; overflow: visible; }
+  .report-v2 .report-period-essential { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .report-v2 .report-period-switch a, .report-v2 .report-period-switch .is-locked { display: grid; place-items: center; min-width: 0; min-height: 40px; padding: 7px 3px; font-size: 12px; text-align: center; }
+  .report-v2 .report-period-essential .is-locked { grid-column: 1 / -1; }
+  .report-v2 .report-choice-grid a { min-height: 52px; }
+  .report-v2 .report-choice-list a { min-height: 42px; font-size: 12px; }
+  .report-v2 .report-chart-kpis strong { font-size: 17px; }
+  .report-v2 .report-focus-card { min-height: 0; }
+  .report-v2 .report-cash-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-v2 .report-cash-summary .report-stat:nth-child(-n+2) { min-height: 90px; }
+  .report-v2 .report-cash-summary .report-stat:nth-child(-n+2) strong { font-size: 23px; }
+}

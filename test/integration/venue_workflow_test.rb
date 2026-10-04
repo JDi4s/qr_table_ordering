@@ -438,8 +438,24 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :success
     page = Nokogiri::HTML(response.body)
     assert_includes page.at_css('.report-cash-pending-row').text, 'Por receber: 30,00 €'
-    assert_equal '30,00 €', page.css('.report-cash-stat-grid .report-stat strong').last.text.strip
+    assert_equal '30,00 €', page.css('.report-cash-stat-grid .report-stat strong')[1].text.strip
+    assert_equal %w[report-cash-period report-cash-status report-cash-summary report-cash-pending-card report-cash-method-card],
+                 page.css('.report-cash-period, .report-cash-status, .report-cash-summary, .report-cash-pending-card, .report-cash-method-card').map { |node| node['class'].split.find { |name| name.start_with?('report-cash-') } }
     assert page.at_css('.report-cash-close-button[disabled]')
+  end
+
+  test 'statistics keeps period and analysis filters above the chart' do
+    @venue.update!(plan: 'management')
+    sign_in(@manager)
+
+    get staff_reports_path(tab: 'statistics', analysis: 'revenue', metric: 'total', view: 'day')
+    assert_response :success
+    page = Nokogiri::HTML(response.body)
+    assert_equal %w[report-period-panel report-explorer report-focus-card report-stat-grid-compact],
+                 page.css('.report-period-panel, .report-explorer, .report-focus-card, .report-stat-grid-compact').map { |node| node['class'].split.find { |name| %w[report-period-panel report-explorer report-focus-card report-stat-grid-compact].include?(name) } }
+    assert page.at_css('.report-period-switch a.is-active')
+    assert page.at_css('.report-choice-grid a.is-active')
+    assert page.at_css('.report-choice-list a.is-active')
   end
 
   test 'employee table chart counts distinct tables and uses a count unit' do
