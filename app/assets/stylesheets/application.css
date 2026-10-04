@@ -2776,3 +2776,28 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .report-v2 .report-cash-summary .report-stat:nth-child(-n+2) { min-height: 90px; }
   .report-v2 .report-cash-summary .report-stat:nth-child(-n+2) strong { font-size: 23px; }
 }
+
+/* Hierarquia visual dos relatórios: valor principal e Caixa de ação. */
+.report-v2 .report-focus-card { padding: 20px; min-height: 0; }
+.report-v2 .report-focus-card .report-chart-heading { display: block; }
+.report-v2 .report-focus-card .report-chart-heading h2 { font-size: 19px; margin: 0 0 8px; }
+.report-v2 .report-main-value { display: block; color: var(--green); font-size: clamp(29px, 5vw, 38px); font-weight: 800; letter-spacing: -.04em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.report-v2 .report-focus-card .report-period-label { display: block; margin-top: 5px; font-size: 13px; }
+.report-v2 .report-focus-card .report-chart-stage { margin-top: 18px; }
+.report-v2 .report-stat-grid-compact .report-stat { padding: 10px 13px; }
+.report-v2 .report-stat-grid-compact .report-stat strong { font-size: 18px; }
+.report-v2 .report-stat-grid-compact .report-stat span { font-size: 12px; }
+.report-v2 .report-cash-primary { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin: 12px 0; }
+.report-v2 .report-cash-figure { min-width: 0; padding: 17px 16px; border: 1px solid #c7dccc; border-radius: 13px; background: #fff; }
+.report-v2 .report-cash-figure span { display: block; color: var(--muted); font-size: 12px; line-height: 1.3; }
+.report-v2 .report-cash-figure strong { display: block; margin-top: 7px; color: var(--green); font-size: 26px; line-height: 1.12; font-variant-numeric: tabular-nums; }
+.report-v2 .report-cash-secondary { display: flex; flex-wrap: wrap; gap: 7px 15px; margin: 10px 0; color: var(--muted); font-size: 12px; }
+.report-v2 .report-cash-secondary strong { color: var(--ink); }
+@media (max-width: 600px) {
+  .report-v2 .report-focus-card { padding: 16px; }
+  .report-v2 .report-focus-card .report-chart-heading h2 { font-size: 17px; }
+  .report-v2 .report-main-value { font-size: 34px; }
+  .report-v2 .report-stat-grid-compact { gap: 8px; }
+  .report-v2 .report-cash-figure { padding: 14px 12px; }
+  .report-v2 .report-cash-figure strong { font-size: 21px; }
+}
