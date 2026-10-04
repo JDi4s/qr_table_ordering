@@ -2893,3 +2893,5 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .report-approved .report-chart-categorical .report-chart-label { font-size: 10px; }
   .report-approved .report-stat-grid-compact { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
+
+.report-approved .report-detail-card { margin: 17px 0 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
