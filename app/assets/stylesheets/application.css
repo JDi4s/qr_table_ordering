@@ -2801,3 +2801,95 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .report-v2 .report-cash-figure { padding: 14px 12px; }
   .report-v2 .report-cash-figure strong { font-size: 21px; }
 }
+
+
+/* Relatórios aprovados: composição compacta no telemóvel, com dados reais. */
+.report-approved { color: var(--ink); }
+.report-approved .report-heading { align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.report-approved .report-heading h1 { margin: 0; font-size: clamp(25px, 3vw, 29px); line-height: 1.12; letter-spacing: -.03em; }
+.report-approved .report-heading-intro { margin-top: 5px; font-size: 12px; }
+.report-approved .report-export { min-width: 0; padding: 8px 10px; border-radius: 9px; background: transparent; font-size: 12px; white-space: nowrap; }
+.report-approved .report-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0 0 18px; }
+.report-approved .report-tabs a { border-radius: 0; padding: 10px 4px; color: var(--muted); background: transparent; text-align: center; font-size: 14px; }
+.report-approved .report-tabs a.is-active { color: var(--green); background: transparent; border-bottom-color: var(--green); }
+.report-approved .report-period-panel, .report-approved .report-explorer, .report-approved .report-cash-period { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.report-approved .report-period-panel { margin: 0 0 16px; }
+.report-approved .report-field-label { margin: 11px 1px 7px !important; color: var(--muted); font-size: 11px !important; line-height: 1.3; font-weight: 700; letter-spacing: .075em !important; text-transform: uppercase; }
+.report-approved .report-period-panel .report-field-label { margin-top: 0 !important; }
+.report-approved .report-period-switch { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; overflow: visible; padding: 0; }
+.report-approved .report-period-essential { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.report-approved .report-period-switch a, .report-approved .report-period-switch .is-locked { display: grid; place-items: center; min-width: 0; min-height: 36px; padding: 7px 3px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--green); text-align: center; font-size: 12px; white-space: normal; }
+.report-approved .report-period-essential .is-locked { grid-column: 1 / -1; color: var(--muted); }
+.report-approved .report-period-switch a.is-active, .report-approved .report-choice-grid a.is-active { color: #fff; background: var(--green); border-color: var(--green); }
+.report-approved .report-period-nav { display: flex; justify-content: space-between; max-width: none; margin: 12px 0 0; gap: 8px; }
+.report-approved .report-period-button { flex: 1; width: auto; min-width: 0; padding: 3px 4px; border-radius: 8px; font-size: 14px; }
+.report-approved .report-period-button strong { width: auto; white-space: normal; }
+.report-approved .report-arrow { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 10px; background: #fff; font-size: 24px; }
+.report-approved .report-explorer { margin-bottom: 15px; }
+.report-approved .report-choice-grid { display: flex; gap: 7px; overflow-x: auto; padding: 0 0 4px; margin: 0 0 11px; }
+.report-approved .report-choice-grid a { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; flex-direction: row; min-height: 34px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 20px; background: #fff; color: var(--green); font-size: 12px; }
+.report-approved .report-choice-list { display: flex; flex-wrap: wrap; gap: 6px; overflow: visible; padding: 0; }
+.report-approved .report-choice-list a { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; flex-direction: row; min-height: 32px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--green); font-size: 11px; white-space: normal; }
+.report-approved .report-choice-list a.is-active { border-color: var(--green); background: #e9f2e9; color: var(--green); }
+.report-approved .report-employee-filter { margin: 12px 0 0; }
+.report-approved .report-employee-filter select { max-width: none; border-radius: 9px; background: #fff; }
+.report-approved .report-focus-card { margin: 0; padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
+.report-approved .report-main-eyebrow { margin: 0; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .075em; text-transform: uppercase; }
+.report-approved .report-main-value { display: block; margin-top: 7px; color: var(--ink); font-size: 35px; font-weight: 750; line-height: 1.1; letter-spacing: -.03em; }
+.report-approved .report-period-label { display: block; margin-top: 3px; font-size: 12px; }
+.report-approved .report-focus-card .report-chart-stage { min-height: 160px; margin-top: 18px; padding-left: 35px; }
+.report-approved .report-chart-stage .report-chart-scale { top: 3px; height: 125px; }
+.report-approved .report-chart { height: 150px; padding: 3px 3px 0; background: transparent; border-color: var(--line); gap: 8px; }
+.report-approved .report-chart-bars { height: 126px; }
+.report-approved .report-chart-column { gap: 7px; }
+.report-approved .report-bar { width: min(100%, 30px); border-radius: 5px 5px 0 0; background: #2e7457; }
+.report-approved .report-chart-label { font-size: 11px; }
+.report-approved .report-legend { display: none; }
+.report-approved .report-chart-empty { min-height: 130px; }
+.report-approved .report-extra-numbers { margin: 14px 0 18px; }
+.report-approved .report-extra-numbers > summary { color: var(--green); font-size: 12px; font-weight: 700; cursor: pointer; }
+.report-approved .report-stat-grid-compact { margin: 10px 0 0; }
+.report-approved .report-detail-card { margin-top: 17px; }
+.report-approved .report-detail-card h2, .report-approved .report-cash-method-card h2 { margin: 0 1px 9px; font-size: 16px; }
+.report-approved .report-detail-card .report-note { margin: 0 1px 9px; }
+.report-approved .report-detail-card .report-compact-rows, .report-approved .report-cash-method-card .report-compact-rows { display: block; margin: 0; padding: 3px 14px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
+.report-approved .report-detail-card .report-compact-row, .report-approved .report-cash-method-card .report-compact-row { padding: 13px 0; border-bottom: 1px solid #e6ebe4; font-size: 13px; }
+.report-approved .report-detail-card .report-compact-row:last-child, .report-approved .report-cash-method-card .report-compact-row:last-child { border: 0; }
+.report-approved .report-detail-card .report-compact-row strong, .report-approved .report-cash-method-card .report-compact-row strong { font-size: 14px; }
+.report-approved .report-detail-card .report-track, .report-approved .report-cash-method-card .report-track { display: none; }
+.report-approved .report-cash-period { margin-bottom: 17px; }
+.report-approved .report-cash-period .eyebrow { display: none; }
+.report-approved .report-cash-period .report-period-nav { margin: 0; }
+.report-approved .report-cash-status { margin: 0 0 13px; padding: 17px; border: 1px solid #d0e1d2; border-radius: 15px; background: #eaf3e9; }
+.report-approved .report-cash-status .report-section-title { display: block; }
+.report-approved .report-cash-status .report-section-title h2 { margin: 5px 0 6px; font-size: 20px; }
+.report-approved .report-cash-status .badge { display: none; }
+.report-approved .report-cash-status p:not(.eyebrow) { margin: 0; color: #506a59; font-size: 12px; line-height: 1.45; }
+.report-approved .report-cash-primary { gap: 9px; margin: 0 0 12px; }
+.report-approved .report-cash-figure { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
+.report-approved .report-cash-figure span { font-size: 11px; }
+.report-approved .report-cash-figure strong { margin-top: 6px; color: var(--ink); font-size: 21px; }
+.report-approved .report-cash-pending-card, .report-approved .report-cash-method-card { margin: 17px 0 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.report-approved .report-list-heading { display: flex; align-items: baseline; justify-content: space-between; margin: 0 1px 9px; }
+.report-approved .report-list-heading h2 { margin: 0; font-size: 16px; }
+.report-approved .report-list-heading > span { color: var(--muted); font-size: 12px; }
+.report-approved .report-cash-pending-list { margin: 0; padding: 3px 14px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
+.report-approved .report-cash-pending-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 0; border-bottom: 1px solid #e6ebe4; color: var(--ink); text-decoration: none; font-size: 13px; }
+.report-approved .report-cash-pending-row:last-child { padding-bottom: 13px; border: 0; }
+.report-approved .report-cash-pending-row strong { font-size: 14px; }
+.report-approved .report-cash-method-card h2 { margin: 0 1px 9px; }
+.report-approved .report-cash-secondary { margin: 13px 0; }
+.report-approved .report-cash-action { margin-top: 13px; }
+.report-approved .report-cash-close-button { width: 100%; min-height: 44px; border-radius: 10px; }
+.report-approved .report-cash-close-button:disabled { background: #b5c2b7; border-color: #b5c2b7; color: #fff; }
+@media (max-width: 600px) {
+  .report-approved .report-heading h1 { font-size: 27px; }
+  .report-approved .report-chart-day { min-width: 650px; }
+  .report-approved .report-chart-month { min-width: 640px; }
+  .report-approved .report-chart-year, .report-approved .report-chart-lifetime { min-width: 100%; }
+  .report-approved .report-chart-categorical { min-width: 100%; }
+  .report-approved .report-chart-column { flex: 1 0 23px; min-width: 23px; }
+  .report-approved .report-chart-categorical .report-chart-column { flex: 0 0 85px; min-width: 85px; }
+  .report-approved .report-chart-categorical .report-chart-label { font-size: 10px; }
+  .report-approved .report-stat-grid-compact { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
