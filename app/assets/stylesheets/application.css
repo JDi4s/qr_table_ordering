@@ -2895,3 +2895,34 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 }
 
 .report-approved .report-detail-card { margin: 17px 0 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+
+
+/* Calendários de Relatórios e Caixa: janela curta ancorada ao fundo. */
+.report-period-dialog {
+  top: auto;
+  inset-block-start: auto;
+  bottom: 0;
+  height: fit-content;
+  width: min(380px, 100%);
+  max-width: 380px;
+  max-height: calc(100dvh - 12px);
+  border-radius: 18px 18px 0 0;
+}
+.report-period-sheet { padding: 16px 18px max(14px, env(safe-area-inset-bottom)); }
+.report-period-dialog-head h2 { font-size: 17px; }
+.report-period-dialog-head .eyebrow { margin-bottom: 4px; font-size: 10px; }
+.report-dialog-close { width: 30px; height: 30px; font-size: 19px; }
+.report-calendar-toolbar { grid-template-columns: 34px minmax(0, 1fr) 34px; margin: 12px 0 8px; gap: 6px; }
+.report-calendar-toolbar strong { font-size: 15px; }
+.report-calendar-toolbar button { width: 32px; height: 32px; font-size: 22px; }
+.report-calendar-weekdays, .report-calendar-grid { gap: 2px; }
+.report-calendar-weekdays { margin-bottom: 3px; font-size: 10px; }
+.report-calendar-grid button, .report-calendar-grid span { min-height: 34px; }
+.report-calendar-grid button { width: 34px; height: 34px; justify-self: center; font-size: 12px; }
+.report-period-dialog-form { margin-top: 13px; gap: 8px; }
+.report-period-dialog-form button { min-height: 40px; padding: 8px 5px; font-size: 12px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .report-period-dialog { top: auto; inset-block-start: auto; bottom: 0; width: 100%; max-width: 380px; max-height: calc(100dvh - 12px); }
+  .report-period-sheet { padding-inline: 14px; }
+  .report-period-dialog-form button { font-size: 11px; }
+}
