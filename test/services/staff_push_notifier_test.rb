@@ -17,7 +17,7 @@ class StaffPushNotifierTest < ActiveSupport::TestCase
     notifier = StaffPushNotifier.new
 
     notifier.stub(:configured?, true) do
-      WebPush.stub(:payload_send, ->(**arguments) { delivered << arguments[:endpoint] }) do
+      WebPush.stub(:payload_send, ->(arguments) { delivered << arguments[:endpoint] }) do
         notifier.notify_order(order)
       end
     end
