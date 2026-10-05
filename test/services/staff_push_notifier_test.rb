@@ -25,3 +25,26 @@ class StaffPushNotifierTest < ActiveSupport::TestCase
     assert_equal manager.staff_push_subscriptions.pluck(:endpoint).sort, delivered.sort
   end
 end
+
+class PlatformPushNotifierTest < ActiveSupport::TestCase
+  test 'support responses notify every manager device and new tickets notify every platform device' do
+    venue, = build_venue
+    manager = venue_user(venue)
+    owner = User.create!(email: "push-owner-#{SecureRandom.hex(4)}@example.com", password: 'Test-password-123', role: 'platform_admin')
+    ticket = venue.support_tickets.create!(created_by: manager, subject: 'Ajuda com menu', category: 'menu')
+    [manager, owner].each do |user|
+      2.times { |number| user.staff_push_subscriptions.create!(endpoint: "https://push.example/#{user.id}/#{number}", p256dh: 'key', auth: 'auth') }
+    end
+    delivered = []
+
+    PlatformPushNotifier.stub(:configured?, true) do
+      WebPush.stub(:payload_send, ->(arguments) { delivered << arguments[:endpoint] }) do
+        PlatformPushNotifier.notify_establishment(ticket, nil)
+        assert_equal manager.staff_push_subscriptions.pluck(:endpoint).sort, delivered.sort
+        delivered.clear
+        PlatformPushNotifier.notify_platform(ticket)
+        assert_equal owner.staff_push_subscriptions.pluck(:endpoint).sort, delivered.sort
+      end
+    end
+  end
+end

@@ -37,7 +37,7 @@ class StaffPushNotifier
     User.where(establishment_id: establishment_id, active: true, deleted_at: nil)
       .where(role: %w[staff manager])
       .includes(:staff_push_subscriptions)
-      .filter_map(&:staff_push_subscriptions)
+      .flat_map { |user| user.staff_push_subscriptions.to_a }
       .each { |subscription| yield subscription }
   end
 
