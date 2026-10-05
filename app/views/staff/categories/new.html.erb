@@ -4,6 +4,7 @@
   <%= render 'shared/errors', record: @category %>
 
   <%= form_with model: [:staff, @category] do |f| %>
+  <%= render 'staff/menu/context_fields' %>
     <%= f.label :name, 'Nome' %>
     <%= f.text_field :name, required: true %>
 
@@ -22,4 +23,4 @@
   <% end %>
 </section>
 
-<p><%= link_to 'Voltar', staff_menu_path %></p>
+<p><%= link_to 'Voltar', menu_return_path %></p>

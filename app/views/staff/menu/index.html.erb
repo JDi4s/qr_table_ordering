@@ -1,11 +1,11 @@
-<div class="staff-menu-page">
+<div class="staff-menu-page" data-controller="staff-menu" data-staff-menu-key-value="<%= current_establishment.id %>" data-action="click->staff-menu#remember submit->staff-menu#remember turbo:frame-load->staff-menu#restore">
 <h1>Menu</h1>
 <p class="staff-menu-intro">Organiza as categorias e os produtos do teu espaço.</p>
 
 <% if manager_access? %>
   <div class="toolbar menu-actions">
-    <%= link_to 'Criar produto', new_staff_menu_item_path, class: 'button' %>
-    <%= link_to 'Criar categoria', new_staff_category_path, class: 'button secondary' %>
+    <%= link_to 'Criar produto', new_staff_menu_item_path(menu_context_params), class: 'button' %>
+    <%= link_to 'Criar categoria', new_staff_category_path(menu_context_params), class: 'button secondary' %>
   </div>
 <% end %>
 

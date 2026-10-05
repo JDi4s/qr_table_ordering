@@ -1,4 +1,5 @@
 class Staff::MenuItemsController < Staff::BaseController
+  include Staff::MenuContext
   rescue_from Order::InvalidTransition, with: :invalid_menu_operation
   before_action :require_manager, except: [:index, :show, :toggle_availability]
   before_action :set_menu_item, only: [:edit, :update, :destroy, :toggle_availability, :restore, :purge]
@@ -24,7 +25,7 @@ class Staff::MenuItemsController < Staff::BaseController
     if @menu_item.errors.empty? && @menu_item.save
       sync_recommendations!
       AuditLogger.record(user: current_user, action: 'menu_item_created', record: @menu_item)
-      redirect_to staff_menu_path(anchor: "category-#{@menu_item.category_id}"), notice: 'Produto criado.'
+      redirect_to menu_return_path(@menu_item.category_id), notice: 'Produto criado.', status: :see_other
     else
       render :new, status: :unprocessable_entity
     end
@@ -38,7 +39,7 @@ class Staff::MenuItemsController < Staff::BaseController
     if @menu_item.errors.empty? && @menu_item.update(attributes)
       sync_recommendations!
       AuditLogger.record(user: current_user, action: 'menu_item_updated', record: @menu_item)
-      redirect_to staff_menu_path(anchor: "category-#{@menu_item.category_id}"), notice: 'Produto atualizado.'
+      redirect_to menu_return_path(@menu_item.category_id), notice: 'Produto atualizado.', status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -121,7 +122,7 @@ class Staff::MenuItemsController < Staff::BaseController
   private
 
   def menu_destination(category_id = nil)
-    staff_menu_path(menu_status: menu_status, open_category_id: category_id)
+    menu_return_path(category_id)
   end
 
   def menu_status
@@ -182,28 +183,25 @@ class Staff::MenuItemsController < Staff::BaseController
       value
     end
 
-    destination = nil
+    deleted = 0
     Category.transaction do
       categories.sort_by { |category| -depth.call(category) }.each do |category|
-        category.reload
-        if category.menu_items.exists?
-          destination ||= uncategorized_category!
-          category.menu_items.update_all(category_id: destination.id, updated_at: Time.current)
-          category.menu_items.reset
+        category.with_lock do
+          next if category.menu_items.exists? || category.children.exists?
+
+          category.destroy!
+          deleted += 1
         end
-        category.children.update_all(parent_id: category.parent_id, updated_at: Time.current)
-        category.children.reset
-        category.destroy!
       end
     end
-    categories.size
+    deleted
   end
 
   def bulk_delete_message(products, blocked, categories = 0)
     parts = []
     parts << "#{products} #{products == 1 ? 'produto eliminado' : 'produtos eliminados'}" if products.positive?
     parts << "#{categories} #{categories == 1 ? 'categoria eliminada' : 'categorias eliminadas'}" if categories.positive?
-    parts << "#{blocked} #{blocked == 1 ? 'produto foi mantido em “Sem categoria” por estar' : 'produtos foram mantidos em “Sem categoria” por estarem'} em pedidos em curso" if blocked.positive?
+    parts << "#{blocked} #{blocked == 1 ? 'produto foi mantido por estar' : 'produtos foram mantidos por estarem'} em pedidos em curso" if blocked.positive?
     parts.presence&.join('. ')&.+('.') || 'Não existem registos que possam ser eliminados.'
   end
 

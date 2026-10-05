@@ -34,10 +34,10 @@ class StaffPushNotifier
   def notify_staff_devices(establishment_id)
     return unless configured?
 
-    User.where(establishment_id: establishment_id, active: true)
+    User.where(establishment_id: establishment_id, active: true, deleted_at: nil)
       .where(role: %w[staff manager])
-      .includes(:staff_push_subscription)
-      .filter_map(&:staff_push_subscription)
+      .includes(:staff_push_subscriptions)
+      .filter_map(&:staff_push_subscriptions)
       .each { |subscription| yield subscription }
   end
 

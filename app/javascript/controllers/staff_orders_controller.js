@@ -152,7 +152,11 @@ export default class extends Controller {
 
   async enableNotifications() {
     try {
-      await this.enableNotificationsNow()
+      if (this.notificationsActive) {
+        await this.disableNotifications()
+      } else {
+        await this.enableNotificationsNow()
+      }
     } catch (error) {
       console.error("Não foi possível ativar as notificações.", error)
       this.setPushStatus(`Falha ao ativar notificações (${error.message}).`, true)
@@ -212,8 +216,35 @@ export default class extends Controller {
   }
 
   markNotificationsActive() {
-    if (this.hasPushButtonTarget) this.pushButtonTarget.hidden = true
+    this.notificationsActive = true
+    if (this.hasPushButtonTarget) {
+      this.pushButtonTarget.hidden = false
+      this.pushButtonTarget.textContent = "Desativar notificações neste dispositivo"
+    }
     this.setPushStatus("Notificações ativas neste dispositivo.")
+  }
+
+  async disableNotifications() {
+    const registration = await navigator.serviceWorker.ready
+    const subscription = await registration.pushManager.getSubscription()
+    if (subscription) {
+      const response = await fetch("/staff/push_subscription", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector("meta[name='csrf-token']")?.content
+        },
+        body: JSON.stringify({ endpoint: subscription.endpoint })
+      })
+      if (!response.ok) throw new Error(`servidor respondeu ${response.status}`)
+      if (!(await subscription.unsubscribe())) throw new Error("o navegador não desativou a subscrição")
+    }
+    this.notificationsActive = false
+    if (this.hasPushButtonTarget) {
+      this.pushButtonTarget.hidden = false
+      this.pushButtonTarget.textContent = "Ativar notificações neste dispositivo"
+    }
+    this.setPushStatus("Notificações desativadas neste dispositivo.")
   }
 
   setSoundStatus(message, error = false) {

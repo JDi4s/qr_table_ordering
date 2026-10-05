@@ -1,8 +1,8 @@
 class PlatformPushNotifier
   class << self
     def notify_platform(ticket, message = nil)
-      subscriptions = User.where(role: 'platform_admin', active: true).includes(:staff_push_subscription)
-        .filter_map(&:staff_push_subscription)
+      subscriptions = User.where(role: 'platform_admin', active: true).includes(:staff_push_subscriptions)
+        .filter_map(&:staff_push_subscriptions)
       body = message ? "Nova mensagem de #{ticket.establishment.name}." : "#{ticket.establishment.name}: #{ticket.subject}"
       deliver(subscriptions, title: 'Novo pedido de apoio', body: body,
              url: Rails.application.routes.url_helpers.admin_support_ticket_path(ticket), tag: "support-ticket-#{ticket.id}")
@@ -10,7 +10,7 @@ class PlatformPushNotifier
 
     def notify_establishment(ticket, message)
       subscriptions = ticket.establishment.users.where(role: 'manager', active: true, deleted_at: nil)
-        .includes(:staff_push_subscription).filter_map(&:staff_push_subscription)
+        .includes(:staff_push_subscriptions).filter_map(&:staff_push_subscriptions)
       title = message ? 'Resposta do Suporte' : 'Estado do ticket atualizado'
       deliver(subscriptions, title: title, body: ticket.subject,
              url: Rails.application.routes.url_helpers.staff_support_ticket_path(ticket), tag: "support-ticket-#{ticket.id}")
