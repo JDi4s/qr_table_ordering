@@ -8,6 +8,13 @@ module ApplicationHelper
       reports: %w[staff/reports]
     }
 
+    if section == :tables_qr
+      return controller_path == 'staff/tables' && %w[index qr_code].include?(action_name)
+    end
+    if section == :tables
+      return controller_path == 'staff/tables' && %w[active show].include?(action_name)
+    end
+
     return false unless paths.key?(section)
     return controller_path == 'staff/orders' && action_name == 'history' if section == :history
 

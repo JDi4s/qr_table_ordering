@@ -11,7 +11,7 @@
       <%= link_to 'Menu', staff_menu_path, class: ('is-active' if staff_nav_active?(:menu)), aria: { current: (staff_nav_active?(:menu) ? 'page' : nil) } %>
     </div>
     <div class="staff-nav-group staff-nav-secondary">
-      <%= link_to 'Mesas / QR', staff_tables_path, class: ('is-active' if current_page?(staff_tables_path)), aria: { current: (current_page?(staff_tables_path) ? 'page' : nil) } %>
+      <%= link_to 'Mesas / QR', staff_tables_path, class: ('is-active' if staff_nav_active?(:tables_qr)), aria: { current: (staff_nav_active?(:tables_qr) ? 'page' : nil) } %>
       <%= link_to 'Histórico', history_staff_orders_path, class: ('is-active' if staff_nav_active?(:history)), aria: { current: (staff_nav_active?(:history) ? 'page' : nil) } %>
       <% if manager_access? %><%= link_to 'Relatórios', staff_reports_path, class: ('is-active' if staff_nav_active?(:reports)), aria: { current: (staff_nav_active?(:reports) ? 'page' : nil) } %><% end %>
       <%= link_to 'Definições', edit_staff_settings_path, class: ('is-active' if controller_path.start_with?('staff/settings') || controller_path.start_with?('staff/users') || controller_path.start_with?('staff/support_ticket')), aria: { current: ((controller_path.start_with?('staff/settings') || controller_path.start_with?('staff/users') || controller_path.start_with?('staff/support_ticket')) ? 'page' : nil) } %>
