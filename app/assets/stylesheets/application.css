@@ -3216,5 +3216,6 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .staff-orders-board, .active-tables, .staff-menu-page, .staff-qr-tables {
     width: 100%; max-width: 720px; margin-inline: auto;
   }
-  .staff-orders-board .staff-board-tabs { max-width: none; }
+  .staff-orders-board .staff-board-tabs,
+  .active-tables-summary, .active-tables-search { max-width: none; }
 }
