@@ -8,7 +8,7 @@
   </section>
   <aside class="panel ticket-sidebar">
     <h2>Gerir ticket</h2>
-    <%= form_with model: [:admin, @ticket] do |f| %><%= f.label :status, 'Estado' %><%= f.select :status, SupportTicket::STATUSES.map { |value| [support_ticket_status_label(value), value] } %><%= f.label :priority, 'Prioridade' %><%= f.select :priority, [['Normal','normal'],['Urgente','urgent']] %><%= f.submit 'Guardar estado' %><% end %>
+    <%= form_with model: [:admin, @ticket] do |f| %><%= f.label :status, 'Estado' %><%= f.select :status, SupportTicket::STATUSES.map { |value| [support_ticket_status_label(value), value] } %><%= f.submit 'Guardar estado' %><% end %>
     <hr><p><strong>Categoria</strong><br><%= support_ticket_category_label(@ticket.category) %></p><p><strong>Aberto por</strong><br><%= @ticket.created_by.display_identity %></p>
     <%= form_with url: admin_support_sessions_path do %><%= hidden_field_tag :establishment_id, @ticket.establishment_id %><%= hidden_field_tag :support_ticket_id, @ticket.id %><%= submit_tag 'Entrar como Suporte', class: 'secondary' %><small>Acesso de 30 minutos associado a este ticket.</small><% end %>
   </aside>

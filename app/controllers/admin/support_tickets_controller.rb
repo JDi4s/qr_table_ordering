@@ -15,7 +15,7 @@ class Admin::SupportTicketsController < Admin::BaseController
   def update
     @ticket.update!(ticket_params.merge(assigned_to: current_user))
     AuditLogger.record(user: current_user, action: 'support_ticket_updated', record: @ticket,
-                       metadata: { status: @ticket.status, priority: @ticket.priority })
+                       metadata: { status: @ticket.status })
     if @ticket.saved_change_to_status?
       PlatformPushNotifier.notify_establishment(@ticket, nil)
       SupportTicketBroadcaster.notify(@ticket, current_user, title: 'Estado do ticket atualizado')
@@ -30,6 +30,6 @@ class Admin::SupportTicketsController < Admin::BaseController
   end
 
   def ticket_params
-    params.require(:support_ticket).permit(:status, :priority)
+    params.require(:support_ticket).permit(:status)
   end
 end

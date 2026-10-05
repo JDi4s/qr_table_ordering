@@ -20,8 +20,11 @@ class SupportAndPlansTest < ActionDispatch::IntegrationTest
 
   test 'manager opens a support ticket and platform owner can answer it' do
     sign_in(@manager)
+    get new_staff_support_ticket_path
+    assert_response :success
+    assert_select '[name="support_ticket[priority]"]', count: 0
     assert_difference(['SupportTicket.count', 'SupportTicketMessage.count'], 1) do
-      post staff_support_tickets_path, params: { support_ticket: { subject: 'Preciso de ajuda', category: 'menu', priority: 'normal', message: 'Não consigo alterar o menu.' } }
+      post staff_support_tickets_path, params: { support_ticket: { subject: 'Preciso de ajuda', category: 'menu', message: 'Não consigo alterar o menu.' } }
     end
     ticket = SupportTicket.last
     assert_redirected_to staff_support_ticket_path(ticket)
@@ -34,6 +37,7 @@ class SupportAndPlansTest < ActionDispatch::IntegrationTest
     get admin_support_ticket_path(ticket)
     assert_response :success
     assert_includes response.body, 'Não consigo alterar o menu.'
+    assert_select '[name="support_ticket[priority]"]', count: 0
     post admin_support_ticket_messages_path(ticket), params: { support_ticket_message: { body: 'Já estamos a verificar.' } }
     assert_redirected_to admin_support_ticket_path(ticket)
     follow_redirect!

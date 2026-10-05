@@ -35,7 +35,7 @@ class Staff::SupportTicketsController < Staff::BaseController
   private
 
   def ticket_params
-    params.require(:support_ticket).permit(:subject, :category, :priority)
+    params.require(:support_ticket).permit(:subject, :category)
   end
 
   def reject_support_mode
