@@ -4,10 +4,17 @@ export default class extends Controller {
   static targets = ["tab", "order", "calls", "ordersSection", "pendingCount", "acceptedCount", "callsCount", "allCount", "allCallsCount", "allOrdersCount"]
 
   connect() {
-    this.currentFilter = "all"
+    let savedFilter
+    try { savedFilter = localStorage.getItem(this.storageKey) } catch (_) {}
+    const selectedTab = this.tabTargets.find((tab) => tab.dataset.boardFilter === savedFilter) || this.tabTargets[0]
+    this.currentFilter = selectedTab.dataset.boardFilter
     this.mutationObserver = new MutationObserver(() => this.updateCounts())
     this.mutationObserver.observe(this.element, { childList: true, subtree: true })
-    this.select({ currentTarget: this.tabTargets[0] })
+    this.select({ currentTarget: selectedTab })
+  }
+
+  get storageKey() {
+    return `mesa:staff-board-filter:${this.element.dataset.establishmentId}:${this.element.dataset.userId}`
   }
 
   disconnect() {
@@ -17,6 +24,7 @@ export default class extends Controller {
   select(event) {
     const filter = event.currentTarget.dataset.boardFilter
     this.currentFilter = filter
+    try { localStorage.setItem(this.storageKey, filter) } catch (_) {}
     const callsVisible = filter === "calls" || filter === "all"
 
     this.callsTarget.hidden = !callsVisible
