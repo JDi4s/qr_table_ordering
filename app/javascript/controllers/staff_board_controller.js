@@ -9,7 +9,7 @@ export default class extends Controller {
     const selectedTab = this.tabTargets.find((tab) => tab.dataset.boardFilter === savedFilter) || this.tabTargets[0]
     this.currentFilter = selectedTab.dataset.boardFilter
     this.mutationObserver = new MutationObserver(() => this.updateCounts())
-    this.mutationObserver.observe(this.element, { childList: true, subtree: true })
+    this.mutationObserver.observe(this.element, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-board-status", "data-call-status"] })
     this.select({ currentTarget: selectedTab })
   }
 
@@ -68,6 +68,10 @@ export default class extends Controller {
     this.setCount(this.allCountTargets, orders.length + calls)
     this.setCount(this.allCallsCountTargets, calls)
     this.setCount(this.allOrdersCountTargets, orders.length)
+    this.tabTargets.forEach((tab) => {
+      const needsAttention = (tab.dataset.boardFilter === "pending" && pending > 0) || (tab.dataset.boardFilter === "calls" && pendingCalls > 0)
+      tab.classList.toggle("has-attention", needsAttention)
+    })
   }
 
   setCount(targets, value) {

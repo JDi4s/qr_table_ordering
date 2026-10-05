@@ -12,7 +12,11 @@ class StaffOrdersBoardTest < ApplicationSystemTestCase
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'
 
-    assert_selector '.staff-summary-card [data-staff-board-target="pendingCount"]', text: '1'
+    assert_selector '.staff-board-tab [data-staff-board-target="pendingCount"]', text: '1'
+    assert_selector '.staff-board-tab[data-board-filter="pending"].has-attention'
+    assert_no_selector '.staff-board-tab[data-board-filter="calls"].has-attention'
+    assert_selector '.staff-board-tab [data-staff-board-target="acceptedCount"]', text: '0'
+    assert_no_selector '.staff-summary-grid'
     assert_selector "#order_#{order.id}", text: 'Mesa 1'
     assert_selector "#order_#{order.id}", text: 'Avaliar pedido'
     assert_selector '.staff-nav-toggle[aria-expanded="false"]'

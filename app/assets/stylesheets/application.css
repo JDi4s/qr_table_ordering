@@ -3181,3 +3181,12 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 .unpaid-order .payment-selected-button { background: var(--green); color: #fff; }
 .unpaid-order .payment-selected-button:disabled { opacity: .45; cursor: not-allowed; }
 .unpaid-order .payment-all-button { background: var(--mustard); border-color: var(--mustard); color: var(--green); }
+
+/* Pedidos: os quatro filtros mostram os contadores sem cartões duplicados. */
+.staff-orders-board .staff-board-tabs { gap: 6px; border: 0; margin: 0 0 18px; }
+.staff-orders-board .staff-board-tab { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 74px; margin: 0; padding: 9px 2px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--green); white-space: nowrap; }
+.staff-orders-board .staff-board-tab strong { font-size: 25px; line-height: 1.1; font-weight: 750; font-variant-numeric: tabular-nums; }
+.staff-orders-board .staff-board-tab span { display: block; min-width: 0; margin: 0; padding: 0; border-radius: 0; background: transparent; color: inherit; font-size: 11px; font-weight: 600; }
+.staff-orders-board .staff-board-tab.is-active { border-color: var(--green); background: var(--green); color: #fff; }
+.staff-orders-board .staff-board-tab.is-active span { background: transparent; color: inherit; }
+.staff-orders-board .staff-board-tab.has-attention::after { content: ''; position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--mustard); }
