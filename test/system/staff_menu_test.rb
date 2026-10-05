@@ -11,6 +11,8 @@ class StaffMenuTest < ApplicationSystemTestCase
     fill_in 'Email', with: manager.email
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'
+    assert_current_path staff_orders_path, wait: 10
+    assert_no_button 'Entrar'
     visit staff_menu_path(menu_status: 'unavailable')
 
     assert_selector "#category-#{category.id} > details[open]"
