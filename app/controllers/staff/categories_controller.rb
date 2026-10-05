@@ -1,4 +1,5 @@
 class Staff::CategoriesController < Staff::BaseController
+  include Staff::MenuContext
   rescue_from Order::InvalidTransition, with: :invalid_menu_operation
   before_action :require_manager, except: :toggle_availability
   before_action :set_category, only: [:edit, :update, :destroy, :toggle_availability, :restore, :purge]
@@ -13,7 +14,7 @@ class Staff::CategoriesController < Staff::BaseController
 
     if @category.save
       AuditLogger.record(user: current_user, action: 'category_created', record: @category)
-      redirect_to staff_menu_path, notice: 'Categoria criada.'
+      redirect_to menu_return_path(@category.id), notice: 'Categoria criada.', status: :see_other
     else
       render :new, status: :unprocessable_entity
     end
@@ -25,7 +26,7 @@ class Staff::CategoriesController < Staff::BaseController
   def update
     if @category.update(category_params)
       AuditLogger.record(user: current_user, action: 'category_updated', record: @category)
-      redirect_to staff_menu_path, notice: 'Categoria atualizada.'
+      redirect_to menu_return_path(@category.id), notice: 'Categoria atualizada.', status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -45,25 +46,16 @@ class Staff::CategoriesController < Staff::BaseController
 
   def purge
     raise Order::InvalidTransition, 'A categoria “Sem categoria” é necessária para guardar produtos sem categoria.' if @category.uncategorized?
-    moved_products = @category.menu_items.count
-    moved_children = @category.children.count
-    metadata = { deleted_category_id: @category.id, name: @category.name,
-                 moved_products: moved_products, moved_subcategories: moved_children }
+    metadata = { deleted_category_id: @category.id, name: @category.name }
+    @category.with_lock do
+      if @category.menu_items.exists? || @category.children.exists?
+        raise Order::InvalidTransition, 'Mova ou elimine primeiro os produtos e subcategorias desta categoria.'
+      end
 
-    Category.transaction do
-      destination = uncategorized_category! if moved_products.positive?
-      @category.children.update_all(parent_id: @category.parent_id, updated_at: Time.current) if moved_children.positive?
-      @category.menu_items.update_all(category_id: destination.id, updated_at: Time.current) if moved_products.positive?
       @category.destroy!
       AuditLogger.record(user: current_user, action: 'category_deleted', metadata: metadata)
     end
-
-    message = if moved_products.positive?
-      "Categoria eliminada. #{moved_products} #{moved_products == 1 ? 'produto foi movido' : 'produtos foram movidos'} para “Sem categoria”."
-    else
-      'Categoria eliminada.'
-    end
-    redirect_to menu_destination, notice: message, status: :see_other
+    redirect_to menu_destination, notice: 'Categoria eliminada.', status: :see_other
   end
 
   def toggle_availability
@@ -78,7 +70,7 @@ class Staff::CategoriesController < Staff::BaseController
   private
 
   def menu_destination(category_id = nil)
-    staff_menu_path(menu_status: menu_status, open_category_id: category_id)
+    menu_return_path(category_id)
   end
 
   def menu_status

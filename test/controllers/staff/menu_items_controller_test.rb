@@ -103,4 +103,41 @@ class Staff::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     assert_not MenuItem.exists?(product.id)
     assert_redirected_to staff_menu_path(menu_status: 'archived')
   end
+  test 'editing a product keeps its tab and category on success and validation failure' do
+    venue, _, product = build_venue
+    product.update!(available: false)
+    sign_in(venue_user(venue))
+
+    get edit_staff_menu_item_path(product, menu_status: 'unavailable', open_category_id: product.category_id)
+    assert_select 'input[name="menu_status"][value="unavailable"]'
+    patch staff_menu_item_path(product), params: {
+      menu_status: 'unavailable', open_category_id: product.category_id,
+      menu_item: { name: '', price: 10, category_id: product.category_id }
+    }
+    assert_response :unprocessable_entity
+    assert_select 'input[name="menu_status"][value="unavailable"]'
+    patch staff_menu_item_path(product), params: {
+      menu_status: 'unavailable', open_category_id: product.category_id,
+      menu_item: { name: 'Renomeado', price: 10, category_id: product.category_id }
+    }
+    assert_redirected_to staff_menu_path(menu_status: 'unavailable', open_category_id: product.category_id)
+  end
+
+  test 'bulk archived deletion preserves blocked products in their original category' do
+    venue, table, = build_venue
+    category = venue.categories.create!(name: 'Arquivo bloqueado', archived_at: Time.current, available: false)
+    product = category.menu_items.create!(name: 'Em curso', price: 3)
+    build_order(table, product)
+    sign_in(venue_user(venue))
+
+    assert_no_difference(['Category.count', 'MenuItem.count']) do
+      delete purge_archived_staff_menu_items_path(menu_status: 'archived')
+    end
+
+    assert_equal category.id, product.reload.category_id
+    assert Category.exists?(category.id)
+    assert_includes flash[:notice], 'mantido'
+    assert_not venue.categories.exists?(name: 'Sem categoria')
+  end
+
 end

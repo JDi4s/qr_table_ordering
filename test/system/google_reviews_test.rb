@@ -16,7 +16,8 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     visit edit_staff_settings_path
 
     assert_selector '.service-status-card'
-    assert_selector '.google-review-settings-status.is-ready', text: 'Configurado'
+    assert_equal 'Configurado', find('.google-review-settings-status.is-ready', visible: :all).text(:all)
+    find('.google-review-settings summary').click
     assert_field 'Link para avaliações', with: 'https://g.page/r/test/review'
     assert_link 'Testar ligação', href: 'https://g.page/r/test/review'
     page.save_screenshot(Rails.root.join('tmp/screenshots/google-review-settings-mobile.png'))

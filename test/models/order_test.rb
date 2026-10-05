@@ -197,4 +197,29 @@ class OrderTest < ActiveSupport::TestCase
     assert_no_difference('Order.count') { assert_not @order.destroy }
     assert_includes @order.errors.full_messages.join, 'não podem ser eliminados'
   end
+  test 'customer can cancel within three minutes and pending order history is preserved' do
+    travel_to Time.current.change(usec: 0) do
+      @order.update_column(:created_at, 179.seconds.ago)
+      assert @order.cancellable_by_customer?
+      assert_no_difference('Order.count') { @order.reject!(nil, customer: true) }
+      assert @order.reload.denied?
+      assert_equal 'Cancelado pelo cliente.', @order.cancellation_reason
+      assert_equal 0, @order.total
+    end
+  end
+
+  test 'customer cannot cancel an expired or accepted order' do
+    travel_to Time.current.change(usec: 0) do
+      @order.update_column(:created_at, 181.seconds.ago)
+      assert_not @order.cancellable_by_customer?
+      assert_raises(Order::InvalidTransition) { @order.reject!(nil, customer: true) }
+      assert @order.reload.pending?
+      @order.update_column(:created_at, Time.current)
+      @order.finalize_review!
+      assert_not @order.cancellable_by_customer?
+      assert_raises(Order::InvalidTransition) { @order.reject!(nil, customer: true) }
+      assert @order.reload.accepted?
+    end
+  end
+
 end

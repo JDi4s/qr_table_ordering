@@ -131,7 +131,7 @@
                 <% if current_establishment.production_areas_enabled? && display_user.staff? %>
                   <span><small>Áreas</small><strong><%= display_user.production_areas.any? ? display_user.production_areas.map(&:name).join(', ') : 'Todas' %></strong></span>
                 <% end %>
-                <span><small>Notificações</small><strong><%= display_user.staff_push_subscription.present? ? 'Dispositivo associado' : 'Sem dispositivo' %></strong></span>
+                <span><small>Notificações</small><strong><%= display_user.staff_push_subscriptions.any? ? pluralize(display_user.staff_push_subscriptions.size, 'dispositivo associado', 'dispositivos associados') : 'Sem dispositivo' %></strong></span>
               </div>
 
               <% if display_user == current_user %>

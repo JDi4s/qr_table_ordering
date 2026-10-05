@@ -62,7 +62,7 @@ class Staff::UsersController < Staff::BaseController
     identity = user.name.presence || user.login_identifier
     metadata = { deleted_user_id: user.id, name: identity, role: user.role }
     User.transaction do
-      user.staff_push_subscription&.destroy!
+      user.staff_push_subscriptions.destroy_all
       user.update!(active: false, deleted_at: Time.current)
       AuditLogger.record(user: current_user, action: 'team_member_deleted', metadata: metadata)
     end
@@ -85,7 +85,7 @@ class Staff::UsersController < Staff::BaseController
     @team_role = params[:role].to_s if %w[staff manager].include?(params[:role].to_s)
     @team_status = params[:status].to_s if %w[active inactive].include?(params[:status].to_s)
 
-    scope = base.includes(:production_areas, :staff_push_subscription)
+    scope = base.includes(:production_areas, :staff_push_subscriptions)
     if @team_query.present?
       term = "%#{ActiveRecord::Base.sanitize_sql_like(@team_query)}%"
       scope = scope.where('users.name ILIKE :term OR users.username ILIKE :term OR users.email ILIKE :term', term: term)

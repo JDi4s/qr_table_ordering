@@ -1,34 +1,16 @@
-<% status = local_assigns.fetch(:status, 'all') %>
-<% ancestor_archived = local_assigns.fetch(:ancestor_archived, false) %>
-<% children = category.children.order(:name).to_a %>
-<% matching_children = children.select do |child|
+<% state = @menu_category_states.fetch(category.id) %>
+<% matching_children = Array(@menu_children[category.id]).select { |child| @menu_visible_category_ids.include?(child.id) } %>
+<% items = category.menu_items.sort_by(&:name).select do |item|
   case status
-  when 'active' then !child.archived? && child.available?
-  when 'unavailable' then !child.archived? && !child.available?
-  when 'archived' then ancestor_archived || category.archived? || child.contains_archived_records?
+  when 'active' then !state[:archived] && !state[:unavailable] && !item.archived? && item.available?
+  when 'unavailable' then !state[:archived] && !item.archived? && (state[:unavailable] || !item.available?)
+  when 'archived' then state[:archived] || item.archived?
   else true
   end
 end %>
-<% items = category.menu_items.order(:name).to_a.select do |item|
-  case status
-  when 'active' then !item.archived? && item.available?
-  when 'unavailable' then !item.archived? && !item.available?
-  when 'archived' then ancestor_archived || category.archived? || item.archived?
-  else true
-  end
-end %>
-<% matches = if status == 'active'
-  !category.archived? && category.available?
-elsif status == 'unavailable'
-  !category.archived? && !category.available?
-elsif status == 'archived'
-  ancestor_archived || category.archived? || items.any? || matching_children.any?
-else
-  true
-end %>
-<% if matches %>
+<% if @menu_visible_category_ids.include?(category.id) %>
 <section id="category-<%= category.id %>" class="panel category-panel menu-category-card category-level-<%= level %>">
-  <details class="staff-category-details" <%= 'open' if @open_category_id == category.id || (local_assigns[:initially_open] && @open_category_id.nil?) %>>
+  <details class="staff-category-details" <%= 'open' if @menu_open_category_ids.include?(category.id) || (local_assigns[:initially_open] && @open_category_id.nil?) %>>
     <summary class="menu-category-summary">
       <span class="menu-category-title"><strong><%= category.name %></strong><small><%= pluralize(items.count, 'produto', 'produtos') %><% if matching_children.any? %> · <%= pluralize(matching_children.count, 'subcategoria', 'subcategorias') %><% end %></small></span>
       <span class="menu-category-chevron" aria-hidden="true">›</span>
@@ -36,7 +18,7 @@ end %>
     <div class="staff-category-content menu-category-content">
       <div class="menu-category-tools">
         <span class="category-status <%= category.archived? ? 'is-archived' : (category.available? ? 'is-available' : 'is-unavailable') %>"><%= category.archived? ? 'Arquivada' : (category.available? ? 'Disponível no menu' : 'Indisponível') %></span>
-        <% if manager_access? %><%= link_to 'Editar categoria', edit_staff_category_path(category), class: 'menu-edit-link', data: { turbo_frame: '_top' } %><% end %>
+        <% if manager_access? %><%= link_to 'Editar categoria', edit_staff_category_path(category, menu_context_params(category.id)), class: 'menu-edit-link', data: { turbo_frame: '_top' } %><% end %>
       </div>
 
       <% items.each do |item| %>
@@ -44,7 +26,7 @@ end %>
       <% end %>
 
       <% matching_children.each do |child| %>
-        <%= render 'staff/menu/category', category: child, level: level + 1, status: status, ancestor_archived: ancestor_archived || category.archived? %>
+        <%= render 'staff/menu/category', category: child, level: level + 1, status: status %>
       <% end %>
 
       <details class="menu-record-actions">

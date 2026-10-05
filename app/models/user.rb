@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   has_secure_password
   belongs_to :establishment, optional: true
-  has_one :staff_push_subscription, dependent: :destroy
+  has_many :staff_push_subscriptions, dependent: :destroy
   has_many :payments, dependent: :restrict_with_error
   has_many :audit_events, dependent: :nullify
   has_many :production_area_users, dependent: :destroy

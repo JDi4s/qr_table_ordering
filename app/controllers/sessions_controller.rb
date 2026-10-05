@@ -7,6 +7,7 @@ class SessionsController < ApplicationController
       .where('lower(email) = :identifier OR lower(username) = :identifier', identifier: identifier).first
     if user&.active? && user.authenticate(params[:password]) && (user.platform_admin? || user.venue_access?)
       finish_current_support_session!
+      remove_current_device_subscription
       reset_session
       session[:user_id] = user.id
       redirect_to(user.platform_admin? ? admin_establishments_path : (user.must_change_password? ? edit_staff_settings_path : staff_orders_path))
@@ -18,12 +19,19 @@ class SessionsController < ApplicationController
 
   def destroy
     finish_current_support_session!
-    current_user&.staff_push_subscription&.destroy!
+    remove_current_device_subscription
     reset_session
     redirect_to login_path, status: :see_other
   end
 
   private
+
+  def remove_current_device_subscription
+    endpoint = session[:push_endpoint]
+    return if endpoint.blank? || current_user.blank?
+
+    current_user.staff_push_subscriptions.where(endpoint: endpoint).destroy_all
+  end
 
   def finish_current_support_session!
     return if session[:support_session_id].blank? || current_user.blank?
