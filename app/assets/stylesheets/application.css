@@ -3158,3 +3158,5 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .customer-product-content { padding: 12px 9px; }
   .customer-product-content > strong { font-size: 15px; min-height: 36px; }
 }
+
+.customer-menu .customer-cart-bar[hidden] { display: none; }
