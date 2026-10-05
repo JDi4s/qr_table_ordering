@@ -34,13 +34,22 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     assert_text 'Os meus pedidos'
     assert_selector 'turbo-cable-stream-source[connected]', visible: :all
     assert_selector '.google-review-invitation'
-    assert_text 'Já conheces o nosso espaço?'
+    assert_text 'Como foi?'
+    assert_selector '.google-review-launcher'
+    assert_no_selector '.google-review-panel'
+    assert page.evaluate_script("(() => { const r = document.querySelector('.google-review-launcher').getBoundingClientRect(); const x = document.querySelector('.google-review-dismiss').getBoundingClientRect(); const b = document.querySelector('.google-review-open').getBoundingClientRect(); return Math.abs((r.top + r.bottom) / 2 - innerHeight / 2) < 2 && r.width < 200 && x.right <= b.left + 1 })()")
+    find('.google-review-open').click
+    assert_text 'Como foi a tua experiência?'
+    assert_link 'Avaliar no Google', href: 'https://g.page/r/test/review'
+    find('button[aria-label="Recolher convite de avaliação"]').click
+    assert_no_selector '.google-review-panel'
+    assert_selector '.google-review-launcher'
     assert_selector '.google-review-invitation', count: 1
     assert_no_selector '#my_orders .google-review-invitation'
     assert_equal 'fixed', page.evaluate_script("getComputedStyle(document.querySelector('.google-review-invitation')).position")
     assert page.evaluate_script("(() => { const r = document.querySelector('.google-review-invitation').getBoundingClientRect(); return r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight })()")
     page.execute_script("document.body.style.minHeight = '2000px'; window.scrollTo(0, 500)")
-    assert page.evaluate_script("document.querySelector('.google-review-invitation').getBoundingClientRect().top < innerHeight")
+    assert page.evaluate_script("(() => { const r = document.querySelector('.google-review-invitation').getBoundingClientRect(); return Math.abs((r.top + r.bottom) / 2 - innerHeight / 2) < 2 })()")
     page.execute_script('window.scrollTo(0, 0)')
     page.save_screenshot(Rails.root.join('tmp/screenshots/google-review-invitation.png'))
     find('button[aria-label="Fechar convite de avaliação"]').click
