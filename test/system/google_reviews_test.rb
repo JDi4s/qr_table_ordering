@@ -34,16 +34,11 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     assert_text 'Os meus pedidos'
     assert_selector 'turbo-cable-stream-source[connected]', visible: :all
     assert_selector '.google-review-invitation'
-    assert_text 'Como foi?'
-    assert_selector '.google-review-launcher'
-    assert_no_selector '.google-review-panel'
-    assert page.evaluate_script("(() => { const r = document.querySelector('.google-review-launcher').getBoundingClientRect(); const x = document.querySelector('.google-review-dismiss').getBoundingClientRect(); const b = document.querySelector('.google-review-open').getBoundingClientRect(); return Math.abs((r.top + r.bottom) / 2 - innerHeight / 2) < 2 && r.width < 200 && x.right <= b.left + 1 })()")
-    find('.google-review-open').click
+    assert_selector '.google-review-panel'
+    assert_no_selector '.google-review-launcher', visible: :all
     assert_text 'Como foi a tua experiência?'
     assert_link 'Avaliar no Google', href: 'https://g.page/r/test/review'
-    find('button[aria-label="Recolher convite de avaliação"]').click
-    assert_no_selector '.google-review-panel'
-    assert_selector '.google-review-launcher'
+    assert_equal '_blank', find('.google-review-link')[:target]
     assert_selector '.google-review-invitation', count: 1
     assert_no_selector '#my_orders .google-review-invitation'
     assert_equal 'fixed', page.evaluate_script("getComputedStyle(document.querySelector('.google-review-invitation')).position")

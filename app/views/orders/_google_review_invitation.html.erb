@@ -1,13 +1,6 @@
 <aside class="google-review-invitation" data-controller="google-review" data-google-review-establishment-value="<%= establishment.id %>" aria-label="Avaliações Google">
-  <div class="google-review-launcher" data-google-review-target="launcher">
-    <button type="button" class="google-review-dismiss" data-action="google-review#dismiss" aria-label="Fechar convite de avaliação">×</button>
-    <button type="button" class="google-review-open" data-google-review-target="openButton" data-action="google-review#open" aria-expanded="false" aria-controls="google-review-panel-<%= establishment.id %>">
-      <span class="google-review-icon"><%= render 'orders/google_review_icon' %></span>
-      <span class="google-review-launcher-label">Como foi?<strong>Avalia-nos ↗</strong></span>
-    </button>
-  </div>
-  <div class="google-review-panel" id="google-review-panel-<%= establishment.id %>" data-google-review-target="panel" hidden>
-    <button type="button" class="google-review-collapse" data-action="google-review#close" aria-label="Recolher convite de avaliação">×</button>
+  <div class="google-review-panel" id="google-review-panel-<%= establishment.id %>">
+    <button type="button" class="google-review-collapse" data-action="google-review#dismiss" aria-label="Fechar convite de avaliação">×</button>
     <h3>Como foi a tua experiência?</h3>
     <p>A tua opinião ajuda-nos a melhorar.</p>
     <%= link_to establishment.google_review_url, class: 'button google-review-link', target: '_blank', rel: 'noopener noreferrer' do %>
