@@ -2928,3 +2928,93 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .report-period-sheet { padding-inline: 14px; }
   .report-period-dialog-form button { font-size: 11px; }
 }
+
+
+/* Definições do gerente: revisão visual aprovada (Geral, Equipa e Apoio). */
+.settings-title{margin:4px 0 5px;font-size:clamp(29px,5vw,38px);line-height:1.12;letter-spacing:-.035em}
+.settings-intro{max-width:62ch;margin:0;color:var(--muted);font-size:14px;line-height:1.45}
+.settings-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:18px 0 16px;border:0}
+.settings-tabs a{display:inline-flex;align-items:center;justify-content:center;min-width:0;min-height:42px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:#f3f6f2;color:var(--green);font-size:14px;font-weight:700;text-align:center;text-decoration:none}
+.settings-tabs a:hover{border-color:#c9d7cc;background:#edf3ee;color:var(--green)}
+.settings-tabs a.is-active{border-color:var(--green);background:var(--green);color:#fff}
+.settings-section{margin:0 0 10px}
+.settings-card{padding:18px;border-radius:14px;box-shadow:0 3px 12px #20383208}
+.service-status-card{border:1px solid var(--line);background:#fff}
+.service-status-card.is-paused{border:1px solid #ecd2a3;background:#fffaf0}
+.service-status-copy{align-items:center}
+.service-status-copy .eyebrow{margin:0 0 4px}
+.service-status-copy h2{margin:0;font-size:20px}
+.service-status-copy .badge{flex:0 0 auto;padding:5px 10px;background:#e3f3e7;color:#216044;font-size:12px;font-weight:750;white-space:nowrap}
+.service-status-card.is-paused .service-status-copy .badge{background:#fff0cf;color:#875f17}
+.service-status-card>p{margin:12px 0 8px;font-size:14px}
+.service-status-card form{margin:0}
+.service-status-action{width:100%;min-height:44px;margin:7px 0 0;border-radius:10px}
+.settings-accordion>summary{min-height:50px}
+.settings-accordion>summary>span{gap:3px}
+.settings-accordion>summary .eyebrow{font-size:10px;letter-spacing:1.35px}
+.settings-accordion>summary strong{font-size:16px;line-height:1.25}
+.settings-accordion>summary small{max-width:42%;overflow:hidden;color:var(--muted);font-size:12px;text-overflow:ellipsis}
+.settings-accordion>summary::after{flex:0 0 auto;margin-left:2px;font-size:21px}
+.settings-accordion-content{padding-top:15px;border-top:1px solid #edf0eb;margin-top:10px}
+.google-review-settings{border-top:1px solid var(--line)}
+.google-review-settings-status{display:inline-flex;align-items:center;min-height:27px;padding:4px 9px;border-radius:99px;background:#fff3d9;color:#805a13!important;font-weight:750}
+.google-review-settings-status.is-ready{background:#e1f1e7;color:#216044!important}
+.google-review-settings-description{margin-top:0}
+.team-page{display:grid;gap:12px}
+.team-page-heading{margin:2px 0 0}
+.team-page-heading h2{font-size:21px}
+.team-page-heading p:not(.eyebrow){max-width:58ch;font-size:14px}
+.team-create{margin:0 0 2px}
+.team-create>summary{min-height:44px;border-radius:10px}
+.team-create-panel{margin-top:10px}
+.team-summary-grid{gap:8px;margin:0}
+.team-summary-grid>div{justify-items:center;padding:12px 10px;border-radius:12px;text-align:center}
+.team-summary-grid strong{color:var(--ink);font-size:21px}
+.team-summary-grid span{font-size:11px}
+.team-filters{gap:8px;padding:12px;margin:0;border-radius:13px;background:#fff}
+.team-filters label{margin-top:0;font-size:12px}
+.team-filters input,.team-filters select{min-height:40px;padding:8px 10px;border-radius:9px;font-size:13px}
+.team-results-heading{margin-top:2px}
+.team-member-list{gap:10px}
+.team-member-card{padding:15px;border-radius:14px}
+.team-avatar{width:42px;height:42px}
+.team-member-identity h3{font-size:15px}
+.team-member-identity p{font-size:12px}
+.team-member-badges .badge{padding:4px 8px;font-size:11px}
+.team-member-meta{margin-top:12px;padding-top:11px}
+.team-member-meta small{font-size:10px}
+.team-member-meta strong{font-size:12px}
+.support-page-heading{align-items:flex-end;margin:2px 0 14px}
+.support-page-heading h2{margin:3px 0 4px;font-size:21px}
+.support-page-heading p:not(.eyebrow){max-width:58ch;margin:0;color:var(--muted);font-size:14px}
+.support-page-heading .button{min-height:42px;margin:0;border-radius:10px}
+.support-ticket-list{gap:10px}
+.support-ticket-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px 12px;padding:16px 17px;border-radius:14px;box-shadow:0 3px 12px #20383206}
+.support-ticket-card>div{grid-column:1;gap:4px}
+.support-ticket-card>div>span{font-size:10px;letter-spacing:.7px}
+.support-ticket-card>div>strong{font-size:15px;line-height:1.3}
+.support-ticket-card small{font-size:11px}
+.support-ticket-card>.ticket-status{grid-column:2;grid-row:1;align-self:start}
+@media(max-width:760px){
+.settings-title{font-size:29px}
+.settings-tabs{gap:6px;margin:16px 0 15px}
+.settings-tabs a{min-height:41px;padding:0 7px;font-size:13px}
+.settings-card{padding:16px}
+.service-status-copy{align-items:flex-start;gap:9px}
+.service-status-copy h2{font-size:19px}
+.service-status-copy .badge{margin-top:1px;font-size:11px}
+.settings-accordion>summary small{max-width:38%;font-size:11px}
+.team-page-heading,.support-page-heading{align-items:stretch;gap:8px}
+.team-create>summary,.support-page-heading .button{width:100%;text-align:center}
+.team-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.team-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+.team-filter-search,.team-filter-actions{grid-column:1/-1}
+.team-filter-actions{display:grid;grid-template-columns:1fr 1fr}
+.team-filter-actions input,.team-filter-actions .button{width:100%;min-width:0;margin:0}
+.team-member-card{padding:14px}
+}
+@media(max-width:380px){
+.settings-tabs a{font-size:12px}
+.service-status-copy{flex-direction:column}
+.settings-accordion>summary small{display:none}
+}
