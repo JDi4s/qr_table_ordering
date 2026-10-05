@@ -55,6 +55,6 @@ export default class extends Controller {
   }
 
   get storageKey() {
-    return `mesa:google-review-dismissed:${this.establishmentValue}`
+    return `mesa:google-review-tab-v2-dismissed:${this.establishmentValue}`
   }
 }
