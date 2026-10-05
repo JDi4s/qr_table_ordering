@@ -26,7 +26,11 @@ class Staff::OrdersController < Staff::BaseController
 
   def pay_selected
     order = current_establishment.orders.find(params[:id])
-    order.pay_selected_items!(selected_items_params, current_user, payment_method: payment_method_param)
+    if params[:pay_all] == '1'
+      order.mark_paid!(current_user, payment_method: payment_method_param)
+    else
+      order.pay_selected_items!(selected_items_params, current_user, payment_method: payment_method_param)
+    end
     payment = order.payments.order(:created_at).last
     AuditLogger.record(user: current_user, action: 'payment_received', record: order,
                        metadata: { amount: payment.amount.to_s, payment_method: payment.payment_method })

@@ -67,7 +67,14 @@
           </div>
           <div class="payment-selection-actions">
             <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
-            <%= submit_tag 'Pagar selecionados', disabled: true, data: { payment_selection_target: 'submit' } %>
+            <%= button_tag type: 'submit', class: 'payment-selected-button', disabled: true, data: { payment_selection_target: 'submit' } do %>
+              <span>Pagar selecionados</span>
+              <span data-payment-selection-target="selectedButtonAmount">0,00 €</span>
+            <% end %>
+            <%= button_tag type: 'submit', name: 'pay_all', value: '1', class: 'payment-all-button' do %>
+              <span>Pagar todo o pedido</span>
+              <span><%= euros(order.outstanding_total) %></span>
+            <% end %>
           </div>
         </div>
       <% end %>

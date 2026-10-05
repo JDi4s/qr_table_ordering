@@ -3170,3 +3170,14 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 #staff_notifications .staff-popup { position: static; width: min(420px, 100%); max-width: 100%; box-sizing: border-box; pointer-events: auto; overflow-wrap: anywhere; }
 #support_notifications .support-live-notification { width: min(440px, 100%); max-width: 100%; box-sizing: border-box; margin: 0; pointer-events: auto; }
 @media (max-width: 480px) { #support_notifications .support-live-notification { flex-wrap: wrap; } }
+
+/* Pagamentos da mesa: ações distintas para seleção e saldo total do pedido. */
+.unpaid-order .payment-selection-footer { display: block; }
+.unpaid-order .payment-selection-footer > div:first-child { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.unpaid-order .payment-selection-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.unpaid-order .payment-selection-actions select { width: 100%; min-width: 0; min-height: 44px; font-size: 16px; }
+.unpaid-order .payment-selection-actions button { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; margin: 0; padding: 11px 12px; border-radius: 9px; font-size: 14px; }
+.unpaid-order .payment-selection-actions button span { color: inherit; font-size: inherit; }
+.unpaid-order .payment-selected-button { background: var(--green); color: #fff; }
+.unpaid-order .payment-selected-button:disabled { opacity: .45; cursor: not-allowed; }
+.unpaid-order .payment-all-button { background: var(--mustard); border-color: var(--mustard); color: var(--green); }
