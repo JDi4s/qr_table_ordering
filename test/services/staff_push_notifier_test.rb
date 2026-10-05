@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 class StaffPushNotifierTest < ActiveSupport::TestCase
   test 'orders notify every registered device of active staff in the same establishment' do
