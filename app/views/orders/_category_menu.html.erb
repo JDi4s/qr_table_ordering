@@ -25,10 +25,10 @@
               <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
               <p class="customer-product-price"><%= euros(item.price) %></p>
               <%= number_field_tag "order[items][#{item.id}]", quantity, min: 0, max: 99, step: 1, id: "quantity_#{item.id}", class: 'customer-quantity-input', aria: { label: "Quantidade de #{item.name}" } %>
-              <button type="button" class="customer-remove-button" <%= 'hidden' unless quantity.positive? %> data-action="click->customer-menu#removeProduct:stop" aria-label="Remover uma unidade de <%= item.name %>">×</button>
               <div class="customer-product-action-slot">
-                <button type="button" class="customer-add-button" <%= 'hidden' if quantity.positive? %> data-action="click->customer-menu#addProduct:stop" aria-label="Adicionar <%= item.name %>">Adicionar</button>
-                <strong class="quantity-value" <%= 'hidden' unless quantity.positive? %> aria-live="polite"><%= quantity %></strong>
+                <button type="button" class="customer-remove-button customer-quantity-button" <%= 'disabled' unless quantity.positive? %> data-action="click->customer-menu#decrease:stop" aria-label="Remover uma unidade de <%= item.name %>"><span class="sr-only">−</span></button>
+                <strong class="quantity-value" aria-live="polite" aria-label="Quantidade de <%= item.name %>"><%= quantity %></strong>
+                <button type="button" class="customer-add-button customer-quantity-button" <%= 'disabled' if quantity >= 99 %> data-action="click->customer-menu#increase:stop" aria-label="Adicionar uma unidade de <%= item.name %>"><span class="sr-only">+</span></button>
               </div>
             </div>
           </article>

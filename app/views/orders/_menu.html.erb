@@ -7,6 +7,10 @@
 <% roots = categories.select { |category| category.root? && category.visible_to_customers? }.sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
 <div class="customer-menu" data-controller="customer-menu">
   <div class="customer-menu-sticky">
+    <label class="menu-search">
+      <span class="sr-only">Pesquisar no menu</span>
+      <input type="search" placeholder="Pesquisar no menu" data-customer-menu-target="search" data-action="input->customer-menu#filter">
+    </label>
     <div class="customer-menu-toolbar">
       <nav class="menu-root-tabs" aria-label="Categorias principais">
         <% roots.each_with_index do |category, index| %>
@@ -32,10 +36,6 @@
       <% end %>
     </div>
 
-    <label class="menu-search">
-      <span class="sr-only">Pesquisar no menu</span>
-      <input type="search" placeholder="Pesquisar no menu" data-customer-menu-target="search" data-action="input->customer-menu#filter">
-    </label>
   </div>
 
   <p class="menu-search-empty" data-customer-menu-target="empty" hidden>Não encontrámos produtos com essa pesquisa.</p>
@@ -54,7 +54,7 @@
   <% end %>
 
   <div class="customer-cart-bar" data-customer-menu-target="cartBar" hidden>
-    <span><strong data-customer-menu-target="cartCount">0 artigos</strong><small data-customer-menu-target="cartTotal">0,00 €</small></span>
+    <span><strong data-customer-menu-target="cartTotal">0,00 €</strong><small data-customer-menu-target="cartCount">0 artigos</small></span>
     <button type="submit">Rever pedido</button>
   </div>
   <div class="customer-menu-toast" data-customer-menu-target="toast" role="status" aria-live="polite" hidden></div>

@@ -141,9 +141,11 @@ export default class extends Controller {
     if (!input || !addButton || !value || !removeButton) return
     input.value = String(nextQuantity)
     value.textContent = String(nextQuantity)
-    value.hidden = nextQuantity === 0
-    addButton.hidden = nextQuantity > 0
-    removeButton.hidden = nextQuantity === 0
+    value.hidden = false
+    addButton.hidden = false
+    removeButton.hidden = false
+    addButton.disabled = nextQuantity >= 99
+    removeButton.disabled = nextQuantity === 0
     card.classList.toggle("is-added", nextQuantity > 0)
     card.setAttribute("aria-label", nextQuantity > 0 ? `Aumentar quantidade de ${this.productName(card)}` : `Adicionar ${this.productName(card)}`)
     this.syncCart()
@@ -160,9 +162,11 @@ export default class extends Controller {
       const value = card.querySelector(".quantity-value")
       const removeButton = card.querySelector(".customer-remove-button")
       if (!input || !addButton || !value || !removeButton) return
-      value.hidden = quantity === 0
-      addButton.hidden = quantity > 0
-      removeButton.hidden = quantity === 0
+      value.hidden = false
+      addButton.hidden = false
+      removeButton.hidden = false
+      addButton.disabled = quantity >= 99
+      removeButton.disabled = quantity === 0
       value.textContent = String(quantity)
       card.classList.toggle("is-added", quantity > 0)
       card.setAttribute("aria-label", quantity > 0 ? `Aumentar quantidade de ${this.productName(card)}` : `Adicionar ${this.productName(card)}`)

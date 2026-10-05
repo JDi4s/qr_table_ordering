@@ -3118,3 +3118,45 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
     margin:4px 0 8px;
   }
 }
+
+/* Menu do cliente: quantidades sempre visíveis, com círculos de 30px. */
+.customer-menu-sticky { background: #f8f5ef; }
+.customer-menu .menu-search input { margin: 0 0 8px; border-radius: 12px; font-size: 16px; }
+.customer-menu-grid { gap: 10px; }
+.customer-product-card { border-radius: 14px; }
+.customer-product-content { flex: 1; padding: 12px 10px; }
+.customer-product-content > strong { min-height: 38px; font-size: 16px; overflow-wrap: anywhere; }
+.customer-product-price { color: var(--green); }
+.customer-product-action-slot { grid-template-columns: 44px 26px 44px; justify-content: center; align-items: center; min-height: 44px; margin-top: auto; }
+.customer-product-action-slot > * { grid-area: auto; }
+.customer-product-card .quantity-value { width: 26px; min-height: 44px; font-size: 17px; font-variant-numeric: tabular-nums; }
+.customer-product-card .customer-quantity-button {
+  appearance: none; position: static; display: block; z-index: auto;
+  width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+  box-sizing: border-box; padding: 0; margin: 0; border: 0; border-radius: 0;
+  box-shadow: none; color: var(--green); touch-action: manipulation;
+  background-color: transparent;
+  background-image: linear-gradient(var(--green), var(--green)), radial-gradient(circle at center, #fff 14px, var(--line) 14px, var(--line) 15px, transparent 15px);
+  background-size: 12px 2px, 32px 32px;
+  background-position: center center; background-repeat: no-repeat;
+}
+.customer-product-card .customer-add-button {
+  color: #fff; background-color: transparent;
+  background-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff), radial-gradient(circle at center, var(--green) 15px, transparent 15px);
+  background-size: 12px 2px, 2px 12px, 32px 32px;
+  background-position: center center; background-repeat: no-repeat;
+}
+.customer-product-card .customer-quantity-button:hover { background-color: transparent; }
+.customer-product-card .customer-quantity-button:disabled { opacity: .3; }
+.customer-product-card.is-added { box-shadow: inset 0 0 0 1px var(--green); }
+.customer-cart-bar { background: #fff; border-color: var(--line); box-shadow: 0 4px 16px #20383212; }
+.customer-cart-bar strong { font-size: 18px; color: var(--green); }
+.customer-cart-bar small { color: var(--muted); }
+.customer-cart-bar button { border-radius: 12px; min-height: 48px; }
+@media (max-width: 600px) {
+  .customer-product-media .product-image, .customer-product-media .product-image-placeholder { height: 92px; }
+  .customer-product-content { padding: 12px 9px; }
+  .customer-product-content > strong { font-size: 15px; min-height: 36px; }
+}
+
+.customer-menu .customer-cart-bar[hidden] { display: none; }
