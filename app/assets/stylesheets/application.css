@@ -3064,3 +3064,57 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .team-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
   .team-filter-search,.team-filter-actions{grid-column:1/-1}
 }
+
+
+/* Equipa: mais respiro vertical entre blocos. */
+.team-page{
+  gap:16px;
+}
+
+.team-create{
+  margin:0 0 10px;
+}
+
+.team-create>summary{
+  margin:0;
+}
+
+.team-summary-grid{
+  gap:10px;
+  margin:0 0 14px;
+}
+
+.team-filters{
+  margin:0 0 14px;
+}
+
+.team-results-heading{
+  margin:4px 0 9px;
+}
+
+.team-member-list{
+  gap:10px;
+}
+
+@media(max-width:760px){
+  .team-page{
+    gap:14px;
+  }
+
+  .team-create{
+    margin-bottom:10px;
+  }
+
+  .team-summary-grid{
+    gap:9px;
+    margin-bottom:13px;
+  }
+
+  .team-filters{
+    margin-bottom:13px;
+  }
+
+  .team-results-heading{
+    margin:4px 0 8px;
+  }
+}
