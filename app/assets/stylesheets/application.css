@@ -3190,3 +3190,23 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 .staff-orders-board .staff-board-tab.is-active { border-color: var(--green); background: var(--green); color: #fff; }
 .staff-orders-board .staff-board-tab.is-active span { background: transparent; color: inherit; }
 .staff-orders-board .staff-board-tab.has-attention::after { content: ''; position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--mustard); }
+
+/* Pedidos do cliente agrupados por visita. */
+.customer-visit-page .toolbar { gap: 8px; margin-bottom: 18px; }
+.customer-visit-summary { padding: 14px; margin: 0 0 14px; border: 1px solid var(--line); border-radius: 12px; background: #eaf1e8; }
+.customer-visit-summary > div { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.customer-visit-summary strong { font-size: 15px; }
+.customer-visit-summary span { font-size: 11px; color: var(--green); }
+.customer-visit-summary p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.customer-visit-page #my_orders .panel { margin: 0 0 10px; }
+.customer-order-time { margin: 5px 0 11px; font-size: 11px; color: var(--muted); }
+.customer-previous-visits { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.customer-previous-visits > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 50px; padding: 15px; list-style: none; cursor: pointer; color: var(--green); font-size: 14px; font-weight: 650; }
+.customer-previous-visits > summary::-webkit-details-marker { display: none; }
+.customer-previous-visits summary small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 400; }
+.customer-visit-chevron { font-size: 19px; }
+.customer-previous-visits[open] .customer-visit-chevron { transform: rotate(180deg); }
+.customer-previous-content { padding: 0 15px 15px; }
+.customer-previous-content .panel { padding: 13px; margin: 0 0 10px; background: #f8faf7; border-radius: 10px; }
+.customer-history-note { margin: 10px 0 0; color: var(--muted); font-size: 11px; }
+.customer-visit-empty { color: var(--muted); font-size: 14px; }

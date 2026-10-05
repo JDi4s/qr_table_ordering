@@ -1,5 +1,6 @@
-<section class="panel" id="<%= dom_id(order) %>" data-google-review-eligible="<%= !order.denied? %>">
+<section class="panel" id="<%= dom_id(order) %>" data-google-review-eligible="<%= !order.denied? %>" data-visit-order data-visit-outstanding="<%= order.denied? ? 0 : order.outstanding_total %>">
   <div class="line"><h2>Pedido #<%= order.id %></h2><span class="badge"><%= state_label(order.status) %></span></div>
+  <p class="customer-order-time"><%= order.created_at.strftime('%d/%m · %H:%M') %></p>
   <% if order.note.present? %><p>As suas observações: <%= order.note %></p><% end %>
   <% order.order_items.each do |item| %>
     <div class="line"><div><strong><%= item.quantity %> × <%= item.display_name %></strong>

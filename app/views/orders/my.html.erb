@@ -1,12 +1,31 @@
+<div class="customer-visit-page" data-controller="customer-visit">
 <p class="eyebrow">MESA <%= @table.number %></p><h1>Os meus pedidos</h1>
 <div class="toolbar"><%= link_to 'Voltar ao menu', new_table_order_path(@table), class: 'button secondary' %>
 <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %></div>
 <%= turbo_stream_from 'customer_orders', channel: 'OrdersChannel', data: { table_token: @table.qr_token } %>
+<% if @current_visit %>
+  <section class="customer-visit-summary">
+    <div><strong>A tua visita atual</strong><span><%= @current_visit.started_at.strftime('%d/%m · %H:%M') %></span></div>
+    <p data-customer-visit-target="summary"><%= pluralize(@orders.size, 'pedido', 'pedidos') %> · <%= euros(@orders.reject(&:denied?).sum(&:outstanding_total)) %> por pagar</p>
+  </section>
+<% end %>
 <div id="my_orders">
-  <% if @orders.empty? %><p>Ainda não fez nenhum pedido neste dispositivo.</p><% end %>
+  <% if @orders.empty? %><p class="customer-visit-empty">Ainda não tens pedidos nesta visita.</p><% end %>
   <% @orders.each do |order| %><%= render 'my_order_card', order: order %><% end %>
 </div>
-
+<% if @previous_visits.any? %>
+  <details class="customer-previous-visits">
+    <summary><span>Pedidos anteriores (<%= @previous_visits.sum { |visit| visit.orders.size } %>)<small>Visitas terminadas · últimas 24 horas</small></span><span class="customer-visit-chevron" aria-hidden="true">⌄</span></summary>
+    <div class="customer-previous-content">
+      <% @previous_visits.each do |visit| %>
+        <p class="eyebrow">Visita de <%= visit.started_at.strftime('%d/%m · %H:%M') %></p>
+        <% visit.orders.reverse_each do |order| %><%= render 'my_order_card', order: order %><% end %>
+      <% end %>
+      <p class="customer-history-note">Os pedidos de visitas anteriores ficam disponíveis aqui durante 24 horas após o fim da visita.</p>
+    </div>
+  </details>
+<% end %>
 <% if @table.establishment.google_reviews_available? && @orders.any? { |order| !order.denied? } %>
   <%= render 'orders/google_review_invitation', establishment: @table.establishment %>
 <% end %>
+</div>
