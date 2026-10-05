@@ -1,17 +1,13 @@
 <div class="staff-orders-board" data-controller="staff-board" data-establishment-id="<%= current_establishment.id %>" data-user-id="<%= current_user.id %>">
   <h1>Pedidos</h1>
   <%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
-  <div class="staff-summary-grid">
-    <div class="staff-summary-card"><strong data-staff-board-target="pendingCount"><%= @orders.count(&:pending?) %></strong><span>Pedidos novos</span></div>
-    <div class="staff-summary-card staff-summary-alert"><strong data-staff-board-target="callsCount"><%= @service_calls.count(&:pending?) %></strong><span>Chamadas pendentes</span></div>
-  </div>
   <% if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.empty? %><div class="flash alert">Ainda não tens áreas atribuídas. Por segurança, estás a ver todos os pedidos até o gerente configurar a tua equipa.</div><% end %>
 
   <nav class="staff-board-tabs" aria-label="Filtrar serviço">
-    <button type="button" class="staff-board-tab is-active" data-staff-board-target="tab" data-board-filter="all" data-action="staff-board#select" aria-selected="true">Todos</button>
-    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="pending" data-action="staff-board#select" aria-selected="false">Novos</button>
-    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="accepted" data-action="staff-board#select" aria-selected="false">Em curso</button>
-    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="calls" data-action="staff-board#select" aria-selected="false">Chamadas</button>
+    <button type="button" class="staff-board-tab is-active" data-staff-board-target="tab" data-board-filter="all" data-action="staff-board#select" aria-selected="true"><strong data-staff-board-target="allCount"><%= @orders.size + @service_calls.size %></strong><span>Todos</span></button>
+    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="pending" data-action="staff-board#select" aria-selected="false"><strong data-staff-board-target="pendingCount"><%= @orders.count(&:pending?) %></strong><span>Novos</span></button>
+    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="accepted" data-action="staff-board#select" aria-selected="false"><strong data-staff-board-target="acceptedCount"><%= @orders.count(&:accepted?) %></strong><span>Em curso</span></button>
+    <button type="button" class="staff-board-tab" data-staff-board-target="tab" data-board-filter="calls" data-action="staff-board#select" aria-selected="false"><strong data-staff-board-target="allCallsCount"><%= @service_calls.size %></strong><span>Chamadas</span></button>
   </nav>
 
   <section class="staff-board-section staff-call-section" data-staff-board-target="calls" aria-label="Chamadas à mesa" hidden>
