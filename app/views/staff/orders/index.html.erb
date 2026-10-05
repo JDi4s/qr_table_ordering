@@ -1,4 +1,4 @@
-<div class="staff-orders-board" data-controller="staff-board">
+<div class="staff-orders-board" data-controller="staff-board" data-establishment-id="<%= current_establishment.id %>" data-user-id="<%= current_user.id %>">
   <h1>Pedidos</h1>
   <%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
   <div class="staff-summary-grid">

@@ -36,5 +36,17 @@ class StaffOrdersBoardTest < ApplicationSystemTestCase
     visit history_staff_orders_path
     assert_selector '.staff-main-nav a.is-active', text: 'Histórico', visible: :all
     assert_no_selector '.staff-main-nav a.is-active', text: 'Pedidos', visible: :all
+
+    visit staff_orders_path
+    assert_selector '.staff-board-tab.is-active', text: 'Novos'
+    assert_selector "#order_#{order.id}", visible: true
+    page.refresh
+    assert_selector '.staff-board-tab.is-active', text: 'Novos'
+
+    find('.staff-board-tab', text: 'Chamadas').click
+    visit active_staff_tables_path
+    visit staff_orders_path
+    assert_selector '.staff-board-tab.is-active', text: 'Chamadas'
+    assert_no_selector "#order_#{order.id}", visible: true
   end
 end
