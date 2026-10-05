@@ -1,8 +1,8 @@
-.google-review-invitation { position: relative; margin-top: 18px; padding: 18px; border-radius: 14px; background: #edf3eb; }
+.google-review-invitation { position: fixed; z-index: 55; right: max(16px, env(safe-area-inset-right, 0px)); top: clamp(180px, 30vh, 245px); width: 280px; max-width: calc(100vw - 32px); box-sizing: border-box; max-height: calc(100dvh - 200px); overflow-y: auto; margin: 0; padding: 16px; border: 1px solid #c7d8ca; border-radius: 14px; background: #edf3eb; box-shadow: 0 8px 28px #192d2430; }
 .google-review-invitation[hidden] { display: none; }
 .google-review-invitation h3 { margin: 0 24px 8px 0; }
 .google-review-invitation p { margin: 0 0 14px; }
-.google-review-dismiss { position: absolute; top: 8px; right: 8px; border: 0; background: transparent; color: var(--green, #20654d); font-size: 26px; padding: 0 6px; line-height: 1; }
+.google-review-dismiss { position: absolute; display: grid; place-items: center; top: 2px; right: 2px; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; background: transparent; color: var(--green, #20654d); font-size: 23px; line-height: 1; }
 .google-review-link { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; }
 .google-review-link svg { flex: 0 0 24px; }
 

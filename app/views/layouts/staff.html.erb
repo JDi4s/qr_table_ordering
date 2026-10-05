@@ -21,7 +21,7 @@
     <%= turbo_stream_from 'support', channel: 'SupportTicketsChannel', data: { scope: 'notifications' } %>
   <% end %>
   <main>
-    <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
+    <%= render 'layouts/flash_notifications' %>
     <div id="staff_notifications" aria-live="assertive"></div>
     <div id="support_notifications" aria-live="polite"></div>
     <%= yield %>
