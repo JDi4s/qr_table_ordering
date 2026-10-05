@@ -1,4 +1,17 @@
 <%= turbo_stream_from 'support', channel: 'SupportTicketsChannel', data: { scope: 'list' } %>
-<p class="eyebrow">CONFIGURAÇÃO DO SERVIÇO</p><h1>Definições</h1><p class="settings-intro">Pede ajuda e acompanha as respostas sem sair da aplicação.</p><%= render 'staff/settings/tabs' %>
-<div class="support-page-heading"><div><p class="eyebrow">APOIO</p><h2>Pedidos de apoio</h2></div><%= link_to 'Abrir ticket', new_staff_support_ticket_path, class: 'button' %></div>
+<p class="eyebrow">CONFIGURAÇÃO DO SERVIÇO</p>
+<h1 class="settings-title">Definições</h1>
+<p class="settings-intro">Pede ajuda e acompanha as respostas da nossa equipa.</p>
+
+<%= render 'staff/settings/tabs' %>
+
+<div class="support-page-heading">
+  <div>
+    <p class="eyebrow">APOIO</p>
+    <h2>Pedidos de apoio</h2>
+    <p>Acompanha os teus pedidos e fala com a nossa equipa de suporte.</p>
+  </div>
+  <%= link_to 'Abrir ticket', new_staff_support_ticket_path, class: 'button' %>
+</div>
+
 <%= render 'staff/support_tickets/list', tickets: @tickets %>
