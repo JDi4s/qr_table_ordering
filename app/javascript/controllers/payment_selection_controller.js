@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["item", "selectedCount", "selectedTotal", "submit"]
+  static targets = ["item", "selectedCount", "selectedTotal", "submit", "selectedButtonAmount"]
 
   connect() {
     this.updateSummary()
@@ -37,6 +37,7 @@ export default class extends Controller {
       style: "currency",
       currency: "EUR"
     }).format(selectedTotal)
+    if (this.hasSelectedButtonAmountTarget) this.selectedButtonAmountTarget.textContent = this.selectedTotalTarget.textContent
     this.submitTarget.disabled = selectedQuantity === 0
   }
 }
