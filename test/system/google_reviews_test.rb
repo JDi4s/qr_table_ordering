@@ -26,6 +26,7 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
   test 'customer can dismiss invitation and Turbo updates do not restore it' do
     venue, table, product = build_venue
     venue.update!(google_reviews_enabled: true, google_review_url: 'https://g.page/r/test/review')
+    page.current_window.resize_to(375, 812)
     visit new_table_order_path(table)
     find('.customer-product-card', text: product.name).click
     click_on 'Rever pedido'
@@ -34,6 +35,13 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     assert_selector 'turbo-cable-stream-source[connected]', visible: :all
     assert_selector '.google-review-invitation'
     assert_text 'Já conheces o nosso espaço?'
+    assert_selector '.google-review-invitation', count: 1
+    assert_no_selector '#my_orders .google-review-invitation'
+    assert_equal 'fixed', page.evaluate_script("getComputedStyle(document.querySelector('.google-review-invitation')).position")
+    assert page.evaluate_script("(() => { const r = document.querySelector('.google-review-invitation').getBoundingClientRect(); return r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight })()")
+    page.execute_script("document.body.style.minHeight = '2000px'; window.scrollTo(0, 500)")
+    assert page.evaluate_script("document.querySelector('.google-review-invitation').getBoundingClientRect().top < innerHeight")
+    page.execute_script('window.scrollTo(0, 0)')
     page.save_screenshot(Rails.root.join('tmp/screenshots/google-review-invitation.png'))
     find('button[aria-label="Fechar convite de avaliação"]').click
     assert_no_selector '.google-review-invitation'

@@ -1,4 +1,4 @@
-<section class="panel" id="<%= dom_id(order) %>">
+<section class="panel" id="<%= dom_id(order) %>" data-google-review-eligible="<%= !order.denied? %>">
   <div class="line"><h2>Pedido #<%= order.id %></h2><span class="badge"><%= state_label(order.status) %></span></div>
   <% if order.note.present? %><p>As suas observações: <%= order.note %></p><% end %>
   <% order.order_items.each do |item| %>
@@ -14,7 +14,4 @@
     <%= button_to 'Cancelar pedido', cancel_table_order_path(order.table, order), class: 'secondary' %>
   <% end %>
   <% if order.denied? %><p><%= order.cancellation_reason.presence || order.denial_reason %></p><% end %>
-  <% if !order.denied? && order.establishment.google_reviews_available? %>
-    <%= render 'orders/google_review_invitation', establishment: order.establishment %>
-  <% end %>
 </section>

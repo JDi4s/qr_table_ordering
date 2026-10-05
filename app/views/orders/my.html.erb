@@ -6,3 +6,7 @@
   <% if @orders.empty? %><p>Ainda não fez nenhum pedido neste dispositivo.</p><% end %>
   <% @orders.each do |order| %><%= render 'my_order_card', order: order %><% end %>
 </div>
+
+<% if @table.establishment.google_reviews_available? && @orders.any? { |order| !order.denied? } %>
+  <%= render 'orders/google_review_invitation', establishment: @table.establishment %>
+<% end %>
