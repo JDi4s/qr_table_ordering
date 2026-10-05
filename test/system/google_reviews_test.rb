@@ -55,5 +55,11 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     visit my_table_orders_path(table)
     assert_no_selector '.google-review-invitation'
     page.save_screenshot(Rails.root.join('tmp/screenshots/google-review-dismissed.png'))
+
+    # A dismissal from a previous day must not hide the invitation.
+    page.execute_script("localStorage.setItem('mesa:google-review-tab-v2-dismissed:#{venue.id}', '2000-01-01')")
+    visit my_table_orders_path(table)
+    assert_selector '.google-review-invitation'
+    assert_link 'Avaliar no Google', href: 'https://g.page/r/test/review'
   end
 end
