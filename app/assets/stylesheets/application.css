@@ -3210,3 +3210,11 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 .customer-previous-content .panel { padding: 13px; margin: 0 0 10px; background: #f8faf7; border-radius: 10px; }
 .customer-history-note { margin: 10px 0 0; color: var(--muted); font-size: 11px; }
 .customer-visit-empty { color: var(--muted); font-size: 14px; }
+
+/* Centrar as páginas de gestão no computador mantendo a disposição móvel. */
+@media (min-width: 761px) {
+  .staff-orders-board, .active-tables, .staff-menu-page, .staff-qr-tables {
+    width: 100%; max-width: 720px; margin-inline: auto;
+  }
+  .staff-orders-board .staff-board-tabs { max-width: none; }
+}
