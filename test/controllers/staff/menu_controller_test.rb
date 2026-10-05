@@ -75,6 +75,7 @@ class Staff::MenuControllerTest < ActionDispatch::IntegrationTest
     assert_select '.menu-product-row', count: 2
     assert_select ".staff-menu-status-tab[href='#{staff_menu_path(menu_status: 'unavailable')}'] span", text: '2'
     assert_select "#category-#{child.id} > details[open]"
+    assert_select "#category-#{parent.id} > details[open]"
   end
 
   test 'unavailable parent exposes its non archived descendants but archived records stay in archives' do

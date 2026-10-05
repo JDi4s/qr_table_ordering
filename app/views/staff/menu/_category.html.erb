@@ -10,7 +10,7 @@
 end %>
 <% if @menu_visible_category_ids.include?(category.id) %>
 <section id="category-<%= category.id %>" class="panel category-panel menu-category-card category-level-<%= level %>">
-  <details class="staff-category-details" <%= 'open' if @open_category_id == category.id || (local_assigns[:initially_open] && @open_category_id.nil?) %>>
+  <details class="staff-category-details" <%= 'open' if @menu_open_category_ids.include?(category.id) || (local_assigns[:initially_open] && @open_category_id.nil?) %>>
     <summary class="menu-category-summary">
       <span class="menu-category-title"><strong><%= category.name %></strong><small><%= pluralize(items.count, 'produto', 'produtos') %><% if matching_children.any? %> · <%= pluralize(matching_children.count, 'subcategoria', 'subcategorias') %><% end %></small></span>
       <span class="menu-category-chevron" aria-hidden="true">›</span>

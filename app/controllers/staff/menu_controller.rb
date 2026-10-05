@@ -7,6 +7,13 @@ class Staff::MenuController < Staff::BaseController
     @categories = current_establishment.categories.includes(:menu_items, :children).order(:name).to_a
     @uncategorized_category = @categories.find(&:uncategorized?)
     @menu_categories = @categories.reject(&:uncategorized?)
+    @menu_open_category_ids = []
+    by_id = @menu_categories.index_by(&:id)
+    selected = by_id[@open_category_id]
+    while selected && !@menu_open_category_ids.include?(selected.id)
+      @menu_open_category_ids << selected.id
+      selected = by_id[selected.parent_id]
+    end
     @menu_roots = @menu_categories.select(&:root?).sort_by(&:name)
     @menu_children = @menu_categories.group_by(&:parent_id)
     @menu_category_states = {}
