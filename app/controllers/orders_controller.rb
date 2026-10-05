@@ -73,7 +73,10 @@ class OrdersController < ApplicationController
   end
 
   def my
-    @orders = customer_orders.includes(order_items: :menu_item).order(created_at: :desc).limit(30)
+    history = CustomerVisitHistory.new(customer_orders.includes(order_items: :menu_item).to_a)
+    @current_visit = history.current_visit
+    @previous_visits = history.previous_visits
+    @orders = @current_visit ? @current_visit.orders.reverse : []
   end
 
   def cancel
