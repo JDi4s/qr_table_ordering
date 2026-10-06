@@ -14,7 +14,9 @@ class ReportRangeTest < ApplicationSystemTestCase
     fill_in 'Email', with: manager.email
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'
+    assert_text venue.name
     visit staff_reports_path
+    assert_selector '.report-heading', text: 'Relatórios e caixa'
     find('.report-custom-range summary').click
     first, last = Date.current - 5, Date.current - 2
     fill_in 'Data inicial', with: first
@@ -30,3 +32,4 @@ class ReportRangeTest < ApplicationSystemTestCase
     page.save_screenshot(Rails.root.join('results/report-range-mobile.png'))
   end
 end
+
