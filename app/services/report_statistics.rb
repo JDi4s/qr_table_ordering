@@ -20,6 +20,18 @@ class ReportStatistics
 
   def series(first, last, view)
     case view
+    when 'custom'
+      if (last - first).to_i > 62
+        months = []
+        date = first.beginning_of_month
+        while date <= last
+          months << { label: date.strftime('%m/%Y'), amount: @months[date] }
+          date = date.next_month
+        end
+        months
+      else
+        (first..last).map { |day| { label: day.strftime('%d/%m'), amount: @days[day] } }
+      end
     when 'month', 'last_7_days'
       (first..last).map { |day| { label: day.strftime('%d'), amount: @days[day] } }
     when 'year'

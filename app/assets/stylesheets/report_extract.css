@@ -1,0 +1,8 @@
+/* Free date ranges for the report and its exports. */
+.report-custom-range { margin-top: 16px; }
+.report-custom-range summary { color: var(--green, #194b3d); cursor: pointer; font-weight: 600; }
+.report-custom-range-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 14px; }
+.report-custom-range-form > div { flex: 1 1 180px; min-width: 0; }
+.report-custom-range-form label { display: block; margin-bottom: 6px; }
+.report-custom-range-form input[type="date"] { width: 100%; box-sizing: border-box; }
+@media (max-width: 600px) { .report-custom-range-form > div { flex-basis: 100%; } .report-custom-range-form input[type="submit"] { width: 100%; } }

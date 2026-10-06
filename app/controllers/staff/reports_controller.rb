@@ -45,12 +45,15 @@ class Staff::ReportsController < Staff::BaseController
   def pdf
     if params[:tab] == 'cash'
       load_daily_report
-      document = ReportPdf.new(cash_pdf_data).render
+      document = BrandedReportPdf.new(cash_pdf_data.merge(establishment: current_establishment.name)).render
       filename = "caixa_#{@date}.pdf"
     else
       return essential_export_locked if current_establishment.essential_plan?
       load_statistics
-      document = ReportPdf.new(statistics_pdf_data).render
+      data = ReportExtract.new(establishment: current_establishment, period: @period, employee: @employee).data
+      data[:sections] << { title: "Análise selecionada: #{report_metric_label}", rows: report_detail_rows, new_page: true }
+      data[:sections] << { title: 'Por funcionário', rows: @staff_rows.map { |row| [row[:name], helpers.euros(row[:amount])] } }
+      document = BrandedReportPdf.new(data).render
       filename = "relatorio_#{@period.from}_#{@period.to}.pdf"
     end
 
