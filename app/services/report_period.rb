@@ -1,6 +1,6 @@
 class ReportPeriod
   class Invalid < StandardError; end
-  VIEWS = %w[day last_7_days month year lifetime].freeze
+  VIEWS = %w[day last_7_days month year lifetime custom].freeze
   attr_reader :view, :from, :to, :comparison, :compare_from, :compare_to
 
   def initialize(params, today: Date.current)
@@ -20,6 +20,7 @@ class ReportPeriod
   def label
     case view
     when 'day' then from.strftime('%d/%m/%Y')
+    when 'custom' then "#{from.strftime('%d/%m/%Y')} - #{to.strftime('%d/%m/%Y')}"
     when 'last_7_days' then 'Últimos 7 dias'
     when 'month' then from.strftime('%m/%Y')
     when 'year' then from.strftime('%Y')
@@ -28,13 +29,15 @@ class ReportPeriod
   end
 
   def to_params
-    { view: view, date: from.iso8601, month: from.strftime('%Y-%m'), year: from.year, compare: comparison }
+    { view: view, date: from.iso8601, month: from.strftime('%Y-%m'), year: from.year, compare: comparison, from: from.iso8601, to: to.iso8601 }
   end
 
   private
 
   def resolve_range(params)
     case view
+    when 'custom'
+      [parse_date(params[:from].presence || @today.iso8601), parse_date(params[:to].presence || @today.iso8601)]
     when 'last_7_days'
       [@today - 6.days, @today]
     when 'month'
@@ -66,7 +69,7 @@ class ReportPeriod
   end
 
   def validate_range(first, last)
-    raise Invalid, 'O período escolhido ainda não terminou.' if first > @today
+    raise Invalid, 'O período escolhido ainda não terminou.' if first > @today || last > @today
     raise Invalid, 'Indique datas entre os anos 1900 e 9999.' unless first.year >= 1900 && last.year <= 9999
     raise Invalid, 'O período escolhido não é válido.' if last < first
   end
