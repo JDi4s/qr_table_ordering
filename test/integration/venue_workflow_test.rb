@@ -202,7 +202,8 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'Total do pedido'
     assert_not_includes response.body, 'Total provisório'
     assert_not_includes response.body, 'pago(s)'
-    assert_not_includes response.body, 'por pagar'
+    assert_select '.customer-visit-summary', text: /1 pedido · 20,00 € por pagar/
+    assert_select '#my_orders .line', text: /por pagar/, count: 0
     assert_select "form[action='#{cancel_table_order_path(@table, order)}']", count: 1
     order.update_column(:created_at, 4.minutes.ago)
     get my_table_orders_path(@table)
