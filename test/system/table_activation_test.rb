@@ -54,6 +54,7 @@ class TableActivationSystemTest < ApplicationSystemTestCase
       end
       assert_text 'Mesa 1 ativada'
       assert_no_selector '.table-activation-panel'
+      assert_equal 'running', page.evaluate_script('window.bocatoStaffAudioContext?.state'), 'Activating a table must not close the unlocked sound context'
       click_on 'Ativar mesa'
       assert_selector '.table-activation-row .table-activation-active', text: 'Ativa'
       assert page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')

@@ -36,7 +36,7 @@ export default class extends Controller {
   disconnect() {
     document.removeEventListener("turbo:before-stream-render", this.handler)
     this.removeAudioActivationListeners()
-    this.audio?.close()
+    // Keep the unlocked context across Turbo navigation within this document.
   }
   async enableAudio() {
     if (this.element.dataset.staffSoundEnabled !== "1") {
@@ -87,7 +87,8 @@ export default class extends Controller {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext
     if (!AudioContextClass) return false
 
-    this.audio ||= new AudioContextClass()
+    window.bocatoStaffAudioContext ||= new AudioContextClass()
+    this.audio = window.bocatoStaffAudioContext
     if (this.audio.state !== "running") await this.audio.resume()
     return this.audio.state === "running"
   }
