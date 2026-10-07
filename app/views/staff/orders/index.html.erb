@@ -1,5 +1,5 @@
 <div class="staff-orders-board" data-controller="staff-board" data-establishment-id="<%= current_establishment.id %>" data-user-id="<%= current_user.id %>">
-  <h1>Pedidos</h1>
+  <%= render 'staff/table_visits/panel' %>
   <%= turbo_stream_from 'staff', channel: 'OrdersChannel' %>
   <% if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.empty? %><div class="flash alert">Ainda não tens áreas atribuídas. Por segurança, estás a ver todos os pedidos até o gerente configurar a tua equipa.</div><% end %>
 

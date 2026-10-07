@@ -4,6 +4,13 @@
   <%= table_svg(@table) %>
   <div><h2>Mesa <%= @table.number %></h2><p><strong><%= @orders.count %></strong> pedido(s) em aberto</p><p><strong><%= euros(@orders.sum(&:outstanding_total)) %></strong> por pagar</p></div>
 </div>
+<% if @table.current_table_visit %>
+  <div class="table-visit-close-row">
+    <span class="table-activation-active"><%= @table.current_table_visit.open? ? 'Visita ativa' : 'A aguardar ativação' %></span>
+    <%= button_to 'Fechar mesa', staff_table_visit_path(@table), method: :delete, class: 'secondary', disabled: @orders.any?, data: { turbo_confirm: 'Encerrar esta visita e impedir novos pedidos dos clientes?' } %>
+    <% if @orders.any? %><small>O pagamento total fecha a visita automaticamente.</small><% end %>
+  </div>
+<% end %>
 
 <div class="grid">
   <% @orders.each do |order| %>

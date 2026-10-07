@@ -1,7 +1,7 @@
-<div class="customer-visit-page" data-controller="customer-visit">
+<div class="customer-visit-page" data-controller="customer-visit table-access" data-table-access-url-value="<%= table_access_status_path(@table) %>" data-table-access-token-value="<%= @table.qr_token %>" data-table-access-visit-value="<%= @table_visit&.id || 0 %>" data-table-access-state-value="<%= @table_visit&.state || 'closed' %>" data-table-access-service-value="<%= @table.establishment.accepting_orders? %>" data-table-access-reload-value="true">
 <p class="eyebrow">MESA <%= @table.number %></p><h1>Os meus pedidos</h1>
 <div class="toolbar"><%= link_to 'Voltar ao menu', new_table_order_path(@table), class: 'button secondary' %>
-<%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %></div>
+<%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary', disabled: !@table_visit&.open?, data: { 'table-access-target': 'submit' } %></div>
 <%= turbo_stream_from 'customer_orders', channel: 'OrdersChannel', data: { table_token: @table.qr_token } %>
 <% if @current_visit %>
   <section class="customer-visit-summary">

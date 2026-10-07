@@ -24,6 +24,8 @@ class SessionAreaSystemTest < ApplicationSystemTestCase
 
   def browser_login(user)
     visit login_path
+    assert_current_path login_path
+    assert_selector 'form[action="/login"]'
     fill_in 'Email', with: user.email
     fill_in 'Palavra-passe', with: 'Test-password-123'
     click_on 'Entrar'

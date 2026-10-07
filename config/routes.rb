@@ -16,6 +16,7 @@ Rails.application.routes.draw do
     resource :push_subscription, only: [:create, :destroy], controller: 'push_subscriptions'
   end
   resources :tables, only: [] do
+    get :access_status, to: 'orders#access_status'
     resources :service_calls, only: :create
     resources :orders, only: [:new, :create] do
       collection do
@@ -36,9 +37,11 @@ Rails.application.routes.draw do
     resources :order_items, only: :update
     resources :service_calls, only: :update
     resources :tables, only: [:index, :show, :create, :update, :destroy] do
+      resource :visit, only: [:create, :destroy], controller: 'table_visits'
       collection { get :active }
       member { get :qr_code }
     end
+    resources :table_visits, only: :index
     resources :users, only: [:index, :create, :update, :destroy]
     get '/menu', to: 'menu#index', as: :menu
     resources :menu_items do

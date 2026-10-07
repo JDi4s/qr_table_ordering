@@ -1,9 +1,16 @@
 class OrdersController < ApplicationController
   before_action :set_table
-  before_action :ensure_customer_token
+  before_action :ensure_customer_token, except: :access_status
   before_action :ensure_service_accepting_orders, only: [:review, :create]
+  before_action :load_table_visit
+  before_action :ensure_visit_open, only: :create
 
   def new
+    @table_visit = TableVisit.request_for!(@table)
+    visits = session[:table_visit_ids] ||= {}
+    visits.delete(@table.id.to_s)
+    visits[@table.id.to_s] = @table_visit.id
+    session[:table_visit_ids] = visits.to_a.last(12).to_h
     @categories = @table.establishment.categories.not_archived.includes(:menu_items, :children).where(available: true).order(:name)
     @active_count = customer_orders.where.not(status: %w[served denied]).count
     @cart_quantities = draft_quantities
@@ -16,13 +23,18 @@ class OrdersController < ApplicationController
       return
     end
 
+    unless @table_visit && @table_visit.closed_at.nil?
+      redirect_to new_table_order_path(@table), alert: 'Esta visita terminou. Abre o menu para iniciar uma nova visita.', status: :see_other
+      return
+    end
+
     @review_note = params.dig(:order, :note).to_s.strip
     @review_items = selected_items
     save_draft(@review_items, @review_note)
     @review_suggestions = suggestions_for(@review_items)
     @review_total = @review_items.sum { |item| item[:line_total] }
     @quote = Rails.application.message_verifier(:order_quote).generate(
-      { table_id: @table.id, customer_token: session[:customer_token], nonce: SecureRandom.hex(16),
+      { table_id: @table.id, table_visit_id: @table_visit.id, customer_token: session[:customer_token], nonce: SecureRandom.hex(16),
         items: @review_items.map { |i| [i[:menu_item_id], i[:quantity], i[:unit_price].to_s] }, note: @review_note },
       expires_in: 15.minutes
     )
@@ -30,7 +42,7 @@ class OrdersController < ApplicationController
 
   def create
     quote = Rails.application.message_verifier(:order_quote).verified(params[:quote].to_s)&.deep_symbolize_keys
-    unless quote && quote[:table_id] == @table.id && quote[:customer_token] == session[:customer_token]
+    unless quote && quote[:table_id] == @table.id && quote[:table_visit_id] == @table_visit.id && quote[:customer_token] == session[:customer_token]
       raise Order::InvalidTransition, 'A revisão expirou. Reveja o pedido novamente.'
     end
 
@@ -44,9 +56,11 @@ class OrdersController < ApplicationController
         establishment = @table.establishment.reload
         raise Order::InvalidTransition, 'Esta mesa está desativada.' unless @table.active? && establishment.active?
         raise Order::InvalidTransition, 'O serviço está temporariamente pausado. Ainda não é possível enviar pedidos.' unless establishment.accepting_orders?
+        visit = @table.table_visits.find(@table_visit.id)
+        raise Order::InvalidTransition, 'Esta visita terminou ou ainda não foi ativada pela equipa.' unless visit.open?
 
         unless customer_orders.exists?(submission_token: quote[:nonce])
-          order = @table.orders.new(note: note, customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
+          order = @table.orders.new(table_visit: visit, note: note, customer_token: session[:customer_token], submission_token: quote[:nonce], status: 'pending')
 
           items = quote[:items].dup
           suggestion_items = valid_suggestion_items(quote[:items].map(&:first), params[:suggestion_quantities], params[:suggestion_ids])
@@ -73,10 +87,18 @@ class OrdersController < ApplicationController
   end
 
   def my
-    history = CustomerVisitHistory.new(customer_orders.includes(order_items: :menu_item).to_a)
+    history = CustomerVisitHistory.new(customer_orders.includes(:table_visit, order_items: :menu_item).to_a)
     @current_visit = history.current_visit
     @previous_visits = history.previous_visits
     @orders = @current_visit ? @current_visit.orders.reverse : []
+  end
+
+  def access_status
+    # A read-only poll must not overwrite a newer visit cookie after navigation.
+    request.session_options[:skip] = true
+    response.headers['Cache-Control'] = 'no-store, private'
+    render json: { visit_id: @table_visit&.id, state: @table_visit&.state || 'closed',
+                   allowed: !!(@table_visit&.open? && @table.establishment.accepting_orders?) }
   end
 
   def cancel
@@ -89,11 +111,23 @@ class OrdersController < ApplicationController
   private
 
   def set_table
+    response.headers['Cache-Control'] = 'no-store, private'
     @table = Table.joins(:establishment).where(active: true, deleted_at: nil, establishments: { active: true }).find_by!(qr_token: params[:table_id])
   end
 
   def ensure_customer_token
     session[:customer_token] ||= SecureRandom.hex(24)
+  end
+
+  def load_table_visit
+    id = session.dig(:table_visit_ids, @table.id.to_s)
+    @table_visit = @table.table_visits.find_by(id: id)
+  end
+
+  def ensure_visit_open
+    return if @table_visit&.open?
+    redirect_to new_table_order_path(@table),
+                alert: 'A tua mesa ainda não está ativa. Aguarda que a equipa a ative para enviares o pedido.', status: :see_other
   end
 
   def ensure_service_accepting_orders

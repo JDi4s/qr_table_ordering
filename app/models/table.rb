@@ -2,6 +2,8 @@ class Table < ApplicationRecord
   belongs_to :establishment
   has_many :orders, dependent: :restrict_with_error
   has_many :service_calls, dependent: :restrict_with_error
+  has_many :table_visits, dependent: :restrict_with_error
+  has_one :current_table_visit, -> { where(closed_at: nil) }, class_name: 'TableVisit'
   before_validation :generate_qr_token, on: :create
   around_save :enforce_capacity
   validates :number, numericality: { only_integer: true, greater_than: 0 },

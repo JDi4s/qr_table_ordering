@@ -2,6 +2,7 @@ require 'test_helper'
 class VenueWorkflowTest < ActionDispatch::IntegrationTest
   setup do
     @venue, @table, @product = build_venue
+    TableVisit.activate_for!(@table)
     @other, @other_table, @other_product = build_venue
     @manager = venue_user(@venue)
     @other_order = build_order(@other_table, @other_product)
@@ -294,6 +295,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
   end
 
   test 'service call endpoint deduplicates and correct venue can claim' do
+    get new_table_order_path(@table)
     2.times { post table_service_calls_path(@table) }
     assert_equal 1, @table.service_calls.count
     sign_in(@manager)

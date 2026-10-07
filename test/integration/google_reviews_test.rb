@@ -3,6 +3,7 @@ require 'test_helper'
 class GoogleReviewsTest < ActionDispatch::IntegrationTest
   setup do
     @venue, @table, @product = build_venue
+    TableVisit.activate_for!(@table)
     @manager = venue_user(@venue)
     @url = 'https://g.page/r/test/review'
   end

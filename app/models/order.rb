@@ -2,6 +2,7 @@ class Order < ApplicationRecord
   include ActionView::RecordIdentifier
   class InvalidTransition < StandardError; end
   belongs_to :table
+  belongs_to :table_visit, optional: true
   belongs_to :paid_by_user, class_name: 'User', optional: true
   belongs_to :voided_by_user, class_name: 'User', optional: true
   has_one :establishment, through: :table
@@ -188,7 +189,7 @@ class Order < ApplicationRecord
 
   def with_payment_locks(&block)
     establishment.with_lock do
-      with_lock(&block)
+      table.with_lock { with_lock(&block) }
     end
   end
 
@@ -210,6 +211,7 @@ class Order < ApplicationRecord
     return unless fully_paid?
 
     update!(paid_at: Time.current, paid_by_user: user)
+    TableVisit.close_if_settled!(table)
   end
 
   def remaining_payment_items

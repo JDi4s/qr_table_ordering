@@ -1,5 +1,6 @@
 class Staff::OrdersController < Staff::BaseController
   def index
+    @activation_tables = current_establishment.tables.where(active: true, deleted_at: nil).includes(:current_table_visit).order(:number).to_a
     scope = current_establishment.orders.not_voided.includes(:table, order_items: { menu_item: :production_area }).where.not(status: %w[served denied])
     if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
       scope = scope.joins(order_items: :menu_item).where(menu_items: { production_area_id: current_user.production_area_ids }).distinct

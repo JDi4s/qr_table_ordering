@@ -6,6 +6,8 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/bocato-icon-v4-192.png',
     badge: '/bocato-icon-v4-192.png',
     tag: data.tag || 'bocato-notification',
+    silent: false,
+    vibrate: [150, 80, 150],
     data: { url: data.url || '/staff/orders' }
   }
 

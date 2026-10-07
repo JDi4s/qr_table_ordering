@@ -13,6 +13,7 @@ else
   raise 'Lost table identity' unless table.number == 1 && table.establishment.present?
   raise 'Legacy review not recoverable' unless order.pending? && order.total == 10
   raise 'Customer identity missing' unless order.customer_token.present?
+  raise 'Existing service was blocked by activation upgrade' unless order.table_visit&.open? && order.table_visit.table_id == table.id
   raise 'Staff role not preserved' unless User.find_by!(email: 'legacy@example.com').manager?
   raise 'Ordered price/name lost' unless order.order_items.first.original_unit_price == 10 && order.order_items.first.name_snapshot == 'Original product'
   puts 'Legacy migration: data and QR preserved, pending review and total repaired.'

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
+  <% if controller_name == 'orders' %><meta name="turbo-cache-control" content="no-cache"><% end %>
   <title>Bocato — Pedidos por QR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#192d24">
@@ -8,6 +9,7 @@
   <%= csrf_meta_tags %><%= csp_meta_tag %><%= action_cable_meta_tag %>
   <%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %>
   <%= stylesheet_link_tag 'google_reviews', 'data-turbo-track': 'reload' %>
+  <%= stylesheet_link_tag 'table_activation', 'data-turbo-track': 'reload' %>
   <%= javascript_importmap_tags %>
 </head>
 <body>
