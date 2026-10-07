@@ -67,7 +67,7 @@ class TableActivationSystemTest < ApplicationSystemTestCase
       assert_selector '.customer-table-activated', text: 'Mesa ativa'
       assert_text 'A equipa ativou a tua mesa. Já podes enviar o pedido.'
       assert page.evaluate_script("(() => { const r = document.querySelector('.customer-table-activated').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; })()")
-      click_on 'Fechar aviso de mesa ativa'
+      find('.customer-table-activated button[aria-label="Fechar aviso de mesa ativa"]').click
       assert_no_selector '.customer-table-activated'
       assert_button 'Enviar pedido', disabled: false
       click_on 'Enviar pedido'
@@ -103,3 +103,4 @@ class TableActivationSystemTest < ApplicationSystemTestCase
     end
   end
 end
+
