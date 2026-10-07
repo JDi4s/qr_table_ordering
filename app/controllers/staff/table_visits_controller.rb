@@ -1,5 +1,7 @@
 class Staff::TableVisitsController < Staff::BaseController
   def index
+    # Do not let an old poll restore a session after logout/account changes.
+    request.session_options[:skip] = true
     tables = current_establishment.tables.where(active: true, deleted_at: nil)
       .includes(:current_table_visit).order(:number)
     pending = tables.filter_map { |table| table.current_table_visit if table.current_table_visit&.waiting? }

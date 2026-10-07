@@ -9,7 +9,7 @@ export default class extends Controller {
     this.seen = new Set()
     try { this.seen = new Set(JSON.parse(sessionStorage.getItem(this.storageKey) || "[]")) } catch (_) {}
     this.subscription = consumer.subscriptions.create({ channel: "TableVisitsChannel" }, {
-      connected: () => { this.element.dataset.tableActivationConnected = "true"; this.refresh(false) },
+      connected: () => { this.element.dataset.tableActivationConnected = "true"; this.refresh(Boolean(this.initialized)) },
       received: (event) => {
         if (event.state === "waiting") this.notify(event.visit_id, event.table_number)
         this.refresh(false)
@@ -73,7 +73,10 @@ export default class extends Controller {
       const response = await fetch(this.urlValue, { headers: { Accept: "application/json" }, cache: "no-store", signal: this.abort.signal })
       if (!response.ok) return
       const data = await response.json()
-      data.pending_ids.forEach((id) => alertNew && this.initialized ? this.notify(id) : this.remember(id))
+      data.pending_ids.forEach((id) => {
+        if (!this.initialized) this.remember(id)
+        else if (alertNew) this.notify(id)
+      })
       this.initialized = true
       const signature = JSON.stringify(data.states)
       if (this.hasListTarget && signature !== this.signature) this.listTarget.innerHTML = data.html

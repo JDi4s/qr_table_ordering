@@ -1,6 +1,6 @@
 class OrdersController < ApplicationController
   before_action :set_table
-  before_action :ensure_customer_token
+  before_action :ensure_customer_token, except: :access_status
   before_action :ensure_service_accepting_orders, only: [:review, :create]
   before_action :load_table_visit
   before_action :ensure_visit_open, only: :create
@@ -94,6 +94,8 @@ class OrdersController < ApplicationController
   end
 
   def access_status
+    # A read-only poll must not overwrite a newer visit cookie after navigation.
+    request.session_options[:skip] = true
     response.headers['Cache-Control'] = 'no-store, private'
     render json: { visit_id: @table_visit&.id, state: @table_visit&.state || 'closed',
                    allowed: !!(@table_visit&.open? && @table.establishment.accepting_orders?) }

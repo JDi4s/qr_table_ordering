@@ -8,6 +8,8 @@ class TableActivationSystemTest < ApplicationSystemTestCase
     Capybara.using_session(:activation_staff) do
       page.current_window.resize_to(390, 844)
       visit login_path
+      assert_current_path login_path
+      assert_selector 'form[action="/login"]'
       fill_in 'Email', with: staff.email
       fill_in 'Palavra-passe', with: 'Test-password-123'
       click_on 'Entrar'

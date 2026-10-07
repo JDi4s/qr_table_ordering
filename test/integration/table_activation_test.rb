@@ -28,6 +28,7 @@ class TableActivationTest < ActionDispatch::IntegrationTest
     assert_equal 303, employee.response.status
     get table_access_status_path(@table)
     assert_equal true, response.parsed_body['allowed']
+    assert_nil response.headers['Set-Cookie'], 'Status polls must not overwrite a newer visit session'
     assert_difference('Order.count', 1) { post table_orders_path(@table), params: { quote: quote } }
     assert_equal @table.table_visits.last.id, @table.orders.last.table_visit_id
     assert_no_difference('Order.count') { post table_orders_path(@table), params: { quote: quote } }
@@ -77,6 +78,7 @@ class TableActivationTest < ActionDispatch::IntegrationTest
     assert_response :not_found
     get staff_table_visits_path, headers: { 'Accept' => 'application/json' }
     assert_response :success
+    assert_nil response.headers['Set-Cookie'], 'Status polls must not restore an older staff login'
     assert_empty response.parsed_body['pending_ids']
     assert_equal [@table.id], response.parsed_body['states'].map(&:first)
     @venue.update!(active: false)
