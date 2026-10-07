@@ -64,12 +64,19 @@ class TableActivationSystemTest < ApplicationSystemTestCase
     Capybara.using_session(:activation_customer) do
       assert_button 'Enviar pedido', disabled: false
       assert_no_text 'A tua mesa ainda não está ativa'
+      assert_selector '.customer-table-activated', text: 'Mesa ativa'
+      assert_text 'A equipa ativou a tua mesa. Já podes enviar o pedido.'
+      assert page.evaluate_script("(() => { const r = document.querySelector('.customer-table-activated').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; })()")
+      click_on 'Fechar aviso de mesa ativa'
+      assert_no_selector '.customer-table-activated'
+      assert_button 'Enviar pedido', disabled: false
       click_on 'Enviar pedido'
       assert_text 'Os meus pedidos'
     end
     Capybara.using_session(:activation_customer_again) do
       visit new_table_order_path(table)
       assert_no_text 'A tua mesa ainda não está ativa'
+      assert_no_selector '.customer-table-activated'
     end
     Capybara.using_session(:activation_staff) do
       assert_equal ['activation'], page.evaluate_script('window.activationBeeps') if page.evaluate_script('Boolean(window.activationBeeps)')
