@@ -6,11 +6,11 @@ clientes podem escolher artigos e rever o pedido, mas apenas podem enviá-lo
 quando um funcionário ativa a mesa no painel de Pedidos.
 
 O painel distingue mesas à espera (amarelo), visitas abertas (verde) e mesas
-inativas. Gerentes e funcionários do estabelecimento podem abrir e fechar
-visitas. Uma leitura repetida, mesmo por vários clientes, não repete o aviso.
+inativas. Gerentes e funcionários do estabelecimento podem ativar visitas.
+Uma leitura repetida, mesmo por vários clientes, não repete o aviso.
 
-A visita fecha quando o pagamento deixa a mesa sem pedidos por pagar, ou
-manualmente em Consumo da mesa quando não existem pedidos pendentes. Pagamentos
+A visita fecha automaticamente quando o pagamento deixa a mesa sem pedidos
+por pagar. Não existe botão de fecho no Consumo da mesa. Pagamentos
 parciais mantêm a visita aberta. Anular um pagamento repõe a dívida, mas não
 reabre automaticamente o acesso dos clientes. Pedidos e pagamentos antigos
 continuam no histórico; os pedidos da visita fechada são recolhidos em Pedidos
@@ -22,6 +22,11 @@ O servidor confirma o estado novamente sob os mesmos bloqueios usados nos
 pagamentos. Os clientes só consultam os seus próprios pedidos.
 
 ## Alertas
+
+Quando o funcionário ativa a mesa, o aviso de espera desaparece e os clientes
+que aguardavam recebem uma confirmação compacta: «Mesa ativa — A equipa ativou
+a tua mesa. Já podes enviar o pedido.» O aviso fecha após seis segundos ou no X.
+Abrir o menu de uma mesa já ativa não volta a mostrar a confirmação.
 
 Novas mesas à espera geram um evento em tempo real em todas as páginas de gestão
 e um sinal de duas notas. Usa Testar som no painel uma vez no dispositivo para

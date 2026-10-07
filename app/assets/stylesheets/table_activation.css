@@ -26,6 +26,12 @@ a.table-activation-active { min-height: 44px; }
 .customer-table-access-notice { display: grid; gap: 5px; margin: 14px 0; padding: 13px 15px; background: #fff9ef; border: 1px solid #f0dfbf; border-radius: 10px; font-size: 13px; }
 .customer-table-access-notice[hidden] { display: none; }
 .customer-table-access-notice span { color: var(--muted); font-size: 12px; }
+.customer-table-activated { position: fixed; z-index: 1000; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 11px; box-sizing: border-box; width: min(380px, calc(100% - 28px)); padding: 13px 12px 13px 15px; border: 1px solid #dce4dc; border-radius: 14px; background: #fff; color: #192d24; box-shadow: 0 8px 28px #192d2426; }
+.customer-table-activated-icon { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: #eaf1e8; color: #194b3d; font-size: 18px; }
+.customer-table-activated > div { flex: 1; min-width: 0; }
+.customer-table-activated strong { display: block; color: #194b3d; font-size: 14px; }
+.customer-table-activated div span { display: block; margin-top: 3px; color: #61716a; font-size: 12px; line-height: 1.4; }
+.customer-table-activated button { display: grid; place-items: center; flex: none; min-width: 36px; min-height: 36px; margin: 0; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #61716a; font-size: 24px; }
 .table-visit-close-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 20px; }
 .table-visit-close-row form, .table-visit-close-row button { margin: 0; }
 .table-visit-close-row small { color: var(--muted); font-size: 12px; }

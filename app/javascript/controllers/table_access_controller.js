@@ -21,6 +21,7 @@ export default class extends Controller {
 
   disconnect() {
     clearInterval(this.timer)
+    this.dismissActivation()
     this.subscription?.unsubscribe()
     this.abort?.abort()
     document.removeEventListener("visibilitychange", this.visibility)
@@ -49,6 +50,8 @@ export default class extends Controller {
     this.state = data.offline ? this.state : (sameVisit ? data.state : "closed")
     this.allowed = Boolean(sameVisit && data.allowed)
     this.submitTargets.forEach((button) => { button.disabled = !this.allowed })
+    if (previous === "waiting" && this.allowed) this.showActivation()
+    if (!this.allowed) this.dismissActivation()
     if (this.hasNoticeTarget) {
       this.noticeTarget.hidden = this.allowed
       const closed = this.state === "closed"
@@ -60,5 +63,23 @@ export default class extends Controller {
       this.reloading = true
       window.location.reload()
     }
+  }
+
+  showActivation() {
+    this.dismissActivation()
+    this.activationNotice = document.createElement("div")
+    this.activationNotice.className = "customer-table-activated"
+    this.activationNotice.setAttribute("role", "status")
+    this.activationNotice.setAttribute("aria-live", "polite")
+    this.activationNotice.innerHTML = '<span class="customer-table-activated-icon" aria-hidden="true">✓</span><div><strong>Mesa ativa</strong><span>A equipa ativou a tua mesa. Já podes enviar o pedido.</span></div><button type="button" aria-label="Fechar aviso de mesa ativa">×</button>'
+    this.activationNotice.querySelector("button").addEventListener("click", () => this.dismissActivation())
+    document.body.append(this.activationNotice)
+    this.activationTimer = setTimeout(() => this.dismissActivation(), 6000)
+  }
+
+  dismissActivation() {
+    clearTimeout(this.activationTimer)
+    this.activationNotice?.remove()
+    this.activationNotice = null
   }
 }
