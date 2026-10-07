@@ -1,0 +1,24 @@
+<% waiting, others = tables.partition { |table| table.current_table_visit&.waiting? } %>
+<% if waiting.any? %>
+  <p class="table-activation-section">A aguardar ativação</p>
+  <% waiting.each do |table| %>
+    <div class="table-activation-row is-waiting" data-table-number="<%= table.number %>">
+      <div><strong><i class="table-activation-dot" aria-hidden="true"></i> Mesa <%= table.number %></strong><small>QR lido · aguarda a equipa</small></div>
+      <%= button_to 'Ativar', staff_table_visit_path(table), method: :post %>
+    </div>
+  <% end %>
+<% else %>
+  <p class="table-activation-empty">Não há mesas à espera de ativação.</p>
+<% end %>
+<% if others.any? %><p class="table-activation-section">Outras mesas</p><% end %>
+<% others.each do |table| %>
+  <div class="table-activation-row" data-table-number="<%= table.number %>">
+    <div><strong>Mesa <%= table.number %></strong><small><%= table.current_table_visit&.open? ? 'Visita em curso' : 'Inativa' %></small></div>
+    <% if table.current_table_visit&.open? %>
+      <%= link_to staff_table_path(table), class: 'table-activation-active', aria: { label: "Ver consumo da Mesa #{table.number}" } do %><i aria-hidden="true"></i>Ativa<% end %>
+    <% else %>
+      <%= button_to 'Ativar', staff_table_visit_path(table), method: :post, class: 'secondary' %>
+    <% end %>
+  </div>
+<% end %>
+<% if tables.empty? %><p class="table-activation-empty">Ainda não existem mesas disponíveis.</p><% end %>

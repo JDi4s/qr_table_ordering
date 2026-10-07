@@ -1,4 +1,15 @@
 class StaffPushNotifier
+  def self.notify_table_activation(visit)
+    new.notify_table_activation(visit)
+  end
+
+  def notify_table_activation(visit)
+    notify_staff_devices(visit.table.establishment_id) do |subscription|
+      send_notification(subscription, title: 'Mesa a aguardar ativação',
+                        body: "Mesa #{visit.table.number}: um cliente abriu o menu. Ativa a mesa quando os clientes estiverem presentes.",
+                        tag: "table-activation-#{visit.id}", url: '/staff/orders?activate=1')
+    end
+  end
   def self.notify_service_call(service_call)
     new.notify_service_call(service_call)
   end
@@ -45,13 +56,13 @@ class StaffPushNotifier
     ENV['VAPID_PUBLIC_KEY'].present? && ENV['VAPID_PRIVATE_KEY'].present? && ENV['VAPID_SUBJECT'].present?
   end
 
-  def send_notification(subscription, title:, body:, tag:)
+  def send_notification(subscription, title:, body:, tag:, url: '/staff/orders')
     WebPush.payload_send(
       message: JSON.generate(
         title: title,
         body: body,
         icon: '/icon.svg',
-        url: '/staff/orders',
+        url: url,
         tag: tag
       ),
       endpoint: subscription.endpoint,

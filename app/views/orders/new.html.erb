@@ -1,6 +1,7 @@
 <% establishment = @table.establishment %>
 <% has_logo = establishment.logo.attached? %>
-<div class="customer-branding-shell" data-controller="customer-branding" data-customer-branding-enabled-value="<%= has_logo %>" data-customer-branding-key-value="establishment-<%= establishment.id %>">
+<div class="customer-branding-shell" data-controller="customer-branding table-access" data-customer-branding-enabled-value="<%= has_logo %>" data-customer-branding-key-value="establishment-<%= establishment.id %>"
+     data-table-access-url-value="<%= table_access_status_path(@table) %>" data-table-access-token-value="<%= @table.qr_token %>" data-table-access-visit-value="<%= @table_visit.id %>" data-table-access-state-value="<%= @table_visit.state %>" data-table-access-service-value="<%= establishment.accepting_orders? %>">
   <% if has_logo %>
     <section class="customer-branding-loading" data-customer-branding-target="loading" hidden aria-label="A carregar o menu">
       <%= image_tag establishment.logo, class: 'customer-branding-logo customer-branding-logo-loading', alt: establishment.name %>
@@ -28,11 +29,12 @@
     <div class="toolbar"><span class="badge">Mesa <%= @table.number %></span>
       <%= link_to "Os meus pedidos (#{@active_count})", my_table_orders_path(@table), class: 'button secondary' %>
       <% if establishment.accepting_orders? %>
-        <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary' %>
+        <%= button_to 'Chamar funcionário', table_service_calls_path(@table), class: 'secondary', disabled: !@table_visit.open?, data: { 'table-access-target': 'submit' } %>
       <% else %>
         <button type="button" class="secondary" disabled>Chamadas pausadas</button>
       <% end %>
     </div>
+    <%= render 'orders/table_access_notice' %>
     <% if establishment.accepting_orders? %>
       <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
         <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>

@@ -60,7 +60,7 @@ export default class extends Controller {
       return false
     }
 
-    const frequencies = kind === "call" ? [520, 700] : [880]
+    const frequencies = kind === "activation" ? [660, 880] : (kind === "call" ? [520, 700] : [880])
     const startedAt = this.audio.currentTime
 
     frequencies.forEach((frequency, index) => {

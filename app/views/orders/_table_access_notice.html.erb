@@ -1,0 +1,4 @@
+<div class="customer-table-access-notice" data-table-access-target="notice" role="status" aria-live="polite" <%= 'hidden' if @table_visit&.open? %>>
+  <strong data-table-access-target="heading"><%= @table_visit&.closed_at? ? 'Esta visita terminou' : 'A tua mesa ainda não está ativa' %></strong>
+  <span data-table-access-target="message"><%= @table_visit&.closed_at? ? 'Abre novamente o menu para iniciar uma nova visita.' : 'Podes escolher os produtos. Aguarda que a equipa ative a mesa para enviares o pedido.' %></span>
+</div>

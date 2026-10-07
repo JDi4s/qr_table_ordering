@@ -25,6 +25,7 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
 
   test 'customer can dismiss invitation and Turbo updates do not restore it' do
     venue, table, product = build_venue
+    TableVisit.activate_for!(table)
     venue.update!(google_reviews_enabled: true, google_review_url: 'https://g.page/r/test/review')
     page.current_window.resize_to(375, 812)
     visit new_table_order_path(table)

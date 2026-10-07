@@ -132,6 +132,7 @@ class PilotRehearsal
     check(@manager_session.response.redirect?, 'Manager login failed')
     @clients = (1..30).flat_map do |number|
       table = @venue.tables.create!(number: number)
+      TableVisit.activate_for!(table)
       3.times.map do |customer|
         session = ActionDispatch::Integration::Session.new(Rails.application)
         session.get new_table_order_path(table)

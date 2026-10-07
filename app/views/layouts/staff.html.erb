@@ -11,9 +11,13 @@
   <%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %>
   <%= stylesheet_link_tag 'google_reviews', 'data-turbo-track': 'reload' %>
   <%= stylesheet_link_tag 'report_extract', 'data-turbo-track': 'reload' %>
+  <%= stylesheet_link_tag 'table_activation', 'data-turbo-track': 'reload' %>
   <%= javascript_importmap_tags %>
 </head>
-<body data-controller="staff-orders"
+<body data-controller="staff-orders table-activation"
+      data-table-activation-url-value="<%= staff_table_visits_path %>"
+      data-table-activation-orders-url-value="<%= staff_orders_path %>"
+      data-table-activation-key-value="<%= current_establishment.id %>-<%= current_user.id %>"
       data-staff-sound-enabled="<%= current_user&.staff_sound_enabled? ? '1' : '0' %>"
       data-vapid-public-key="<%= h(ENV['VAPID_PUBLIC_KEY'].to_s) %>"
       data-web-push-enabled="<%= ENV['VAPID_PUBLIC_KEY'].present? ? '1' : '0' %>">

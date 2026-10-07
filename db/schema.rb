@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_07_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -106,7 +106,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
     t.string "google_review_url"
     t.index ["service_paused_by_user_id"], name: "index_establishments_on_service_paused_by_user_id"
     t.index ["slug"], name: "index_establishments_on_slug", unique: true
-    t.check_constraint "plan::text = ANY (ARRAY['essential'::character varying, 'management'::character varying]::text[])", name: "valid_establishment_plan"
+    t.check_constraint "plan::text = ANY (ARRAY['essential'::character varying::text, 'management'::character varying::text])", name: "valid_establishment_plan"
     t.check_constraint "production_areas_limit >= 0", name: "production_areas_limit_positive"
     t.check_constraint "table_limit >= 0 AND monthly_fee_cents >= 0", name: "establishment_limits_positive"
   end
@@ -187,12 +187,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
     t.string "cancellation_reason"
     t.datetime "voided_at"
     t.bigint "voided_by_user_id"
+    t.bigint "table_visit_id"
     t.index ["cancelled_at"], name: "index_orders_on_cancelled_at"
     t.index ["customer_token"], name: "index_orders_on_customer_token"
     t.index ["paid_by_user_id"], name: "index_orders_on_paid_by_user_id"
     t.index ["table_id", "customer_token", "submission_token"], name: "unique_customer_submission", unique: true
     t.index ["table_id", "paid_at"], name: "index_orders_on_table_id_and_paid_at"
     t.index ["table_id"], name: "index_orders_on_table_id"
+    t.index ["table_visit_id"], name: "index_orders_on_table_visit_id"
     t.index ["voided_at"], name: "index_orders_on_voided_at"
     t.index ["voided_by_user_id"], name: "index_orders_on_voided_by_user_id"
   end
@@ -225,7 +227,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
     t.index ["user_id"], name: "index_payments_on_user_id"
     t.index ["voided_at"], name: "index_payments_on_voided_at"
     t.index ["voided_by_user_id"], name: "index_payments_on_voided_by_user_id"
-    t.check_constraint "payment_method::text = ANY (ARRAY['cash'::character varying, 'card'::character varying, 'mbway'::character varying, 'other'::character varying]::text[])", name: "valid_payment_method"
+    t.check_constraint "payment_method::text = ANY (ARRAY['cash'::character varying::text, 'card'::character varying::text, 'mbway'::character varying::text, 'other'::character varying::text])", name: "valid_payment_method"
   end
 
   create_table "production_area_users", id: false, force: :cascade do |t|
@@ -256,8 +258,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
     t.datetime "updated_at", null: false
     t.index ["assigned_user_id"], name: "index_service_calls_on_assigned_user_id"
     t.index ["table_id"], name: "index_service_calls_on_table_id"
-    t.index ["table_id"], name: "one_open_call_per_table", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'claimed'::character varying])::text[]))"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'claimed'::character varying, 'resolved'::character varying]::text[])", name: "valid_service_call_status"
+    t.index ["table_id"], name: "one_open_call_per_table", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('claimed'::character varying)::text]))"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'claimed'::character varying::text, 'resolved'::character varying::text])", name: "valid_service_call_status"
   end
 
   create_table "staff_push_subscriptions", force: :cascade do |t|
@@ -311,8 +313,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
     t.index ["created_by_id"], name: "index_support_tickets_on_created_by_id"
     t.index ["establishment_id", "status"], name: "index_support_tickets_on_establishment_id_and_status"
     t.index ["establishment_id"], name: "index_support_tickets_on_establishment_id"
-    t.check_constraint "priority::text = ANY (ARRAY['normal'::character varying, 'urgent'::character varying]::text[])", name: "valid_support_ticket_priority"
-    t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'in_analysis'::character varying, 'waiting_establishment'::character varying, 'resolved'::character varying]::text[])", name: "valid_support_ticket_status"
+    t.check_constraint "priority::text = ANY (ARRAY['normal'::character varying::text, 'urgent'::character varying::text])", name: "valid_support_ticket_priority"
+    t.check_constraint "status::text = ANY (ARRAY['open'::character varying::text, 'in_analysis'::character varying::text, 'waiting_establishment'::character varying::text, 'resolved'::character varying::text])", name: "valid_support_ticket_status"
+  end
+
+  create_table "table_visits", force: :cascade do |t|
+    t.bigint "table_id", null: false
+    t.datetime "requested_at"
+    t.datetime "opened_at"
+    t.datetime "closed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["table_id"], name: "index_table_visits_on_table_id"
+    t.index ["table_id"], name: "one_current_visit_per_table", unique: true, where: "(closed_at IS NULL)"
   end
 
   create_table "tables", force: :cascade do |t|
@@ -363,6 +376,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
   add_foreign_key "menu_items", "production_areas"
   add_foreign_key "order_items", "menu_items", on_delete: :nullify
   add_foreign_key "order_items", "orders"
+  add_foreign_key "orders", "table_visits"
   add_foreign_key "orders", "tables"
   add_foreign_key "orders", "users", column: "paid_by_user_id"
   add_foreign_key "orders", "users", column: "voided_by_user_id"
@@ -385,6 +399,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_05_120000) do
   add_foreign_key "support_tickets", "establishments"
   add_foreign_key "support_tickets", "users", column: "assigned_to_id"
   add_foreign_key "support_tickets", "users", column: "created_by_id"
+  add_foreign_key "table_visits", "tables"
   add_foreign_key "tables", "establishments"
   add_foreign_key "users", "establishments"
 end

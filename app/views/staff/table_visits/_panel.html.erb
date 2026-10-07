@@ -1,0 +1,13 @@
+<div class="staff-orders-heading">
+  <h1>Pedidos</h1>
+  <button type="button" class="secondary table-activation-trigger" data-table-activation-target="trigger" data-action="table-activation#toggle" aria-expanded="false" aria-controls="table-activation-panel">
+    <i class="table-activation-dot" data-table-activation-target="dot" aria-hidden="true" <%= 'hidden' unless @activation_tables.any? { |table| table.current_table_visit&.waiting? } %>></i>
+    Ativar mesa<span class="sr-only" data-table-activation-target="pendingLabel"></span>
+  </button>
+  <section class="table-activation-panel" id="table-activation-panel" data-table-activation-target="panel" aria-label="Ativar mesa" hidden>
+    <div class="table-activation-heading"><h2>Ativar mesa</h2><button type="button" class="table-activation-close secondary" data-action="table-activation#close" aria-label="Fechar painel">×</button></div>
+    <p class="table-activation-help">Ativa quando os clientes estiverem na mesa.</p>
+    <div data-table-activation-target="list"><%= render 'staff/table_visits/list', tables: @activation_tables %></div>
+    <div class="table-activation-audio"><button type="button" class="secondary" data-action="staff-orders#enableAudio">Testar som</button><small data-staff-orders-target="soundStatus" role="status"></small></div>
+  </section>
+</div>

@@ -2,6 +2,7 @@ require 'application_system_test_case'
 class LiveServiceTest < ApplicationSystemTestCase
   test 'staff receives new order and call live and customer receives the reviewed price' do
     venue, table, product = build_venue
+    TableVisit.activate_for!(table)
     venue.update!(name: 'Café do Largo', plan: 'management')
     product.update!(name: 'Baguete de frango')
     manager = venue_user(venue)
