@@ -3219,3 +3219,8 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
   .staff-orders-board .staff-board-tabs,
   .active-tables-summary, .active-tables-search { max-width: none; }
 }
+
+/* Distinguish serving an accepted order from accepting a new one. */
+button.order-serve-button { background: #245b85; border-color: #245b85; color: #fff; }
+button.order-serve-button:hover { background: #1c486a; border-color: #1c486a; color: #fff; }
+button.order-serve-button:focus-visible { outline-color: #245b85; }

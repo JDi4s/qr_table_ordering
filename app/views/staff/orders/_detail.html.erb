@@ -43,7 +43,7 @@
       <%= f.text_field :denial_reason, required: true, maxlength: 300 %><%= f.submit 'Cancelar pedido', class: 'secondary' %>
     <% end %></section>
   <% end %>
-  <% if order.accepted? && !order.voided? %><%= button_to 'Marcar como servido', staff_order_path(order, status: 'served'), method: :patch %><% end %>
+  <% if order.accepted? && !order.voided? %><%= button_to '✓ Marcar como servido', staff_order_path(order, status: 'served'), method: :patch, class: 'order-serve-button', aria: { label: 'Marcar como servido' } %><% end %>
   <% if !order.voided? && (order.accepted? || order.served?) && !order.paid? %>
     <%= form_with url: mark_paid_staff_order_path(order), method: :patch, class: 'payment-form' do %>
       <%= select_tag :payment_method, options_for_select(payment_method_options, 'cash'), aria: { label: 'Método de pagamento' } %>
