@@ -214,6 +214,9 @@ class Staff::MenuItemsController < Staff::BaseController
       :production_area_id,
       :available,
       :image,
+      :allergen_notes, :nutrition_enabled, :nutrition_basis, :nutrition_portion,
+      *MenuItem::NUTRITION_FIELDS.keys.map { |field| "nutrition_#{field}" },
+      allergens: [],
       recommended_menu_item_ids: []
     )
     values.delete(:recommended_menu_item_ids)

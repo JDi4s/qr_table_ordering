@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_08_100000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_08_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -153,6 +153,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_100000) do
     t.text "description"
     t.datetime "archived_at"
     t.bigint "production_area_id"
+    t.jsonb "allergens", default: [], null: false
+    t.string "allergen_notes", limit: 500
+    t.boolean "nutrition_enabled", default: false, null: false
+    t.string "nutrition_basis", default: "100g", null: false
+    t.string "nutrition_portion", limit: 100
+    t.decimal "nutrition_energy", precision: 8, scale: 2
+    t.decimal "nutrition_fat", precision: 8, scale: 2
+    t.decimal "nutrition_saturated", precision: 8, scale: 2
+    t.decimal "nutrition_carbs", precision: 8, scale: 2
+    t.decimal "nutrition_sugar", precision: 8, scale: 2
+    t.decimal "nutrition_protein", precision: 8, scale: 2
+    t.decimal "nutrition_fibre", precision: 8, scale: 2
+    t.decimal "nutrition_salt", precision: 8, scale: 2
     t.index ["archived_at"], name: "index_menu_items_on_archived_at"
     t.index ["category_id"], name: "index_menu_items_on_category_id"
     t.index ["production_area_id"], name: "index_menu_items_on_production_area_id"
