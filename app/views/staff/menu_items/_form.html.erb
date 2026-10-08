@@ -1,9 +1,7 @@
 <%= render 'shared/errors', record: @menu_item %>
 <%= form_with model: [:staff, @menu_item], html: { multipart: true, class: 'menu-form product-editor', data: { controller: 'recommendation-options image-preview menu-item-preview product-details', action: 'submit->image-preview#prepare' } } do |f| %>
   <%= render 'staff/menu/context_fields' %>
-  <section class="panel menu-form-card product-editor-essential">
-    <h2>O essencial</h2>
-    <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true, autofocus: true, placeholder: 'Ex.: Pastel de nata' %>
+  <section class="panel menu-form-card product-editor-essential">    <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true, autofocus: true, placeholder: 'Ex.: Pastel de nata' %>
     <div class="product-editor-price-row">
       <div><%= f.label :category_id, 'Categoria' %><%= f.select :category_id, options_for_select(category_options(current_establishment.categories.not_archived.to_a), @menu_item.category_id), { prompt: 'Escolhe uma categoria' }, required: true, data: { recommendation_options_target: 'category', action: 'change->recommendation-options#filter' } %></div>
       <div><%= f.label :price, 'Preço (€)' %><%= f.number_field :price, min: 0, step: '0.01', required: true, placeholder: '0,00' %></div>
