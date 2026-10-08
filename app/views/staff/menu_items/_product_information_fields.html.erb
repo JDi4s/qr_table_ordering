@@ -1,5 +1,6 @@
-<section class="panel menu-form-card product-allergens-fields">
-  <h2>Alergénios <small>Opcional</small></h2>
+<details class="product-editor-option product-allergens-fields" <%= 'open' if @menu_item.errors.any? %>>
+  <summary><span><strong>Alergénios</strong><small><%= @menu_item.allergen_labels.any? ? "#{@menu_item.allergen_labels.size} selecionados · editar" : 'Selecionar ingredientes e vestígios' %></small></span></summary>
+  <div class="product-editor-option-body">
   <p class="product-field-help">Seleciona os alergénios presentes no produto.</p>
   <%= hidden_field_tag 'menu_item[allergens][]', '' %>
   <div class="product-allergen-options">
@@ -9,9 +10,11 @@
   </div>
   <%= f.label :allergen_notes, 'Observações sobre alergénios (opcional)' %>
   <%= f.text_field :allergen_notes, maxlength: 500, placeholder: 'Ex.: pode conter vestígios de soja' %>
-</section>
-<section class="panel menu-form-card product-nutrition-fields">
-  <h2>Informação nutricional <small>Opcional</small></h2>
+  </div>
+</details>
+<details class="product-editor-option product-nutrition-fields" <%= 'open' if @menu_item.errors.any? %>>
+  <summary><span><strong>Informação nutricional</strong><small><%= @menu_item.nutrition_enabled? ? "#{@menu_item.nutrition_basis_label} · editar" : 'Por 100 g, 100 ml ou porção' %></small></span></summary>
+  <div class="product-editor-option-body">
   <label class="form-check"><%= f.check_box :nutrition_enabled, data: { product_details_target: 'enabled', action: 'change->product-details#update' } %> Adicionar informação nutricional</label>
   <div data-product-details-target="fields" <%= 'hidden' unless @menu_item.nutrition_enabled? %>>
     <%= f.label :nutrition_basis, 'Valores apresentados' %>
@@ -26,4 +29,5 @@
     </div>
     <p class="product-field-help">Os campos vazios não aparecem ao cliente. Preenche com os dados do produto.</p>
   </div>
-</section>
+  </div>
+</details>

@@ -17,5 +17,11 @@ tem apenas o botão X, suporta Escape, gere o foco e funciona com a mesa a
 aguardar ativação ou com o serviço pausado. A pré-visualização na gestão também
 permite abrir os detalhes antes de guardar.
 
+O formulário apresenta nome, categoria, preço e disponibilidade numa coluna
+centrada. Imagem e descrição, alergénios, nutrição e sugestões/preparação ficam
+em secções opcionais recolhidas. Os valores existentes são conservados mesmo
+quando a secção está fechada. O navegador abre a secção de um campo inválido;
+erros devolvidos pelo servidor também deixam os detalhes visíveis.
+
 A migração não altera descrições, fotografias, preços ou pedidos existentes.
 Os novos campos começam vazios e a informação nutricional fica desligada.

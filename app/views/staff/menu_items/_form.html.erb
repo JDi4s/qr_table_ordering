@@ -1,0 +1,44 @@
+<%= render 'shared/errors', record: @menu_item %>
+<%= form_with model: [:staff, @menu_item], html: { multipart: true, class: 'menu-form product-editor', data: { controller: 'recommendation-options image-preview menu-item-preview product-details', action: 'submit->image-preview#prepare' } } do |f| %>
+  <%= render 'staff/menu/context_fields' %>
+  <section class="panel menu-form-card product-editor-essential">
+    <h2>O essencial</h2>
+    <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true, autofocus: true, placeholder: 'Ex.: Pastel de nata' %>
+    <div class="product-editor-price-row">
+      <div><%= f.label :category_id, 'Categoria' %><%= f.select :category_id, options_for_select(category_options(current_establishment.categories.not_archived.to_a), @menu_item.category_id), { prompt: 'Escolhe uma categoria' }, required: true, data: { recommendation_options_target: 'category', action: 'change->recommendation-options#filter' } %></div>
+      <div><%= f.label :price, 'Preço (€)' %><%= f.number_field :price, min: 0, step: '0.01', required: true, placeholder: '0,00' %></div>
+    </div>
+    <label class="form-check"><%= f.check_box :available %> Disponível no menu</label>
+  </section>
+  <div class="product-editor-optional-heading"><strong>Completar produto</strong><span>Opcional</span></div>
+  <details class="product-editor-option" <%= 'open' if @menu_item.errors.any? %>>
+    <summary><span><strong>Imagem e descrição</strong><small><%= @menu_item.image.attached? || @menu_item.description.present? ? 'Informação adicionada · editar' : 'Como o cliente vê o produto' %></small></span></summary>
+    <div class="product-editor-option-body image-form-card">
+      <div class="image-preview" data-image-preview-target="preview"><% if @menu_item.image.attached? %><%= image_tag @menu_item.image, alt: @menu_item.name %><% else %>Pré-visualização<% end %></div>
+      <div class="image-crop-stage" data-image-preview-target="stage" data-action="pointerdown->image-preview#pointerDown" hidden>
+        <img data-image-preview-target="image" alt="Recorte da imagem">
+        <span class="image-crop-grid" aria-hidden="true"></span>
+      </div>
+      <div class="image-crop-controls" data-image-preview-target="controls" hidden>
+        <label>Zoom <input type="range" min="1" max="3" step="0.01" value="1" data-image-preview-target="zoom" data-action="input->image-preview#zoomChanged"></label>
+        <button type="button" class="button secondary" data-action="click->image-preview#reset">Recentrar</button>
+        <small data-image-preview-target="hint">Arrasta a imagem para a centrar e ajusta o zoom.</small>
+      </div>
+      <%= f.label :image, (@menu_item.image.attached? ? 'Substituir imagem (opcional)' : 'Escolher imagem (opcional)') %><%= f.file_field :image, accept: 'image/png,image/jpeg,image/webp', data: { image_preview_target: 'input', action: 'change->image-preview#preview' } %>
+      <small>O recorte quadrado será o mesmo que aparece no menu.</small>
+      <%= f.label :description, 'Descrição (opcional)' %><%= f.text_area :description, maxlength: 500, placeholder: 'Ex.: massa folhada e creme de nata' %><small>Aparece na informação ⓘ do produto.</small>
+    </div>
+  </details>
+  <%= render 'product_information_fields', f: f %>
+  <details class="product-editor-option" <%= 'open' if @menu_item.errors.any? %>>
+    <summary><span><strong>Sugestões e preparação</strong><small>Produtos relacionados<%= ' e área de produção' if current_establishment.production_areas_enabled? %></small></span></summary>
+    <div class="product-editor-option-body">
+      <%= f.label :recommended_menu_item_ids, 'Produtos sugeridos quando este for pedido' %>
+      <%= render 'recommendation_picker', selected_ids: @menu_item.recommended_menu_item_ids, excluded_id: @menu_item.id %>
+      <small>Escolhe produtos ou deixa a aplicação sugerir automaticamente.</small>
+      <% if current_establishment.production_areas_enabled? %><%= f.label :production_area_id, 'Área de produção' %><%= f.select :production_area_id, options_from_collection_for_select(@production_areas, :id, :name, @menu_item.production_area_id), { prompt: 'Escolher área' } %><% end %>
+    </div>
+  </details>
+  <div class="menu-form-actions"><button type="button" class="secondary" data-action="menu-item-preview#open">Pré-visualizar cartão</button><%= f.submit(@menu_item.persisted? ? 'Guardar alterações' : 'Guardar produto') %></div>
+  <%= render 'preview_modal' %>
+<% end %>

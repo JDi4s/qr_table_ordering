@@ -51,14 +51,23 @@ class ProductInformationSystemTest < ApplicationSystemTestCase
     assert_current_path staff_orders_path
     visit new_staff_menu_item_path
     fill_in 'Nome', with: 'Croissant com detalhes'
+    assert_no_selector '#menu_item_description'
+    find('summary', text: 'Imagem e descrição').click
     fill_in 'Descrição (opcional)', with: 'Queijo e fiambre.'
     select item.category.name, from: 'Categoria'
     fill_in 'Preço (€)', with: '3.50'
     assert_no_selector '#menu_item_nutrition_energy'
+    find('summary', text: 'Alergénios').click
     check 'Leite'
     check 'Glúten'
+    find('summary', text: 'Informação nutricional').click
     check 'Adicionar informação nutricional'
     select 'Por porção', from: 'Valores apresentados'
+    fill_in 'Tamanho da porção', with: '1 croissant · 120 g'
+    fill_in 'Tamanho da porção', with: ''
+    find('summary', text: 'Informação nutricional').click
+    click_on 'Guardar produto'
+    assert_selector 'details.product-nutrition-fields[open]'
     fill_in 'Tamanho da porção', with: '1 croissant · 120 g'
     fill_in 'Energia (kcal)', with: '312'
     fill_in 'Proteínas (g)', with: '10'
@@ -80,7 +89,9 @@ class ProductInformationSystemTest < ApplicationSystemTestCase
     assert_equal %w[gluten milk], created.allergens
     assert_equal 312, created.nutrition_energy
     visit edit_staff_menu_item_path(created)
+    find('summary', text: 'Alergénios').click
     assert_checked_field 'Leite'
+    find('summary', text: 'Informação nutricional').click
     assert_field 'Tamanho da porção', with: '1 croissant · 120 g'
     assert page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')
     page.execute_script('arguments[0].scrollIntoView({block: "center"})', find('.product-nutrition-fields'))

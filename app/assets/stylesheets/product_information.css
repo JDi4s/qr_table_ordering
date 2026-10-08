@@ -44,3 +44,33 @@
 .product-preview-information dd { margin: 0; color: #194b3d; font-weight: 700; }
 .product-preview-information[hidden] { display: none; }
 @media (max-width: 360px) { .product-info-content { padding: 16px; } .product-info-title h2 { font-size: 19px; } .product-info-nutrition-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.product-editor-page { max-width: 650px; margin: 0 auto; }
+.product-editor-back { display: inline-block; margin-bottom: 10px; color: #194b3d; text-decoration: none; }
+.product-editor-page h1 { margin: 0 0 8px; }
+.product-editor-intro { margin: 0 0 22px; color: #61716a; }
+.product-editor-essential { padding: 20px; margin-bottom: 22px; }
+.product-editor-price-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 14px; }
+.product-editor-price-row > div { min-width: 0; }
+.product-editor-optional-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 14px; }
+.product-editor-optional-heading span { color: #61716a; font-size: 12px; }
+.product-editor-option { background: #fff; border: 1px solid #dce4dc; border-radius: 12px; margin: 10px 0; }
+.product-editor-option > summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; min-height: 64px; list-style: none; cursor: pointer; }
+.product-editor-option > summary::-webkit-details-marker { display: none; }
+.product-editor-option > summary::after { content: '+'; color: #194b3d; font-size: 23px; line-height: 1; }
+.product-editor-option[open] > summary::after { content: '−'; }
+.product-editor-option > summary strong { display: block; font-size: 15px; }
+.product-editor-option > summary small { display: block; margin: 3px 0 0; font-size: 12px; color: #61716a; }
+.product-editor-option-body { padding: 0 18px 18px; }
+.product-editor-option-body .image-preview { max-width: 240px; }
+.product-editor-option-body input[type=file] { max-width: 100%; }
+.product-editor .menu-form-actions { position: static; background: transparent; display: flex; flex-wrap: wrap; margin-top: 18px; padding: 0; }
+.product-editor .menu-form-actions > input[type=submit] { flex: 1; }
+.product-editor .menu-form-actions > button { width: auto; }
+@media (max-width: 450px) {
+  .product-editor-essential { padding: 16px; }
+  .product-editor-price-row { grid-template-columns: minmax(0, 1fr) 110px; gap: 12px; }
+  .product-editor-option > summary { padding: 15px; }
+  .product-editor-option-body { padding: 0 15px 15px; }
+  .product-editor .menu-form-actions { gap: 8px; }
+  .product-editor .menu-form-actions > input[type=submit], .product-editor .menu-form-actions > button { min-height: 44px; min-width: 0; padding: 10px 12px; }
+}
