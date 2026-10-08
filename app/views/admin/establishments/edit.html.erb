@@ -1,2 +1,3 @@
+<% if @establishment.menu_empty? %><section class="panel menu-import-entry"><div><h2>Começa com um menu pronto</h2><p>Importa categorias, produtos e fotografias de outro estabelecimento.</p></div><%= link_to 'Importar menu', new_admin_establishment_menu_import_path(@establishment), class: 'button' %></section><% end %>
 <h1>Estabelecimento e contrato</h1><section class="panel"><%= render 'form' %></section>
 <p><%= link_to 'Voltar aos clientes', admin_establishments_path %></p>

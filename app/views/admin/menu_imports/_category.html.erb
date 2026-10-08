@@ -1,0 +1,14 @@
+<% items = plan.products.select { |product| product.category_id == category.id } %>
+<% children = plan.categories.select { |child| child.parent_id == category.id } %>
+<details class="menu-import-category" data-category-node="<%= category.id %>" data-search-name="<%= category.name.downcase %>" open>
+  <summary><label><%= check_box_tag 'category_ids[]', category.id, plan.selected_categories.include?(category), id: "import_category_#{category.id}", data: { category: category.id, menu_import_target: 'category', action: 'change->menu-import#categoryChanged click->menu-import#stopToggle' } %><span><strong><%= category.name %></strong><small><%= items.size %> produtos<%= ' · indisponível' unless category.available? %></small></span></label><span class="menu-import-chevron" aria-hidden="true">⌄</span></summary>
+  <div class="menu-import-category-body">
+    <% items.each do |product| %><label class="menu-import-product" data-search-name="<%= product.name.downcase %>">
+      <%= check_box_tag 'product_ids[]', product.id, plan.selected_products.include?(product), id: "import_product_#{product.id}", data: { menu_import_target: 'product', action: 'change->menu-import#productChanged' } %>
+      <% if product.image.attached? %><%= image_tag rails_blob_path(product.image, only_path: true), alt: '', loading: 'lazy' %><% else %><span class="menu-import-photo-empty" aria-hidden="true">—</span><% end %>
+      <span class="menu-import-product-copy"><strong><%= product.name %></strong><small><%= product.available? ? 'Disponível' : 'Indisponível' %><%= ' · informação adicional' if product.product_information? %></small></span><strong class="menu-import-price"><%= euros(product.price) %></strong>
+    </label><% end %>
+    <% children.each do |child| %><%= render 'category', category: child, plan: plan %><% end %>
+    <% if items.empty? && children.empty? %><p class="menu-import-empty-category">Categoria sem produtos.</p><% end %>
+  </div>
+</details>

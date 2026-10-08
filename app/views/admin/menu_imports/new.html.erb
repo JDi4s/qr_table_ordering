@@ -1,0 +1,24 @@
+<div class="menu-import-page">
+  <%= link_to '← Estabelecimentos', admin_establishments_path, class: 'menu-import-back' %>
+  <div class="menu-import-heading"><p class="eyebrow">UM BOM PONTO DE PARTIDA</p><h1>Importar menu</h1><p>Escolhe o que queres trazer para <strong><%= @destination.name %></strong>.</p></div>
+  <nav class="menu-import-steps" aria-label="Etapas da importação"><span class="is-current">1 · Escolher</span><span>2 · Rever</span><span>3 · Importar</span></nav>
+  <section class="panel menu-import-source">
+    <%= form_with url: new_admin_establishment_menu_import_path(@destination), method: :get, data: { turbo: false } do %>
+      <label for="source_id">De que estabelecimento?</label>
+      <div class="menu-import-source-fields"><%= select_tag :source_id, options_from_collection_for_select(@sources, :id, :name, @source&.id), prompt: 'Escolher estabelecimento', required: true %><%= submit_tag 'Ver menu', name: nil %></div>
+    <% end %>
+    <% if @sources.empty? %><p>Ainda não existem outros estabelecimentos com menu para importar.</p><% end %>
+  </section>
+  <% if @plan %>
+    <%= form_with url: review_admin_establishment_menu_import_path(@destination), method: :post, data: { turbo: false, controller: 'menu-import' }, class: 'menu-import-selection' do %>
+      <%= hidden_field_tag :source_id, @source.id %>
+      <div class="menu-import-selection-heading"><div><h2>O que vamos trazer?</h2><p>Tudo vem selecionado. Retira o que não precisas.</p></div><div class="menu-import-bulk"><button type="button" class="secondary" data-action="menu-import#selectAll">Selecionar tudo</button><button type="button" class="secondary" data-action="menu-import#clearAll">Desmarcar tudo</button></div></div>
+      <label class="sr-only" for="menu_import_search">Pesquisar categorias ou produtos</label><input id="menu_import_search" type="search" placeholder="Pesquisar categorias ou produtos" data-action="input->menu-import#search">
+      <div class="menu-import-tree">
+        <% @plan.categories.select(&:root?).each do |category| %><%= render 'category', category: category, plan: @plan %><% end %>
+      </div>
+      <p class="menu-import-footnote">Cada produto leva fotografia, preço, descrição, alergénios e nutrição. Os arquivados ficam de fora. Os indisponíveis mantêm esse estado.</p>
+      <footer class="menu-import-footer"><div><strong><span data-menu-import-target="count"><%= @plan.selected_products.size %></span> <span data-menu-import-target="countLabel">produtos selecionados</span></strong><small>O menu de origem mantém-se. A cópia será independente.</small></div><button type="submit" data-menu-import-target="submit">Rever importação →</button></footer>
+    <% end %>
+  <% end %>
+</div>
