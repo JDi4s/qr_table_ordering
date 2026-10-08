@@ -32,7 +32,7 @@
     <% end %>
     <ul class="history-order-items">
       <% order.order_items.each do |item| %>
-        <li><%= item.quantity %> × <%= item.display_name %><%= ' · rejeitado' if item.denied? %></li>
+        <li><%= item.quantity %> × <%= item.display_name %><%= render "orders/lunch_choices", selection: item.lunch_selection %><%= ' · rejeitado' if item.denied? %></li>
       <% end %>
     </ul>
     <% unless cancelled %>

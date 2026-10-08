@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_08_120000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -132,6 +132,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_120000) do
     t.index ["status", "created_at"], name: "index_landing_requests_on_status_and_created_at"
   end
 
+  create_table "lunch_menus", force: :cascade do |t|
+    t.bigint "establishment_id", null: false
+    t.boolean "active", default: false, null: false
+    t.jsonb "weekdays", default: [1, 2, 3, 4, 5], null: false
+    t.time "starts_at", default: "2000-01-01 12:00:00", null: false
+    t.time "ends_at", default: "2000-01-01 15:00:00", null: false
+    t.boolean "individual_enabled", default: true, null: false
+    t.boolean "combo_enabled", default: false, null: false
+    t.decimal "combo_price", precision: 8, scale: 2, default: "12.0", null: false
+    t.jsonb "individual_offers", default: [], null: false
+    t.jsonb "combo_groups", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["establishment_id"], name: "index_lunch_menus_on_establishment_id", unique: true
+  end
+
   create_table "menu_item_recommendations", force: :cascade do |t|
     t.bigint "menu_item_id", null: false
     t.bigint "recommended_menu_item_id", null: false
@@ -185,6 +201,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_120000) do
     t.string "proposed_description"
     t.decimal "original_unit_price", precision: 10, scale: 2
     t.integer "paid_quantity", default: 0, null: false
+    t.jsonb "lunch_selection", default: {}, null: false
     t.index ["menu_item_id"], name: "index_order_items_on_menu_item_id"
     t.index ["order_id"], name: "index_order_items_on_order_id"
     t.index ["paid_quantity"], name: "index_order_items_on_paid_quantity"
@@ -392,6 +409,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_120000) do
   add_foreign_key "categories", "establishments"
   add_foreign_key "establishments", "users", column: "service_paused_by_user_id"
   add_foreign_key "google_review_clicks", "establishments"
+  add_foreign_key "lunch_menus", "establishments"
   add_foreign_key "menu_item_recommendations", "menu_items"
   add_foreign_key "menu_item_recommendations", "menu_items", column: "recommended_menu_item_id"
   add_foreign_key "menu_items", "categories"

@@ -3,7 +3,7 @@
     <div><h2>Mesa <%= order.table.display_number %> <span>· Pedido #<%= order.id %></span></h2><p class="staff-order-meta"><%= order.created_at.strftime('%H:%M') %> · <%= pluralize(order.order_items.sum(&:quantity), 'artigo') %></p></div>
     <span class="badge order-status order-status-<%= order.status %>"><%= state_label(order.status) %></span>
   </div>
-  <div class="staff-order-content"><ul class="staff-order-items"><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %> <%= "· #{item.menu_item.production_area.name}" if item.menu_item.production_area.present? %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul><strong><%= euros(order.outstanding_total) %></strong></div>
+  <div class="staff-order-content"><ul class="staff-order-items"><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %><%= render "orders/lunch_choices", selection: item.lunch_selection %> <%= "· #{item.menu_item&.production_area.name}" if item.menu_item&.production_area.present? %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul><strong><%= euros(order.outstanding_total) %></strong></div>
   <% if order.note.present? %><p class="staff-order-note">Observação: <%= truncate(order.note, length: 90) %></p><% end %>
   <div class="staff-card-actions">
     <%= link_to(order.pending? ? 'Avaliar pedido' : 'Abrir pedido', staff_order_path(order), class: 'button secondary') %>

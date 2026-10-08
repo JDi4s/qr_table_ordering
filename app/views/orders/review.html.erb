@@ -3,7 +3,7 @@
 <%= render 'orders/table_access_notice' %>
 <%= form_with url: table_orders_path(@table), data: { controller: 'order-review', 'order-review-base-total-value': @review_total.to_f } do %>
 <section class="panel">
-  <% @review_items.each do |item| %><div class="line"><span><%= item[:quantity] %> × <%= item[:name] %></span><strong><%= euros(item[:line_total]) %></strong></div><% end %>
+  <% @review_items.each do |item| %><div class="line"><div><%= item[:quantity] %> × <%= item[:name] %><%= render "orders/lunch_choices", selection: item[:lunch_selection] %></div><strong><%= euros(item[:line_total]) %></strong></div><% end %>
   <% unless @review_suggestions.empty? %>
     <section class="suggestions panel" data-controller="suggestions-carousel">
       <div class="suggestions-heading">

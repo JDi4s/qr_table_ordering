@@ -1,0 +1,23 @@
+          <article class="panel customer-product-card <%= 'is-added' if quantity.positive? %>" data-customer-menu-target="product" data-price="<%= price %>" data-price-cents="<%= (price * 100).round %>" data-search-text="<%= h([item.name, item.description].compact.join(' ').downcase) %>" role="button" tabindex="0" data-action="click->customer-menu#toggleProduct keydown->customer-menu#toggleProduct" aria-label="<%= quantity.positive? ? "Aumentar quantidade de #{item.name}" : "Adicionar #{item.name}" %>">
+            <div class="customer-product-media">
+              <% if item.product_information? %><button type="button" class="customer-product-info-button" data-action="click->product-info#open:stop" aria-label="Informação sobre <%= item.name %>" aria-haspopup="dialog"><span aria-hidden="true">i</span></button><% end %>
+              <% if item.image.attached? %>
+                <%= image_tag rails_blob_path(item.image, only_path: true), alt: item.name, class: 'product-image', loading: 'lazy' %>
+              <% else %>
+                <div class="product-image-placeholder" aria-hidden="true">Sem imagem</div>
+              <% end %>
+            </div>
+
+            <div class="customer-product-content">
+              <strong><%= item.name %></strong>
+              <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
+              <p class="customer-product-price"><%= euros(price) %></p>
+              <%= number_field_tag input_name, quantity, min: 0, max: 99, step: 1, id: input_id, class: 'customer-quantity-input', aria: { label: "Quantidade de #{item.name}" } %>
+              <div class="customer-product-action-slot">
+                <button type="button" class="customer-remove-button customer-quantity-button" <%= 'disabled' unless quantity.positive? %> data-action="click->customer-menu#decrease:stop" aria-label="Remover uma unidade de <%= item.name %>"><span class="sr-only">−</span></button>
+                <strong class="quantity-value" aria-live="polite" aria-label="Quantidade de <%= item.name %>"><%= quantity %></strong>
+                <button type="button" class="customer-add-button customer-quantity-button" <%= 'disabled' if quantity >= 99 %> data-action="click->customer-menu#increase:stop" aria-label="Adicionar uma unidade de <%= item.name %>"><span class="sr-only">+</span></button>
+              </div>
+            </div>
+            <% if item.product_information? %><%= render 'orders/product_information', item: item %><% end %>
+          </article>

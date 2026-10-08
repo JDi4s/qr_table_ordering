@@ -4,10 +4,11 @@ class CustomerMenuBroadcast
   end
 
   def self.message(establishment)
+    establishment = Establishment.find(establishment.id)
     categories = establishment.categories.not_archived.includes(:menu_items, :children)
       .where(available: true).order(:name)
     ApplicationController.render(template: 'orders/menu_update', formats: [:turbo_stream],
-      locals: { categories: categories })
+      locals: { categories: categories, establishment: establishment })
   end
 
   def self.call(establishment)

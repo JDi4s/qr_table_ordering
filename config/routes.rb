@@ -17,6 +17,7 @@ Rails.application.routes.draw do
   end
   resources :tables, only: [] do
     get :access_status, to: 'orders#access_status'
+    get :menu_snapshot, to: 'orders#menu_snapshot'
     resources :google_review_clicks, only: :create
     resources :service_calls, only: :create
     resources :orders, only: [:new, :create] do
@@ -31,6 +32,7 @@ Rails.application.routes.draw do
     end
   end
   namespace :staff do
+    resource :lunch_menu, only: [:edit, :update]
     resources :orders, only: [:index, :show, :update] do
       member { patch :mark_paid; patch :pay_item; patch :pay_selected }
       collection { get :history }

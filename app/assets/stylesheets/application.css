@@ -3224,3 +3224,54 @@ button.bulk-delete-button:hover { border-color: #c95142; background: #ffe5df; co
 button.order-serve-button { background: #245b85; border-color: #245b85; color: #fff; }
 button.order-serve-button:hover { background: #1c486a; border-color: #1c486a; color: #fff; }
 button.order-serve-button:focus-visible { outline-color: #245b85; }
+
+/* Almoço: mesmos produtos, preços e escolhas próprios. */
+.lunch-management { max-width: 900px; margin: 0 auto; }
+.lunch-settings { margin: 18px 0; padding: 22px; }
+.lunch-settings h2 { margin-top: 0; }
+.lunch-settings details summary { cursor: pointer; font-weight: 700; padding: 12px 0; }
+.lunch-toggle { display: flex; align-items: center; gap: 10px; font-weight: 700; margin: 12px 0; }
+.lunch-toggle input, .lunch-days input, .lunch-option-row input[type=checkbox], .lunch-choice input { width: auto; margin: 0; accent-color: var(--green); }
+.lunch-days { display: flex; flex-wrap: wrap; gap: 9px; margin: 12px 0; }
+.lunch-days label { display: flex; align-items: center; gap: 6px; background: #edf3ed; border-radius: 9px; padding: 9px; }
+.lunch-times { display: flex; gap: 16px; margin: 12px 0; }
+.lunch-options-list { max-height: 330px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; margin-top: 12px; }
+.lunch-option-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px; align-items: center; gap: 16px; padding: 12px; border-bottom: 1px solid var(--line); }
+.lunch-option-row[hidden] { display: none; }
+.lunch-option-row > label:first-child { display: flex; align-items: center; gap: 10px; }
+.lunch-option-row small { display: block; color: var(--muted); font-size: 12px; }
+.lunch-option-row input[type=number] { margin: 4px 0 0; }
+.lunch-option-section { border-top: 1px solid var(--line); padding: 6px 0; }
+.lunch-option-section summary small { float: right; color: var(--muted); font-weight: 400; }
+.lunch-schedule { color: var(--muted); font-size: 13px; margin: 16px 0; }
+.lunch-combo-card { background: var(--green); color: white; display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 22px; }
+.lunch-combo-card[hidden] { display: none; }
+.lunch-combo-card h2 { color: white; margin: 6px 0; font-size: 22px; }
+.lunch-combo-card p { margin: 8px 0; }
+.lunch-combo-card > strong { font-size: 25px; align-self: center; }
+.lunch-combo-card button { grid-column: 1 / -1; background: #fff; color: var(--green); }
+.lunch-combo-card .eyebrow { color: #deeadf; }
+.lunch-dialog { border: 1px solid var(--line); border-radius: 20px; padding: 28px; width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); box-sizing: border-box; overflow-y: auto; color: var(--ink); }
+.lunch-dialog::backdrop { background: rgb(20 40 32 / .45); }
+.lunch-dialog h2 { padding-right: 26px; margin-top: 0; }
+.lunch-dialog .lunch-close { position: absolute; top: 12px; right: 12px; background: transparent; border: 0; color: var(--ink); padding: 6px; font-size: 28px; width: 36px; height: 36px; display: grid; place-items: center; }
+.lunch-choice-group { border: 0; border-top: 1px solid var(--line); padding: 16px 0 6px; margin: 18px 0 0; }
+.lunch-choice-group legend { font-weight: 700; padding-right: 12px; }
+.lunch-choice { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 9px; padding: 12px; margin-bottom: 8px; }
+.lunch-choice:has(input:checked) { border-color: var(--green); background: #edf3ed; }
+.lunch-choice small { margin-left: auto; white-space: nowrap; }
+.lunch-add-combo { width: 100%; margin-top: 16px; }
+.lunch-selected-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between; padding: 16px; margin: 12px 0; }
+.lunch-selected-row p { font-size: 13px; color: var(--muted); margin: 5px 0; }
+.lunch-combo-controls { display: flex; align-items: center; gap: 12px; }
+.lunch-combo-controls button { padding: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; }
+.lunch-combo-controls button:last-child { background: transparent; color: var(--muted); border: 0; }
+.lunch-order-choices { display: block; list-style: none; margin: 5px 0 0; padding: 0; color: var(--muted); font-size: 12px; font-weight: 400; }
+.lunch-order-choices li { margin: 2px 0; }
+@media (max-width: 480px) {
+ .lunch-settings { padding: 16px; }
+ .lunch-option-row { grid-template-columns: minmax(0, 1fr) 100px; gap: 8px; }
+ .lunch-dialog { padding: 22px; }
+}
+.lunch-dialog .lunch-close:focus { outline: none; box-shadow: none; }
+.lunch-dialog .lunch-close:focus-visible { box-shadow: inset 0 0 0 2px var(--green); }
