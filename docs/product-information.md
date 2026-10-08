@@ -10,8 +10,8 @@ de zero. Os vazios não aparecem ao cliente. Desligar a informação nutricional
 oculta-a sem apagar os valores guardados. Não selecionar alergénios não declara
 o produto livre de alergénios: a secção fica ausente, salvo observações.
 
-O menu mostra um i discreto no canto superior direito da imagem quando existe
-informação. Abre uma janela com fotografia, nome, preço, descrição, alergénios e
+O menu mostra um i discreto no canto superior direito de todos os produtos.
+Abre uma janela com fotografia, nome, preço, descrição, alergénios e
 valores preenchidos, sem adicionar artigos nem alterar quantidades. A janela
 tem apenas o botão X, suporta Escape, gere o foco e funciona com a mesa a
 aguardar ativação ou com o serviço pausado. A pré-visualização na gestão também

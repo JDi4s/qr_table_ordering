@@ -35,12 +35,14 @@ class ProductInformationIntegrationTest < ActionDispatch::IntegrationTest
     @item.update!(description: '<script>alert(1)</script>', allergens: ['milk'], nutrition_enabled: true, nutrition_energy: 312)
     @item.category.menu_items.create!(name: 'Sem detalhes', price: 1)
     get new_table_order_path(@table)
-    assert_select '.customer-product-info-button', count: 1
+    assert_select '.customer-product-info-button', count: 2
     assert_select 'template .product-info-description', text: '<script>alert(1)</script>'
     assert_select 'template script', count: 0
     assert_select 'template .product-info-pills span', text: 'Leite'
     assert_select 'template .product-info-nutrition-grid > div', count: 1
-    assert_select 'template button', count: 1
+    assert_select 'template', count: 2
+    assert_select 'template button', count: 2
+    assert_select 'template .product-info-title h2', text: 'Sem detalhes'
     assert_select 'template .product-info-close'
     @item.update!(nutrition_enabled: false)
     get new_table_order_path(@table)

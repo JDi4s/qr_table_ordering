@@ -1,6 +1,23 @@
 require 'application_system_test_case'
 
 class ProductInformationSystemTest < ApplicationSystemTestCase
+  test 'product without optional details still has an information button' do
+    venue, table, item = build_venue
+    item.update!(description: nil, allergens: [], allergen_notes: nil, nutrition_enabled: false)
+    page.current_window.resize_to(390, 900)
+    visit new_table_order_path(table)
+    find('.customer-product-info-button').click
+    within('dialog[open]') do
+      assert_text item.name
+      assert_no_text 'Alergénios'
+      assert_no_text 'Informação nutricional'
+      assert_selector 'button', count: 1
+    end
+    assert_equal '0', find('.customer-quantity-input', visible: :all).value
+    find('.product-info-close').click
+    assert_no_selector 'dialog[open]'
+  end
+
   test 'customer opens product information without adding quantities and closes with X or Escape' do
     venue, table, item = build_venue
     item.update!(description: 'Croissant com queijo e fiambre.', allergens: %w[gluten milk eggs],
