@@ -1,12 +1,12 @@
 <p class="eyebrow">GESTÃO DO MENU</p><h1>Novo produto</h1>
 <%= render 'shared/errors', record: @menu_item %>
-<%= form_with model: [:staff, @menu_item], html: { multipart: true, class: 'menu-form', data: { controller: 'recommendation-options image-preview menu-item-preview', action: 'submit->image-preview#prepare' } } do |f| %>
+<%= form_with model: [:staff, @menu_item], html: { multipart: true, class: 'menu-form', data: { controller: 'recommendation-options image-preview menu-item-preview product-details', action: 'submit->image-preview#prepare' } } do |f| %>
   <%= render 'staff/menu/context_fields' %>
   <div class="menu-form-grid">
     <section class="panel menu-form-card">
       <h2>Informação do produto</h2>
       <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true, autofocus: true, placeholder: 'Ex.: Pastel de nata' %>
-      <%= f.label :description, 'Descrição (opcional)' %><%= f.text_area :description, maxlength: 500, placeholder: 'Ex.: massa folhada e creme de nata' %>
+      <%= f.label :description, 'Descrição (opcional)' %><%= f.text_area :description, maxlength: 500, placeholder: 'Ex.: massa folhada e creme de nata' %><small>Aparece na informação ⓘ do produto.</small>
     </section>
     <section class="panel menu-form-card">
       <h2>Preço e organização</h2>
@@ -35,6 +35,7 @@
       <%= render 'recommendation_picker', selected_ids: [] %>
       <small>Escolhe vários produtos com um toque. Podes pesquisar pelo nome ou deixar a aplicação sugerir automaticamente.</small>
     </section>
+    <%= render 'product_information_fields', f: f %>
   </div>
   <div class="menu-form-actions"><button type="button" class="secondary" data-action="menu-item-preview#open">Pré-visualizar cartão</button><%= f.submit 'Guardar produto' %><%= link_to 'Cancelar', menu_return_path, class: 'button secondary' %></div>
   <%= render 'preview_modal' %>

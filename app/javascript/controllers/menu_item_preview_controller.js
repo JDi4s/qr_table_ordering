@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["modal", "image", "imagePlaceholder", "name", "description", "price"]
+  static targets = ["modal", "image", "imagePlaceholder", "name", "description", "price", "infoButton", "information"]
 
   connect() {
     this.boundKeydown = (event) => {
@@ -34,6 +34,7 @@ export default class extends Controller {
     const cropImage = this.element.querySelector("[data-image-preview-target='image']")
     const existingImage = this.element.querySelector("[data-image-preview-target='preview'] img")
     const source = cropImage?.getAttribute("src") || existingImage?.getAttribute("src")
+    this.updateInformation(description)
 
     this.nameTarget.textContent = name
     this.descriptionTarget.textContent = description
@@ -55,5 +56,49 @@ export default class extends Controller {
 
   fieldValue(name) {
     return this.element.querySelector(`[name='menu_item[${name}]']`)?.value?.trim() || ""
+  }
+
+  toggleInformation(event) {
+    event.preventDefault()
+    this.informationTarget.hidden = !this.informationTarget.hidden
+    this.infoButtonTarget.setAttribute("aria-expanded", String(!this.informationTarget.hidden))
+  }
+
+  updateInformation(description) {
+    const container = this.informationTarget
+    container.replaceChildren()
+    container.hidden = true
+    this.infoButtonTarget.setAttribute("aria-expanded", "false")
+    const addText = (tag, text) => {
+      const element = document.createElement(tag)
+      element.textContent = text
+      container.append(element)
+    }
+    if (description) addText("p", description)
+    const allergens = [...this.element.querySelectorAll("input[data-allergen-label]:checked")].map(input => input.dataset.allergenLabel)
+    const notes = this.fieldValue("allergen_notes")
+    if (allergens.length || notes) {
+      addText("h3", "Alergénios")
+      if (allergens.length) addText("p", `Contém: ${allergens.join(", ")}`)
+      if (notes) addText("p", notes)
+    }
+    const nutrition = [...this.element.querySelectorAll("input[data-nutrition-label]")].filter(input => input.value !== "")
+    if (this.element.querySelector("input[type=checkbox][name='menu_item[nutrition_enabled]']")?.checked && nutrition.length) {
+      addText("h3", "Informação nutricional")
+      const basis = this.element.querySelector("select[name='menu_item[nutrition_basis]']")
+      addText("p", basis.selectedOptions[0].textContent + (basis.value === "portion" ? ` · ${this.fieldValue("nutrition_portion")}` : ""))
+      const list = document.createElement("dl")
+      nutrition.forEach(input => {
+        const row = document.createElement("div")
+        const label = document.createElement("dt")
+        label.textContent = input.dataset.nutritionLabel
+        const value = document.createElement("dd")
+        value.textContent = `${input.value.replace(".", ",")} ${input.dataset.nutritionUnit}`
+        row.append(label, value)
+        list.append(row)
+      })
+      container.append(list)
+    }
+    this.infoButtonTarget.hidden = !container.childElementCount
   }
 }

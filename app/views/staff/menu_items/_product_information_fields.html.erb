@@ -1,0 +1,29 @@
+<section class="panel menu-form-card product-allergens-fields">
+  <h2>Alergénios <small>Opcional</small></h2>
+  <p class="product-field-help">Seleciona os alergénios presentes no produto.</p>
+  <%= hidden_field_tag 'menu_item[allergens][]', '' %>
+  <div class="product-allergen-options">
+    <% MenuItem::ALLERGENS.each do |key, label| %>
+      <label><%= check_box_tag 'menu_item[allergens][]', key, Array(@menu_item.allergens).include?(key), id: "menu_item_allergen_#{key}", data: { allergen_label: label } %><span><%= label %></span></label>
+    <% end %>
+  </div>
+  <%= f.label :allergen_notes, 'Observações sobre alergénios (opcional)' %>
+  <%= f.text_field :allergen_notes, maxlength: 500, placeholder: 'Ex.: pode conter vestígios de soja' %>
+</section>
+<section class="panel menu-form-card product-nutrition-fields">
+  <h2>Informação nutricional <small>Opcional</small></h2>
+  <label class="form-check"><%= f.check_box :nutrition_enabled, data: { product_details_target: 'enabled', action: 'change->product-details#update' } %> Adicionar informação nutricional</label>
+  <div data-product-details-target="fields" <%= 'hidden' unless @menu_item.nutrition_enabled? %>>
+    <%= f.label :nutrition_basis, 'Valores apresentados' %>
+    <%= f.select :nutrition_basis, [['Por 100 g', '100g'], ['Por 100 ml', '100ml'], ['Por porção', 'portion']], {}, data: { product_details_target: 'basis', action: 'change->product-details#update' } %>
+    <div data-product-details-target="portion" <%= 'hidden' unless @menu_item.nutrition_basis == 'portion' %>>
+      <%= f.label :nutrition_portion, 'Tamanho da porção' %><%= f.text_field :nutrition_portion, maxlength: 100, placeholder: 'Ex.: 1 croissant · 120 g' %>
+    </div>
+    <div class="product-nutrition-fields-grid">
+      <% MenuItem::NUTRITION_FIELDS.each do |key, (label, unit)| %>
+        <div><%= f.label "nutrition_#{key}", "#{label} (#{unit})" %><%= f.number_field "nutrition_#{key}", min: 0, max: 99999.99, step: '0.01', placeholder: '—', data: { nutrition_label: label, nutrition_unit: unit } %></div>
+      <% end %>
+    </div>
+    <p class="product-field-help">Os campos vazios não aparecem ao cliente. Preenche com os dados do produto.</p>
+  </div>
+</section>

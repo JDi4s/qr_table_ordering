@@ -1,0 +1,22 @@
+<template class="product-information-template">
+  <div class="product-info-media">
+    <% if item.image.attached? %><%= image_tag item.image, alt: item.name %><% end %>
+    <button type="button" class="product-info-close" data-product-info-close aria-label="Fechar informação do produto">×</button>
+  </div>
+  <div class="product-info-content">
+    <div class="product-info-title"><h2 id="product-info-heading"><%= item.name %></h2><strong><%= euros(item.price) %></strong></div>
+    <% if item.description.present? %><p class="product-info-description"><%= item.description %></p><% end %>
+    <% if item.allergen_labels.any? || item.allergen_notes.present? %>
+      <section class="product-info-allergens"><h3>Alergénios</h3>
+        <% if item.allergen_labels.any? %><p class="product-info-allergen-label">Contém</p><div class="product-info-pills"><% item.allergen_labels.each do |label| %><span><%= label %></span><% end %></div><% end %>
+        <% if item.allergen_notes.present? %><p><%= item.allergen_notes %></p><% end %>
+        <small>Em caso de alergia, confirma com a equipa.</small>
+      </section>
+    <% end %>
+    <% if item.nutrition_rows.any? %>
+      <section class="product-info-nutrition"><h3>Informação nutricional</h3><p class="product-info-basis"><%= item.nutrition_basis_label %></p>
+        <dl class="product-info-nutrition-grid"><% item.nutrition_rows.each do |label, value, unit| %><div><dt><%= label %></dt><dd><%= number_with_precision(value, precision: 2, strip_insignificant_zeros: true, separator: ',') %> <%= unit %></dd></div><% end %></dl>
+      </section>
+    <% end %>
+  </div>
+</template>

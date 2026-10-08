@@ -13,6 +13,7 @@
           <% quantity = cart_quantities[item.id.to_s].to_i %>
           <article class="panel customer-product-card <%= 'is-added' if quantity.positive? %>" data-customer-menu-target="product" data-price="<%= item.price %>" data-price-cents="<%= (item.price * 100).round %>" data-search-text="<%= h([item.name, item.description].compact.join(' ').downcase) %>" role="button" tabindex="0" data-action="click->customer-menu#toggleProduct keydown->customer-menu#toggleProduct" aria-label="<%= quantity.positive? ? "Aumentar quantidade de #{item.name}" : "Adicionar #{item.name}" %>">
             <div class="customer-product-media">
+              <% if item.product_information? %><button type="button" class="customer-product-info-button" data-action="click->product-info#open:stop" aria-label="Informação sobre <%= item.name %>" aria-haspopup="dialog"><span aria-hidden="true">i</span></button><% end %>
               <% if item.image.attached? %>
                 <%= image_tag item.image, alt: item.name, class: 'product-image', loading: 'lazy' %>
               <% else %>
@@ -31,6 +32,7 @@
                 <button type="button" class="customer-add-button customer-quantity-button" <%= 'disabled' if quantity >= 99 %> data-action="click->customer-menu#increase:stop" aria-label="Adicionar uma unidade de <%= item.name %>"><span class="sr-only">+</span></button>
               </div>
             </div>
+            <% if item.product_information? %><%= render 'orders/product_information', item: item %><% end %>
           </article>
         <% end %>
       </div>
