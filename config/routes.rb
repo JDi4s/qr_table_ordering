@@ -17,6 +17,7 @@ Rails.application.routes.draw do
   end
   resources :tables, only: [] do
     get :access_status, to: 'orders#access_status'
+    resources :google_review_clicks, only: :create
     resources :service_calls, only: :create
     resources :orders, only: [:new, :create] do
       collection do

@@ -13,6 +13,7 @@ class Establishment < ApplicationRecord
   has_many :cash_closures, dependent: :destroy
   has_many :support_tickets, dependent: :restrict_with_error
   has_many :support_sessions, dependent: :restrict_with_error
+  has_many :google_review_clicks, dependent: :delete_all
   belongs_to :service_paused_by_user, class_name: 'User', optional: true
   validates :name, presence: true, length: { maximum: 120 }
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/ }

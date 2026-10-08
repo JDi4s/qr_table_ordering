@@ -1,6 +1,32 @@
 require 'application_system_test_case'
 
 class GoogleReviewsSystemTest < ApplicationSystemTestCase
+  test 'review click statistics stay readable on mobile and desktop' do
+    venue, = build_venue
+    venue.update!(plan: 'management', google_review_tracking_started_at: 1.day.ago)
+    %w[a a b].each { |visitor| venue.google_review_clicks.create!(visitor_digest: visitor * 64) }
+    manager = venue_user(venue)
+    visit login_path
+    assert_selector 'form[action="/login"]'
+    fill_in 'Email', with: manager.email
+    fill_in 'Palavra-passe', with: 'Test-password-123'
+    click_on 'Entrar'
+    assert_current_path staff_orders_path
+    [375, 1440].each do |width|
+      page.current_window.resize_to(width, 900)
+      visit staff_reports_path(view: 'day', date: Date.current.iso8601)
+      within('.report-google-reviews') do
+        assert_text 'Avaliações Google'
+        assert_selector '.report-stat strong', text: '3'
+        assert_selector '.report-stat strong', text: '2'
+        assert_text 'Não confirma avaliações publicadas no Google.'
+      end
+      assert page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')
+      find('.report-google-reviews').scroll_to(:center)
+      page.save_screenshot(Rails.root.join("tmp/screenshots/google-review-statistics-#{width}.png"))
+    end
+  end
+
   test 'manager sees compact Google review settings on mobile' do
     venue, = build_venue
     venue.update!(google_reviews_enabled: true, google_review_url: 'https://g.page/r/test/review')
@@ -38,8 +64,8 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     assert_selector '.google-review-panel'
     assert_no_selector '.google-review-launcher', visible: :all
     assert_text 'Como foi a tua experiência?'
-    assert_link 'Avaliar no Google', href: 'https://g.page/r/test/review'
-    assert_equal '_blank', find('.google-review-link')[:target]
+    assert_button 'Avaliar no Google'
+    assert_equal '_blank', find('.google-review-link').find(:xpath, '..')[:target]
     assert_selector '.google-review-invitation', count: 1
     assert_no_selector '#my_orders .google-review-invitation'
     assert_equal 'fixed', page.evaluate_script("getComputedStyle(document.querySelector('.google-review-invitation')).position")
@@ -61,6 +87,6 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     page.execute_script("localStorage.setItem('mesa:google-review-tab-v2-dismissed:#{venue.id}', '2000-01-01')")
     visit my_table_orders_path(table)
     assert_selector '.google-review-invitation'
-    assert_link 'Avaliar no Google', href: 'https://g.page/r/test/review'
+    assert_button 'Avaliar no Google'
   end
 end

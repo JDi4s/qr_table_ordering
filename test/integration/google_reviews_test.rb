@@ -58,7 +58,9 @@ class GoogleReviewsTest < ActionDispatch::IntegrationTest
     post table_orders_path(@table), params: { quote: quote }
     follow_redirect!
     assert_select '.google-review-invitation', count: 1
-    assert_select 'a.google-review-link[href=?][target="_blank"][rel="noopener noreferrer"]', @url
+    assert_select 'form[action=?][target="_blank"][rel="noopener noreferrer"]', table_google_review_clicks_path(@table) do
+      assert_select 'button.google-review-link', text: /Avaliar no Google/
+    end
     assert @venue.orders.last.pending?
     @venue.update!(google_reviews_enabled: false)
     get my_table_orders_path(@table)
