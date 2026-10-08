@@ -28,7 +28,7 @@ class MenuImportSystemTest < ApplicationSystemTestCase
     assert_button 'Rever importação →', disabled: true
     check "import_product_#{product.id}"
     assert_text '1 produto selecionado'
-    page.execute_script('window.scrollTo(0, 0)')
+    page.execute_script("document.querySelector('.menu-import-selection-heading').scrollIntoView()")
     page.save_screenshot(Rails.root.join('tmp/screenshots/menu-import-mobile.png'))
     click_button 'Rever importação →'
     assert_text 'Rever importação'

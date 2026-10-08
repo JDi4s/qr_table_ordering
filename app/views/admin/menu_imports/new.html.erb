@@ -1,6 +1,6 @@
 <div class="menu-import-page">
   <%= link_to '← Estabelecimentos', admin_establishments_path, class: 'menu-import-back' %>
-  <header class="menu-import-heading"><p class="eyebrow">UM BOM PONTO DE PARTIDA</p><h1>Importar menu</h1><p>Escolhe o que queres trazer para <strong><%= @destination.name %></strong>.</p></header>
+  <div class="menu-import-heading"><p class="eyebrow">UM BOM PONTO DE PARTIDA</p><h1>Importar menu</h1><p>Escolhe o que queres trazer para <strong><%= @destination.name %></strong>.</p></div>
   <nav class="menu-import-steps" aria-label="Etapas da importação"><span class="is-current">1 · Escolher</span><span>2 · Rever</span><span>3 · Importar</span></nav>
   <section class="panel menu-import-source">
     <%= form_with url: new_admin_establishment_menu_import_path(@destination), method: :get, data: { turbo: false } do %>

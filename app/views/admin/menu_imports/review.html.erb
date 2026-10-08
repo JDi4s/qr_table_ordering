@@ -1,6 +1,6 @@
 <div class="menu-import-page">
   <%= button_to '← Alterar seleção', selection_admin_establishment_menu_import_path(@destination), params: { quote: @quote }, class: 'secondary menu-import-back', data: { turbo: false } %>
-  <header class="menu-import-heading"><p class="eyebrow">QUASE PRONTO</p><h1>Rever importação</h1><p>Confirma o que vai chegar ao novo menu.</p></header>
+  <div class="menu-import-heading"><p class="eyebrow">QUASE PRONTO</p><h1>Rever importação</h1><p>Confirma o que vai chegar ao novo menu.</p></div>
   <nav class="menu-import-steps" aria-label="Etapas da importação"><span>✓ · Escolher</span><span class="is-current">2 · Rever</span><span>3 · Importar</span></nav>
   <section class="panel menu-import-review">
     <div class="menu-import-route"><div><small>DE</small><strong><%= @source.name %></strong></div><span aria-hidden="true">→</span><div><small>PARA</small><strong><%= @destination.name %></strong></div></div>
