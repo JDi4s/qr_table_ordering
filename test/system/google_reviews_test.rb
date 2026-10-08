@@ -22,7 +22,7 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
         assert_text 'Não confirma avaliações publicadas no Google.'
       end
       assert page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')
-      find('.report-google-reviews').scroll_to(:center)
+      page.execute_script('arguments[0].scrollIntoView({block: "center", behavior: "instant"})', find('.report-google-reviews'))
       page.save_screenshot(Rails.root.join("tmp/screenshots/google-review-statistics-#{width}.png"))
     end
   end
@@ -90,3 +90,4 @@ class GoogleReviewsSystemTest < ApplicationSystemTestCase
     assert_button 'Avaliar no Google'
   end
 end
+
