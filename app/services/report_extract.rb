@@ -20,6 +20,7 @@ class ReportExtract
     @units = @products.values.sum { |row| row[:quantity] }
     @orders = @payments.map(&:order_id).uniq.size
     days = (@period.to - effective_start).to_i + 1
+    reviews = GoogleReviewStatistics.new(establishment: @venue, from: effective_start, to: @period.to)
     {
       title: 'Relatório do período', establishment: @venue.name,
       period: "#{effective_start.strftime('%d/%m/%Y')} - #{@period.to.strftime('%d/%m/%Y')}",
@@ -27,12 +28,13 @@ class ReportExtract
       stats: [['Faturação recebida', money(@total)], ['Pedidos com pagamento', @orders.to_s],
               ['Artigos vendidos', @units.to_s], ['Faturação média / dia', money(@total / days)],
               ['Pedidos médios / dia', decimal(@orders.to_f / days)], ['Artigos por pedido', decimal(@orders.zero? ? 0 : @units.to_f / @orders)]],
-      sections: summary_sections + product_sections + payment_sections + time_sections,
+      sections: summary_sections + [reviews.section] + product_sections + payment_sections + time_sections,
       notes: [
         'Faturação = pagamentos ativos recebidos no período, após reduções de preço. Pagamentos anulados ficam excluídos. Quantidades = unidades desses pagamentos, incluindo pagamentos parciais.',
         'As médias usam dias de calendário. Sem um calendário de funcionamento registado, os mínimos consideram apenas dias e horas com recebimentos. Horários referem-se ao pagamento, no fuso da aplicação.',
         'Categorias usam a classificação atual do produto. Produtos sem vendas não entram no ranking dos menos vendidos. Reduções de preço são calculadas face ao preço original guardado no pedido.',
-        'Anulações e cancelamentos apresentados são do estabelecimento inteiro, mesmo quando os recebimentos estão filtrados por funcionário.'
+        'Anulações e cancelamentos apresentados são do estabelecimento inteiro, mesmo quando os recebimentos estão filtrados por funcionário.',
+        reviews.note
       ],
       payment_rows: @payments.map do |p|
         t = p.paid_at.in_time_zone

@@ -3,9 +3,11 @@
     <button type="button" class="google-review-collapse" data-action="google-review#dismiss" aria-label="Fechar convite de avaliação">×</button>
     <h3>Como foi a tua experiência?</h3>
     <p>A tua opinião ajuda-nos a melhorar.</p>
-    <%= link_to establishment.google_review_url, class: 'button google-review-link', target: '_blank', rel: 'noopener noreferrer' do %>
+    <%= form_with url: table_google_review_clicks_path(@table), html: { target: '_blank', rel: 'noopener noreferrer' }, data: { turbo: false } do %>
+      <button type="submit" class="button google-review-link">
       <span class="google-review-icon"><%= render 'orders/google_review_icon' %></span>
       Avaliar no Google <span aria-hidden="true">↗</span>
+      </button>
     <% end %>
   </div>
 </aside>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_07_100000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_08_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -104,11 +104,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_07_100000) do
     t.bigint "service_paused_by_user_id"
     t.boolean "google_reviews_enabled", default: false, null: false
     t.string "google_review_url"
+    t.datetime "google_review_tracking_started_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.index ["service_paused_by_user_id"], name: "index_establishments_on_service_paused_by_user_id"
     t.index ["slug"], name: "index_establishments_on_slug", unique: true
     t.check_constraint "plan::text = ANY (ARRAY['essential'::character varying::text, 'management'::character varying::text])", name: "valid_establishment_plan"
     t.check_constraint "production_areas_limit >= 0", name: "production_areas_limit_positive"
     t.check_constraint "table_limit >= 0 AND monthly_fee_cents >= 0", name: "establishment_limits_positive"
+  end
+
+  create_table "google_review_clicks", force: :cascade do |t|
+    t.bigint "establishment_id", null: false
+    t.string "visitor_digest", limit: 64, null: false
+    t.datetime "created_at", null: false
+    t.index ["establishment_id", "created_at", "visitor_digest"], name: "index_review_clicks_on_venue_date_visitor"
   end
 
   create_table "landing_requests", force: :cascade do |t|
@@ -370,6 +378,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_07_100000) do
   add_foreign_key "categories", "categories", column: "parent_id"
   add_foreign_key "categories", "establishments"
   add_foreign_key "establishments", "users", column: "service_paused_by_user_id"
+  add_foreign_key "google_review_clicks", "establishments"
   add_foreign_key "menu_item_recommendations", "menu_items"
   add_foreign_key "menu_item_recommendations", "menu_items", column: "recommended_menu_item_id"
   add_foreign_key "menu_items", "categories"

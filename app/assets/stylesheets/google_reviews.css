@@ -10,6 +10,7 @@
 .google-review-panel { position: relative; width: 258px; max-width: 100%; max-height: calc(100dvh - 32px); overflow-y: auto; box-sizing: border-box; margin-right: 10px; padding: 16px; border: 1px solid var(--line, #dce4dc); border-radius: 14px; background: #fff; box-shadow: 0 8px 28px #192d242a; }
 .google-review-panel h3 { margin: 0 24px 6px 0; font-size: 14px; line-height: 1.5; }
 .google-review-panel p { margin: 0 0 14px; color: var(--muted, #61716a); font-size: 12px; line-height: 1.5; }
+.google-review-panel form { margin: 0; }
 .google-review-collapse { position: absolute; display: grid; place-items: center; top: 1px; right: 1px; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; background: transparent; color: var(--muted, #61716a); font-size: 22px; line-height: 1; }
 .google-review-panel .google-review-link { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box; min-height: 44px; margin: 0; padding: 10px; border: 0; border-radius: 9px; background: var(--green, #194b3d); color: #fff; font-size: 13px; text-decoration: none; }
 .google-review-open:hover { background: #ffffff26; }

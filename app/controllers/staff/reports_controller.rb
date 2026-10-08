@@ -26,20 +26,9 @@ class Staff::ReportsController < Staff::BaseController
 
     return essential_export_locked if current_establishment.essential_plan?
 
-    period = ReportPeriod.new(params)
-    first = period.from
-    last = period.to
-    payments = report_payments(first, last).includes(order: :table)
-    csv = CSV.generate(headers: true) do |output|
-      output << ['Data', 'Hora', 'Pedido', 'Mesa', 'Funcionário', 'Método', 'Valor']
-      payments.find_each(batch_size: 500) do |payment|
-        local = payment.paid_at.in_time_zone
-        output << [local.to_date, local.strftime('%H:%M'), payment.order_id, payment.order.table.display_number,
-                   csv_text(payment.user.display_identity),
-                   helpers.payment_method_label(payment.payment_method), payment.amount.to_s('F')]
-      end
-    end
-    send_data csv, filename: "relatorio_#{first}_#{last}.csv", type: 'text/csv; charset=utf-8'
+    load_statistics
+    csv = ReportCsv.new(statistics_extract_data).render
+    send_data csv, filename: "relatorio_#{@period.from}_#{@period.to}.csv", type: 'text/csv; charset=utf-8'
   end
 
   def pdf
@@ -50,10 +39,7 @@ class Staff::ReportsController < Staff::BaseController
     else
       return essential_export_locked if current_establishment.essential_plan?
       load_statistics
-      data = ReportExtract.new(establishment: current_establishment, period: @period, employee: @employee).data
-      data[:sections] << { title: "Análise selecionada: #{report_metric_label}", rows: report_detail_rows, new_page: true }
-      data[:sections] << { title: 'Por funcionário', rows: @staff_rows.map { |row| [row[:name], helpers.euros(row[:amount])] } }
-      document = BrandedReportPdf.new(data).render
+      document = BrandedReportPdf.new(statistics_extract_data).render
       filename = "relatorio_#{@period.from}_#{@period.to}.pdf"
     end
 
@@ -97,6 +83,13 @@ class Staff::ReportsController < Staff::BaseController
   end
 
   private
+
+  def statistics_extract_data
+    data = ReportExtract.new(establishment: current_establishment, period: @period, employee: @employee).data
+    data[:sections] << { title: "Análise selecionada: #{report_metric_label}", rows: report_detail_rows, new_page: true }
+    data[:sections] << { title: 'Por funcionário', rows: @staff_rows.map { |row| [row[:name], helpers.euros(row[:amount])] } }
+    data
+  end
 
   def statistics_pdf_data
     {
@@ -255,6 +248,7 @@ class Staff::ReportsController < Staff::BaseController
       period_params = { view: allowed_view, date: Date.current.iso8601, compare: 'none' }
     end
     @period = ReportPeriod.new(period_params)
+    @google_review_statistics = GoogleReviewStatistics.new(establishment: current_establishment, from: @period.from, to: @period.to)
     @analysis = @essential_statistics ? 'revenue' : (ANALYSES.include?(params[:analysis].to_s) ? params[:analysis].to_s : 'revenue')
     @metric = @essential_statistics ? 'total' : (METRICS.fetch(@analysis).include?(params[:metric].to_s) ? params[:metric].to_s : METRICS.fetch(@analysis).first)
     @employees = current_establishment.users.where(deleted_at: nil).order(:name, :id)

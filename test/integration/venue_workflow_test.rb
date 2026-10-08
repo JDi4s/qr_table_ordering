@@ -457,7 +457,7 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_response :success
     page = Nokogiri::HTML(response.body)
     assert_equal %w[report-period-panel report-explorer report-focus-card report-stat-grid-compact],
-                 page.css('.report-period-panel, .report-explorer, .report-focus-card, .report-stat-grid-compact').map { |node| node['class'].split.find { |name| %w[report-period-panel report-explorer report-focus-card report-stat-grid-compact].include?(name) } }
+                 page.css('.report-period-panel, .report-explorer, .report-focus-card, .report-extra-numbers .report-stat-grid-compact').map { |node| node['class'].split.find { |name| %w[report-period-panel report-explorer report-focus-card report-stat-grid-compact].include?(name) } }
     assert page.at_css('.report-period-switch a.is-active')
     assert page.at_css('.report-choice-grid a.is-active')
     assert page.at_css('.report-choice-list a.is-active')
@@ -547,3 +547,4 @@ class VenueWorkflowTest < ActionDispatch::IntegrationTest
     assert_equal 2, suggestion_item.quantity
   end
 end
+

@@ -31,5 +31,32 @@ class ReportExtractExportTest < ActionDispatch::IntegrationTest
     sign_in(venue_user(@venue, role: 'staff'))
     get pdf_staff_reports_path
     assert_response :forbidden
+    get export_staff_reports_path
+    assert_response :forbidden
+  end
+
+  test 'CSV uses the complete extract and respects the selected employee and dates' do
+    other = venue_user(@venue)
+    [@manager, other].each do |user|
+      order = build_order(@table, @product)
+      order.finalize_review!
+      order.mark_paid!(user)
+    end
+    sign_in(@manager)
+    get export_staff_reports_path(view: 'day', date: Date.current.iso8601, employee_id: @manager.id)
+    assert_response :success
+    assert_equal 'text/csv', response.media_type
+    rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+    assert_includes rows, ['Faturação recebida', '30,00 €']
+    assert_includes rows, ['Artigos vendidos', '3']
+    assert_includes rows, ['Dias e horários']
+    assert_includes rows, ['Faturação por categoria']
+    detail = rows.drop(rows.index(['Pagamentos detalhados']) + 2).take_while(&:present?)
+    assert_equal 1, detail.size
+    assert_equal @manager.display_identity, detail.first[4]
+    get export_staff_reports_path(view: 'day', date: (Date.current - 3).iso8601)
+    rows = CSV.parse(response.body.delete_prefix("\uFEFF"), col_sep: ';')
+    assert_includes rows, ['Faturação recebida', '0,00 €']
+    assert_includes rows, ['Cliques em Avaliar no Google', 'Sem registo']
   end
 end
