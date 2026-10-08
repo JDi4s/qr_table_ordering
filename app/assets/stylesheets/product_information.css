@@ -2,6 +2,8 @@
 .customer-product-info-button { position: absolute; z-index: 2; top: 6px; right: 6px; display: grid; place-items: center; width: 32px; height: 32px; min-height: 0; margin: 0; padding: 0; border: 1px solid #dce4dc; border-radius: 50%; background: #fff; color: #194b3d; box-shadow: 0 1px 5px #192d2412; }
 .customer-product-info-button span { display: grid; place-items: center; width: 100%; height: 100%; font: bold 18px Georgia, serif; }
 .customer-product-info-button[hidden] { display: none; }
+.customer-product-info-button:focus { outline: none; }
+.customer-product-info-button:focus-visible { outline: none; box-shadow: inset 0 0 0 2px #194b3d; }
 .customer-product-info-button::before { content: ''; position: absolute; inset: -6px; }
 .customer-service-paused .customer-product-info-button { pointer-events: auto; }
 .product-info-open { overflow: hidden; }
