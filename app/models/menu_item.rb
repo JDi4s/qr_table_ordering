@@ -14,6 +14,7 @@ class MenuItem < ApplicationRecord
   belongs_to :production_area, optional: true
   has_one :establishment, through: :category
   has_one_attached :image
+  include BroadcastsCustomerMenu
   has_many :order_items, dependent: :nullify
   has_many :orders, through: :order_items
   has_many :recommendations, class_name: 'MenuItemRecommendation', dependent: :destroy

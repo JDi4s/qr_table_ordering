@@ -1,4 +1,5 @@
 class Category < ApplicationRecord
+  include BroadcastsCustomerMenu
   belongs_to :establishment
   belongs_to :parent, class_name: 'Category', optional: true
 

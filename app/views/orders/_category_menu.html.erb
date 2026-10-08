@@ -5,7 +5,7 @@
   <section id="menu-category-<%= category.id %>" class="customer-menu-section menu-category level-<%= level %>" data-customer-menu-target="categoryPanel" <%= 'hidden' unless active %>>
     <%= content_tag(level.zero? ? :h2 : :h3, category.name, class: "menu-category-title level-#{level}") %>
 
-  <% items = category.menu_items.select(&:available?).sort_by(&:name) %>
+  <% items = category.menu_items.select { |item| item.available? && !item.archived? }.sort_by(&:name) %>
 
     <% unless items.empty? %>
       <div class="customer-menu-grid">
@@ -15,7 +15,7 @@
             <div class="customer-product-media">
               <% if item.product_information? %><button type="button" class="customer-product-info-button" data-action="click->product-info#open:stop" aria-label="Informação sobre <%= item.name %>" aria-haspopup="dialog"><span aria-hidden="true">i</span></button><% end %>
               <% if item.image.attached? %>
-                <%= image_tag item.image, alt: item.name, class: 'product-image', loading: 'lazy' %>
+                <%= image_tag rails_blob_path(item.image, only_path: true), alt: item.name, class: 'product-image', loading: 'lazy' %>
               <% else %>
                 <div class="product-image-placeholder" aria-hidden="true">Sem imagem</div>
               <% end %>
