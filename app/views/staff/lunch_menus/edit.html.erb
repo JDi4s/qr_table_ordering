@@ -1,0 +1,29 @@
+<div class="lunch-management">
+  <%= link_to '← Menu', staff_menu_path %><h1>Menu de almoço</h1>
+  <p>Usa os teus produtos, com preços próprios para o almoço.</p>
+  <%= form_with model: @lunch_menu, url: staff_lunch_menu_path, method: :patch, data: { turbo: false } do |f| %>
+    <% if @lunch_menu.errors.any? %><div class="flash alert" role="alert"><%= @lunch_menu.errors.full_messages.join('. ') %></div><% end %>
+    <section class="panel lunch-settings">
+      <label class="lunch-toggle"><%= f.check_box :active %> Disponibilizar menu de almoço</label>
+      <details open><summary>Dias e horário</summary>
+        <div class="lunch-days"><%= hidden_field_tag 'lunch_menu[weekdays][]', '' %><% LunchMenu::DAYS.each do |label, value| %><label><%= check_box_tag 'lunch_menu[weekdays][]', value, @lunch_menu.weekdays.include?(value), id: "lunch_day_#{value}" %><%= label %></label><% end %></div>
+        <div class="lunch-times"><label>Das <%= f.time_field :starts_at, required: true %></label><label>Às <%= f.time_field :ends_at, required: true %></label></div>
+        <small>Fuso horário de Lisboa. Fora deste horário, o almoço sai automaticamente do menu.</small>
+      </details>
+    </section>
+    <section class="panel lunch-settings"><h2>Pratos avulso</h2>
+      <label class="lunch-toggle"><%= f.check_box :individual_enabled %> Vender pratos do dia à unidade</label>
+      <p>Escolhe os produtos e o preço de almoço. O preço normal mantém-se.</p>
+      <%= render 'options', field: 'individual_items', selected: @lunch_menu.individual_offers, money_key: 'price', money_label: 'Preço de almoço', default_price: true %>
+    </section>
+    <section class="panel lunch-settings"><h2>Menu completo</h2>
+      <label class="lunch-toggle"><%= f.check_box :combo_enabled %> Vender menu completo</label>
+      <label>Preço base (€)<%= f.number_field :combo_price, min: 0, max: '99999.99', step: '0.01', required: true %></label>
+      <p>O cliente escolhe uma sopa, um prato e uma bebida. O café é opcional. Podes definir suplementos por opção.</p>
+      <% LunchMenu::GROUPS.each do |key, name| %><details class="lunch-option-section"><summary><%= name %> <small><%= Array(@lunch_menu.combo_groups[key]).size %> opções</small></summary>
+        <%= render 'options', field: "combo_options[#{key}]", selected: Array(@lunch_menu.combo_groups[key]), money_key: 'supplement', money_label: 'Suplemento (€)', default_price: false %>
+      </details><% end %>
+    </section>
+    <%= f.submit 'Guardar menu de almoço' %>
+  <% end %>
+</div>

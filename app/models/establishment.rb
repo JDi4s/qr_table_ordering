@@ -1,5 +1,6 @@
 class Establishment < ApplicationRecord
   has_one_attached :logo
+  has_one :lunch_menu, dependent: :destroy
 
   has_many :tables, dependent: :restrict_with_error
   has_many :categories, dependent: :restrict_with_error

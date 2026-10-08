@@ -1,0 +1,12 @@
+<% choices = selected.index_by { |row| row['menu_item_id'].to_i } %>
+<div class="lunch-product-picker" data-controller="lunch-picker">
+  <label class="sr-only" for="<%= field.parameterize %>-search">Pesquisar produtos — <%= money_label %></label>
+  <input id="<%= field.parameterize %>-search" type="search" placeholder="Pesquisar produtos" data-action="input->lunch-picker#filter">
+  <div class="lunch-options-list"><% @products.each do |product| %>
+    <% option = choices[product.id]; prefix = "#{field}[#{product.id}]" %>
+    <div class="lunch-option-row" data-lunch-picker-target="row" data-name="<%= product.name.downcase %>">
+      <label><%= check_box_tag "#{prefix}[selected]", '1', option.present?, id: "#{field.parameterize}-#{product.id}" %><span><strong><%= product.name %></strong><small><%= product.category.name %> · normal <%= euros(product.price) %><%= ' · indisponível' unless product.available? %></small></span></label>
+      <label><small><%= money_label %></small><%= number_field_tag "#{prefix}[#{money_key}]", option&.fetch(money_key) || (default_price ? product.price : 0), min: 0, max: '99999.99', step: '0.01', aria: { label: "#{money_label} — #{product.name}" } %></label>
+    </div>
+  <% end %></div>
+</div>

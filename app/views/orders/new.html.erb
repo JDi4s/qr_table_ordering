@@ -2,7 +2,7 @@
 <% has_logo = establishment.logo.attached? %>
 <%= turbo_stream_from 'customer_menu', channel: 'MenuChannel', data: { table_token: @table.qr_token } %>
 <div class="customer-branding-shell" data-controller="customer-branding table-access" data-customer-branding-enabled-value="<%= has_logo %>" data-customer-branding-key-value="establishment-<%= establishment.id %>"
-     data-table-access-url-value="<%= table_access_status_path(@table) %>" data-table-access-token-value="<%= @table.qr_token %>" data-table-access-visit-value="<%= @table_visit.id %>" data-table-access-state-value="<%= @table_visit.state %>" data-table-access-service-value="<%= establishment.accepting_orders? %>">
+     data-menu-snapshot-url="<%= table_menu_snapshot_path(@table) %>" data-table-access-url-value="<%= table_access_status_path(@table) %>" data-table-access-token-value="<%= @table.qr_token %>" data-table-access-visit-value="<%= @table_visit.id %>" data-table-access-state-value="<%= @table_visit.state %>" data-table-access-service-value="<%= establishment.accepting_orders? %>">
   <% if has_logo %>
     <section class="customer-branding-loading" data-customer-branding-target="loading" hidden aria-label="A carregar o menu">
       <%= image_tag establishment.logo, class: 'customer-branding-logo customer-branding-logo-loading', alt: establishment.name %>
@@ -38,11 +38,11 @@
     <%= render 'orders/table_access_notice' %>
     <% if establishment.accepting_orders? %>
       <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
-        <%= render 'menu', categories: @categories, cart_quantities: @cart_quantities %>
+        <%= render 'menu', categories: @categories, establishment: establishment, lunch_draft: @lunch_draft, cart_quantities: @cart_quantities %>
       <% end %>
     <% else %>
       <div class="flash notice service-paused-notice"><strong>Serviço temporariamente pausado.</strong> Podes consultar o menu, mas ainda não é possível enviar pedidos ou chamar um funcionário.</div>
-      <div class="customer-service-paused"><%= render 'menu', categories: @categories, cart_quantities: {} %></div>
+      <div class="customer-service-paused"><%= render 'menu', categories: @categories, establishment: establishment, cart_quantities: {} %></div>
     <% end %>
   </div>
 </div>

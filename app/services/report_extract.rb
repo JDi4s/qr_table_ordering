@@ -30,6 +30,7 @@ class ReportExtract
               ['Pedidos médios / dia', decimal(@orders.to_f / days)], ['Artigos por pedido', decimal(@orders.zero? ? 0 : @units.to_f / @orders)]],
       sections: summary_sections + [reviews.section] + product_sections + payment_sections + time_sections,
       notes: [
+        'Menus completos de almoço contam como uma unidade vendida, pelo preço total do menu e suplementos. As escolhas incluídas não duplicam quantidades nem faturação.',
         'Faturação = pagamentos ativos recebidos no período, após reduções de preço. Pagamentos anulados ficam excluídos. Quantidades = unidades desses pagamentos, incluindo pagamentos parciais.',
         'As médias usam dias de calendário. Sem um calendário de funcionamento registado, os mínimos consideram apenas dias e horas com recebimentos. Horários referem-se ao pagamento, no fuso da aplicação.',
         'Categorias usam a classificação atual do produto. Produtos sem vendas não entram no ranking dos menos vendidos. Reduções de preço são calculadas face ao preço original guardado no pedido.',
@@ -71,9 +72,10 @@ class ReportExtract
     [day, hour, table, period].each { |b| b[:amount] += p.amount; b[:orders].add(p.order_id) }
     p.payment_items.each do |item|
       oi = item.order_item
-      product = bucket(@products, oi.menu_item_id || "item_#{oi.id}", oi.display_name)
+      is_combo = oi.lunch_selection["kind"] == "combo"
+      product = bucket(@products, is_combo ? "lunch_combo" : (oi.menu_item_id || "item_#{oi.id}"), oi.display_name)
       cat = oi.menu_item&.category
-      category = bucket(@categories, cat&.id, cat&.name || 'Sem categoria / produto eliminado')
+      category = bucket(@categories, is_combo ? 'lunch_menu' : cat&.id, is_combo ? 'Menu de almoço' : (cat&.name || 'Sem categoria / produto eliminado'))
       [product, category].each { |b| b[:quantity] += item.quantity; b[:amount] += item.amount }
       original = oi.original_unit_price
       @discounts += [(original.to_d - item.unit_price) * item.quantity, 0.to_d].max if original

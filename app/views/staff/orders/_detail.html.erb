@@ -5,7 +5,7 @@
   <% if order.note.present? %><div class="flash notice">Observações do cliente: <%= order.note %></div><% end %>
   <% order.order_items.each do |item| %>
     <article class="panel order-item-detail">
-      <h2><%= item.quantity %> × <%= item.display_name %></h2><p><%= state_label(item.status) %> · <%= euros(item.unit_price) %> / unidade</p>
+      <h2><%= item.quantity %> × <%= item.display_name %></h2><%= render "orders/lunch_choices", selection: item.lunch_selection %><p><%= state_label(item.status) %> · <%= euros(item.unit_price) %> / unidade</p>
       <% unless item.denied? %><p><%= item.paid_quantity %> paga(s) · <%= item.remaining_quantity %> por pagar</p><% end %>
       <% if item.denial_reason.present? %><p>Motivo: <%= item.denial_reason %></p><% end %>
       <% if item.proposed_description.present? %><p>Alteração: <%= item.proposed_description %></p><% end %>

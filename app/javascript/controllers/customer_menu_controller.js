@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
   static targets = ["search", "product", "rootPanel", "categoryPanel", "subcategoryNav", "empty", "cartBar", "cartCount", "cartTotal", "toast"]
@@ -8,7 +9,12 @@ export default class extends Controller {
     this.preserveLiveState = (event) => {
       if (event.target.getAttribute('target') !== this.element.id) return
       const replacement = event.target.querySelector('template')?.content.querySelector('#customer_menu')
-      if (replacement) replacement.dataset.liveState = JSON.stringify(this.liveState())
+      if (replacement) {
+        const state = this.liveState()
+        replacement.dataset.liveState = JSON.stringify(state)
+        const lunchInput = replacement.querySelector('[data-lunch-menu-target=input]')
+        if (lunchInput && state.combos) lunchInput.setAttribute('value', state.combos)
+      }
     }
     document.addEventListener('turbo:before-stream-render', this.preserveLiveState)
     if (this.element.dataset.liveState) {
@@ -17,10 +23,15 @@ export default class extends Controller {
     }
     this.syncSubcategoryNavigation(Boolean(this.searchTarget.value.trim()))
     this.syncCart()
+    this.scheduleLunchRefresh()
+    this.onVisible = () => { if (!document.hidden && this.lunchDeadline && Date.now() >= this.lunchDeadline) this.refreshLunch() }
+    document.addEventListener("visibilitychange", this.onVisible)
   }
 
   disconnect() {
     document.removeEventListener('turbo:before-stream-render', this.preserveLiveState)
+    clearTimeout(this.lunchTimer)
+    document.removeEventListener("visibilitychange", this.onVisible)
     clearTimeout(this.toastTimer)
   }
 
@@ -31,6 +42,7 @@ export default class extends Controller {
       if (input && this.currentQuantity(input) > 0) quantities[input.id] = input.value
     })
     return {
+      combos: this.element.querySelector("[data-lunch-menu-target=input]")?.value,
       quantities, root: this.activeRootId, search: this.searchTarget.value,
       categories: Array.from(this.element.querySelectorAll('.menu-subcategory-tab.is-active')).map(tab => tab.dataset.categoryId),
       focus: this.element.contains(document.activeElement) ? document.activeElement.id || (document.activeElement === this.searchTarget ? 'search' : null) : null
@@ -38,6 +50,8 @@ export default class extends Controller {
   }
 
   restoreLiveState(state) {
+    const combos = this.element.querySelector('[data-lunch-menu-target=input]')
+    if (combos && state.combos) combos.value = state.combos
     const remaining = new Set(Object.keys(state.quantities || {}))
     this.productTargets.forEach(card => {
       const input = this.quantityInput(card)
@@ -206,7 +220,8 @@ export default class extends Controller {
     this.syncCart()
   }
 
-  syncCart() {
+  syncCart(event) {
+    if (event?.detail?.removed) this.showToast('O menu completo mudou. Revê as tuas escolhas antes de continuar.')
     let count = 0
     let totalCents = 0
 
@@ -229,9 +244,31 @@ export default class extends Controller {
       totalCents += quantity * this.priceCents(card)
     })
 
+    try {
+      const combos = JSON.parse(this.element.querySelector('[data-lunch-menu-target=input]')?.value || '[]')
+      combos.forEach(combo => { count += Number(combo.quantity) || 0; totalCents += (Number(combo.quantity) || 0) * (Number(combo.priceCents) || 0) })
+    } catch { /* Empty lunch selection while reconnecting. */ }
     this.cartBarTarget.hidden = count === 0
     this.cartCountTarget.textContent = `${count} ${count === 1 ? 'artigo' : 'artigos'}`
     this.cartTotalTarget.textContent = `${(totalCents / 100).toFixed(2).replace('.', ',')} €`
+  }
+
+  scheduleLunchRefresh() {
+    this.lunchDeadline = Date.parse(this.element.dataset.lunchTransition)
+    if (Number.isFinite(this.lunchDeadline)) this.lunchTimer = setTimeout(() => this.refreshLunch(), Math.min(2147483647, Math.max(0, this.lunchDeadline - Date.now() + 1000)))
+  }
+
+  async refreshLunch() {
+    const url = this.element.closest('[data-menu-snapshot-url]')?.dataset.menuSnapshotUrl
+    if (!url || !this.element.isConnected || this.refreshingLunch) return
+    this.refreshingLunch = true
+    try {
+      const response = await fetch(url, { headers: { Accept: 'text/vnd.turbo-stream.html' }, cache: 'no-store' })
+      if (!response.ok) throw new Error('Menu unavailable')
+      Turbo.renderStreamMessage(await response.text())
+    } catch {
+      this.lunchTimer = setTimeout(() => this.refreshLunch(), 30000)
+    } finally { this.refreshingLunch = false }
   }
 
   quantityInput(card) {

@@ -1,6 +1,6 @@
 class OrdersController < ApplicationController
   before_action :set_table
-  before_action :ensure_customer_token, except: :access_status
+  before_action :ensure_customer_token, except: [:access_status, :menu_snapshot]
   before_action :ensure_service_accepting_orders, only: [:review, :create]
   before_action :load_table_visit
   before_action :ensure_visit_open, only: :create
@@ -15,6 +15,7 @@ class OrdersController < ApplicationController
     @active_count = customer_orders.where.not(status: %w[served denied]).count
     @cart_quantities = draft_quantities
     @cart_note = draft_note
+    @lunch_draft = session.dig(:order_draft, "lunch") || {}
   end
 
   def review
@@ -35,7 +36,7 @@ class OrdersController < ApplicationController
     @review_total = @review_items.sum { |item| item[:line_total] }
     @quote = Rails.application.message_verifier(:order_quote).generate(
       { table_id: @table.id, table_visit_id: @table_visit.id, customer_token: session[:customer_token], nonce: SecureRandom.hex(16),
-        items: @review_items.map { |i| [i[:menu_item_id], i[:quantity], i[:unit_price].to_s] }, note: @review_note },
+        items: @review_items.map { |i| [i[:menu_item_id], i[:quantity], i[:unit_price].to_s] + (i[:lunch_selection] ? [i[:lunch_selection]] : []) }, note: @review_note },
       expires_in: 15.minutes
     )
   end
@@ -66,7 +67,13 @@ class OrdersController < ApplicationController
           suggestion_items = valid_suggestion_items(quote[:items].map(&:first), params[:suggestion_quantities], params[:suggestion_ids])
           suggestion_items.each { |id, quantity| items << [id, quantity, nil] }
 
-          items.each do |id, qty, price|
+          items.each do |id, qty, price, lunch|
+            if lunch.present?
+              row = LunchMenu.validated_selection(establishment, lunch, id, qty, price)
+              order.order_items.build(menu_item_id: row[:menu_item_id], name_snapshot: row[:name], quantity: row[:quantity],
+                unit_price: row[:unit_price], lunch_selection: row[:lunch_selection], status: 'pending')
+              next
+            end
             item = establishment.menu_items.includes(:category).find(id)
 
             unless item.available? && !item.archived? && item.category.visible_to_customers? && (price.blank? || item.price == BigDecimal(price))
@@ -91,6 +98,11 @@ class OrdersController < ApplicationController
     @current_visit = history.current_visit
     @previous_visits = history.previous_visits
     @orders = @current_visit ? @current_visit.orders.reverse : []
+  end
+
+  def menu_snapshot
+    request.session_options[:skip] = true
+    render body: CustomerMenuBroadcast.message(@table.establishment), content_type: 'text/vnd.turbo-stream.html'
   end
 
   def access_status
@@ -144,7 +156,11 @@ class OrdersController < ApplicationController
 
   def save_draft(items, note)
     session[:order_draft] = {
-      'items' => items.to_h { |item| [item[:menu_item_id].to_s, item[:quantity].to_i] },
+       'items' => items.reject { |item| item[:lunch_selection] }.to_h { |item| [item[:menu_item_id].to_s, item[:quantity].to_i] },
+      'lunch' => {
+        'individual' => items.select { |item| item.dig(:lunch_selection, 'kind') == 'individual' }.to_h { |item| [item[:menu_item_id].to_s, item[:quantity]] },
+        'combos' => items.select { |item| item.dig(:lunch_selection, 'kind') == 'combo' }.map { |item| { 'quantity' => item[:quantity], 'choices' => item[:lunch_selection]['choices'].to_h { |choice| [choice['group'], choice['menu_item_id']] } } }
+      },
       'note' => note
     }
   end
@@ -164,7 +180,7 @@ class OrdersController < ApplicationController
   end
 
   def selected_items
-    raw = params.dig(:order, :items)
+    raw = params.dig(:order, :items) || ActionController::Parameters.new
     raise Order::InvalidTransition, 'Selecione pelo menos um produto.' unless raw.is_a?(ActionController::Parameters)
     raise Order::InvalidTransition, 'Demasiados produtos num pedido.' if raw.keys.size > 200
 
@@ -178,8 +194,27 @@ class OrdersController < ApplicationController
       { menu_item_id: item.id, name: item.name, quantity: qty.to_i, unit_price: item.price, line_total: item.price * qty.to_i }
     end
 
+    items.concat(selected_lunch_items)
     raise Order::InvalidTransition, 'Selecione pelo menos um produto.' if items.empty?
     items
+  end
+
+  def selected_lunch_items
+    individual = params.dig(:order, :lunch_items) || ActionController::Parameters.new
+    raise Order::InvalidTransition, 'Pratos de almoço inválidos.' unless individual.is_a?(ActionController::Parameters) && individual.keys.size <= 200
+    combos = JSON.parse(params.dig(:order, :lunch_combos).presence || '[]')
+    raise Order::InvalidTransition, 'Menus de almoço inválidos.' unless combos.is_a?(Array) && combos.size <= 10
+    selected = individual.to_unsafe_h.reject { |_id, quantity| quantity.to_s == '0' }
+    return [] if selected.empty? && combos.empty?
+    menu = @table.establishment.lunch_menu
+    raise Order::InvalidTransition, 'O almoço já não está disponível.' unless menu
+    rows = selected.map { |id, quantity| menu.selection(kind: 'individual', menu_item_id: id, quantity: quantity) }
+    rows + combos.map do |combo|
+      raise Order::InvalidTransition, 'Menu de almoço inválido.' unless combo.is_a?(Hash) && combo['choices'].is_a?(Hash)
+      menu.selection(kind: 'combo', quantity: combo['quantity'], choices: combo['choices'])
+    end
+  rescue JSON::ParserError, TypeError, ArgumentError
+    raise Order::InvalidTransition, 'Seleção de almoço inválida.'
   end
 
   def suggestions_for(items)

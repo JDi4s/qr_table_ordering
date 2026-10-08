@@ -1,0 +1,2 @@
+<% choices = selection.is_a?(Hash) ? Array(selection['choices'] || selection[:choices]) : [] %>
+<% if choices.any? %><ul class="lunch-order-choices"><% choices.each do |choice| %><li><%= choice['label'] || choice[:label] %>: <%= choice['name'] || choice[:name] %></li><% end %></ul><% end %>

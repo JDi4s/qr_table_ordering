@@ -3,7 +3,19 @@ class Staff::OrdersController < Staff::BaseController
     @activation_tables = current_establishment.tables.where(active: true, deleted_at: nil).includes(:current_table_visit).order(:number).to_a
     scope = current_establishment.orders.not_voided.includes(:table, order_items: { menu_item: :production_area }).where.not(status: %w[served denied])
     if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
-      scope = scope.joins(order_items: :menu_item).where(menu_items: { production_area_id: current_user.production_area_ids }).distinct
+      scope = scope.where(<<~SQL, areas: current_user.production_area_ids)
+        EXISTS (
+          SELECT 1 FROM order_items oi
+          WHERE oi.order_id = orders.id AND (
+            oi.menu_item_id IN (SELECT id FROM menu_items WHERE production_area_id IN (:areas)) OR
+            EXISTS (
+              SELECT 1 FROM jsonb_array_elements(COALESCE(oi.lunch_selection->'choices', '[]'::jsonb)) choice
+              JOIN menu_items mi ON mi.id::text = choice->>'menu_item_id'
+              WHERE mi.production_area_id IN (:areas)
+            )
+          )
+        )
+      SQL
     end
     @orders = scope.order(:created_at).to_a
     @area_filter_active = current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?

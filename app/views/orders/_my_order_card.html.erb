@@ -3,7 +3,7 @@
   <p class="customer-order-time"><%= order.created_at.strftime('%d/%m · %H:%M') %></p>
   <% if order.note.present? %><p>As suas observações: <%= order.note %></p><% end %>
   <% order.order_items.each do |item| %>
-    <div class="line"><div><strong><%= item.quantity %> × <%= item.display_name %></strong>
+    <div class="line"><div><strong><%= item.quantity %> × <%= item.display_name %></strong><%= render "orders/lunch_choices", selection: item.lunch_selection %>
       <% if item.denied? %><p class="danger">Indisponível: <%= item.denial_reason %></p><% end %>
       <% if item.proposed_description.present? %><p>Alteração: <strong><%= item.proposed_description %></strong></p><% end %>
     </div><span><%= item.denied? ? 'Excluído' : euros(item.unit_price * item.quantity) %></span></div>

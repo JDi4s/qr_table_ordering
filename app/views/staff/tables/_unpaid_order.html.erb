@@ -37,7 +37,7 @@
               <li class="payment-selection-row" data-payment-selection-target="item" data-max-quantity="<%= item.remaining_quantity %>" data-selected-quantity="0" data-unit-price="<%= item.unit_price.to_f %>">
                 <%= button_tag type: 'button', class: 'payment-selection-item', data: { action: 'payment-selection#toggle' }, aria: { pressed: false } do %>
                   <span class="payment-selection-copy">
-                    <strong><%= item.display_name %></strong>
+                    <strong><%= item.display_name %></strong><%= render "orders/lunch_choices", selection: item.lunch_selection %>
                     <small><%= item.remaining_quantity %> por pagar · <%= euros(item.outstanding_total) %><% if item.paid_quantity.positive? %> · <%= item.paid_quantity %> já pago(s)<% end %></small>
                   </span>
                   <span class="payment-selection-count" data-selection-count>0/<%= item.remaining_quantity %></span>
@@ -46,15 +46,15 @@
               </li>
             <% elsif item.denied? %>
               <li class="payment-selection-row">
-                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %> — rejeitado</div>
+                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %><%= render "orders/lunch_choices", selection: item.lunch_selection %> — rejeitado</div>
               </li>
             <% elsif item.paid? %>
               <li class="payment-selection-row">
-                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %> — pago</div>
+                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %><%= render "orders/lunch_choices", selection: item.lunch_selection %> — pago</div>
               </li>
             <% else %>
               <li class="payment-selection-row">
-                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %> — ainda não disponível</div>
+                <div class="payment-selection-static"><%= item.quantity %> × <%= item.display_name %><%= render "orders/lunch_choices", selection: item.lunch_selection %> — ainda não disponível</div>
               </li>
             <% end %>
           <% end %>

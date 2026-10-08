@@ -1,0 +1,62 @@
+require 'application_system_test_case'
+class LunchMenuSystemTest < ApplicationSystemTestCase
+  test 'customer composes complete menu and keeps selection over Turbo updates' do
+    page.current_window.resize_to(390, 844)
+    venue, table, product = build_venue
+    menu = venue.create_lunch_menu!(active: true, weekdays: (0..6).to_a, starts_at: '00:00', ends_at: '23:59',
+      individual_offers: [{ 'menu_item_id' => product.id, 'price' => '8.50' }], combo_enabled: true,
+      combo_groups: LunchMenu::GROUPS.keys.to_h { |key| [key, [{ 'menu_item_id' => product.id, 'supplement' => key == 'drink' ? '1' : '0' }]] })
+    TableVisit.activate_for!(table)
+    visit new_table_order_path(table)
+    assert_selector 'turbo-cable-stream-source[channel="MenuChannel"][connected]', visible: :all
+    assert_selector '.menu-root-tab.is-active', text: 'Almoço'
+    click_button 'Escolher menu'
+    within('dialog[open]') do
+      assert_text '13,00 €'
+      page.save_screenshot(Rails.root.join('tmp/screenshots/lunch-choices-mobile.png'))
+      click_button 'Adicionar menu'
+    end
+    within('#menu-root-lunch .customer-product-card') { find('.customer-add-button').click }
+    assert_selector '.customer-cart-bar', text: '21,50 €'
+    page.execute_script('window.scrollTo(0, 0)')
+    page.save_screenshot(Rails.root.join('tmp/screenshots/lunch-customer.png'))
+    product.update!(description: 'Prato fresco')
+    assert_selector '.customer-product-card', text: 'Prato fresco', visible: :all
+    assert_selector '.lunch-selected-row', text: 'Menu completo'
+    assert_selector '.customer-cart-bar', text: '21,50 €'
+    click_button 'Rever pedido'
+    assert_text 'Confirme o seu pedido'
+    assert_text 'Menu completo'
+    assert_text 'Sem café'
+    click_button 'Enviar pedido'
+    assert_text 'Pedido enviado'
+    assert_equal BigDecimal('21.50'), table.orders.last.total
+    visit new_table_order_path(table)
+    menu.update!(active: false)
+    assert_no_selector '.menu-root-tab', text: 'Almoço'
+    assert_selector '.customer-product-card', text: product.name
+  end
+
+  test 'manager configures avulso lunch from existing products on mobile' do
+    venue, _, product = build_venue
+    manager = venue_user(venue)
+    page.current_window.resize_to(390, 844)
+    visit login_path
+    fill_in 'Email', with: manager.email
+    fill_in 'Palavra-passe', with: 'Test-password-123'
+    click_on 'Entrar'
+    assert_current_path staff_orders_path
+    visit staff_menu_path
+    click_on 'Menu de almoço'
+    assert_text 'Menu de almoço'
+    check 'Disponibilizar menu de almoço'
+    check "#{'individual_items'.parameterize}-#{product.id}"
+    find("input[name='individual_items[#{product.id}][price]']").set('8.50')
+    page.execute_script('window.scrollTo(0, 0)')
+    page.save_screenshot(Rails.root.join('tmp/screenshots/lunch-management-mobile.png'))
+    click_button 'Guardar menu de almoço'
+    assert_text 'Menu de almoço guardado'
+    assert_equal '8.50', venue.reload.lunch_menu.individual_offers.first['price']
+    assert_equal BigDecimal('10'), product.reload.price
+  end
+end
