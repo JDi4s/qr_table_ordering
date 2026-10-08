@@ -25,6 +25,10 @@ class Establishment < ApplicationRecord
   validate :google_review_url_must_be_safe
   before_validation { self.google_review_url = google_review_url.to_s.strip.presence }
 
+  def menu_empty?
+    !categories.exists? && !lunch_menu
+  end
+
   def google_reviews_available?
     google_reviews_enabled? && google_review_url.present?
   end

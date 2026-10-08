@@ -1,0 +1,15 @@
+<div class="menu-import-page">
+  <%= button_to '← Alterar seleção', selection_admin_establishment_menu_import_path(@destination), params: { quote: @quote }, class: 'secondary menu-import-back', data: { turbo: false } %>
+  <header class="menu-import-heading"><p class="eyebrow">QUASE PRONTO</p><h1>Rever importação</h1><p>Confirma o que vai chegar ao novo menu.</p></header>
+  <nav class="menu-import-steps" aria-label="Etapas da importação"><span>✓ · Escolher</span><span class="is-current">2 · Rever</span><span>3 · Importar</span></nav>
+  <section class="panel menu-import-review">
+    <div class="menu-import-route"><div><small>DE</small><strong><%= @source.name %></strong></div><span aria-hidden="true">→</span><div><small>PARA</small><strong><%= @destination.name %></strong></div></div>
+    <div class="menu-import-stats"><% [['Categorias', :categories], ['Produtos', :products], ['Fotografias', :photos], ['Sugestões', :suggestions]].each do |label, key| %><div><strong><%= @plan.counts[key] %></strong><span><%= label %></span></div><% end %></div>
+    <h2>Categorias selecionadas</h2><div class="menu-import-tags"><% @plan.selected_categories.each do |category| %><span><%= category.name %></span><% end %></div>
+    <% if @plan.lunch_attributes %><p class="menu-import-included">✓ Inclui as opções de almoço dos produtos selecionados.</p><% end %>
+    <% if @plan.incomplete_lunch? %><p class="menu-import-warning">O menu completo de almoço ficará desativado: faltam escolhas de sopa, prato ou bebida na seleção. Poderás completá-lo no estabelecimento de destino.</p><% end %>
+    <% if @plan.unassigned_areas.positive? %><p class="menu-import-warning"><%= @plan.unassigned_areas %> produtos ficarão sem área de produção porque a área de origem não está disponível no destino. Poderás atribuí-la depois.</p><% end %>
+    <p class="menu-import-footnote">Os produtos ficam com os preços e estados atuais. Sugestões só são copiadas quando os dois produtos estão selecionados. Alterações futuras num menu não alteram o outro.</p>
+    <%= form_with url: admin_establishment_menu_import_path(@destination), data: { turbo: false } do %><%= hidden_field_tag :quote, @quote %><%= submit_tag 'Confirmar e importar menu', class: 'menu-import-confirm' %><% end %>
+  </section>
+</div>

@@ -7,7 +7,12 @@ Rails.application.routes.draw do
   delete 'logout', to: 'sessions#destroy'
   namespace :admin do
     resources :landing_requests, only: [:index, :show, :update]
-    resources :establishments, except: [:show, :destroy]
+    resources :establishments, except: [:show, :destroy] do
+      resource :menu_import, only: [:new, :create], controller: 'menu_imports' do
+        post :review
+        post :selection, to: 'menu_imports#new'
+      end
+    end
     resources :support_tickets, only: [:index, :show, :update] do
       resources :messages, only: :create, controller: 'support_ticket_messages'
     end
