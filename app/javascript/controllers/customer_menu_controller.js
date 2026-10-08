@@ -5,8 +5,63 @@ export default class extends Controller {
 
   connect() {
     this.activeRootId = this.rootPanelTargets.find((panel) => !panel.hidden)?.id || this.rootPanelTargets[0]?.id
-    this.syncSubcategoryNavigation()
+    this.preserveLiveState = (event) => {
+      if (event.target.getAttribute('target') !== this.element.id) return
+      const replacement = event.target.querySelector('template')?.content.querySelector('#customer_menu')
+      if (replacement) replacement.dataset.liveState = JSON.stringify(this.liveState())
+    }
+    document.addEventListener('turbo:before-stream-render', this.preserveLiveState)
+    if (this.element.dataset.liveState) {
+      this.restoreLiveState(JSON.parse(this.element.dataset.liveState))
+      delete this.element.dataset.liveState
+    }
+    this.syncSubcategoryNavigation(Boolean(this.searchTarget.value.trim()))
     this.syncCart()
+  }
+
+  disconnect() {
+    document.removeEventListener('turbo:before-stream-render', this.preserveLiveState)
+    clearTimeout(this.toastTimer)
+  }
+
+  liveState() {
+    const quantities = {}
+    this.productTargets.forEach(card => {
+      const input = this.quantityInput(card)
+      if (input && this.currentQuantity(input) > 0) quantities[input.id] = input.value
+    })
+    return {
+      quantities, root: this.activeRootId, search: this.searchTarget.value,
+      categories: Array.from(this.element.querySelectorAll('.menu-subcategory-tab.is-active')).map(tab => tab.dataset.categoryId),
+      focus: this.element.contains(document.activeElement) ? document.activeElement.id || (document.activeElement === this.searchTarget ? 'search' : null) : null
+    }
+  }
+
+  restoreLiveState(state) {
+    const remaining = new Set(Object.keys(state.quantities || {}))
+    this.productTargets.forEach(card => {
+      const input = this.quantityInput(card)
+      if (!input) return
+      if (state.quantities?.[input.id]) input.value = state.quantities[input.id]
+      remaining.delete(input.id)
+    })
+    if (this.rootPanelTargets.some(panel => panel.id === state.root)) {
+      this.activeRootId = state.root
+      this.rootPanelTargets.forEach(panel => { panel.hidden = panel.id !== state.root })
+      this.element.querySelectorAll('.menu-root-tab').forEach(tab => {
+        const active = tab.dataset.rootId === state.root
+        tab.classList.toggle('is-active', active)
+        tab.setAttribute('aria-selected', String(active))
+      })
+    }
+    this.element.querySelectorAll('.menu-subcategory-tab').forEach(tab => {
+      if (state.categories?.includes(tab.dataset.categoryId)) this.showCategory(document.getElementById(tab.dataset.rootId), tab.dataset.categoryId, tab)
+    })
+    this.searchTarget.value = state.search || ''
+    if (state.search) this.filter()
+    if (state.focus === 'search') this.searchTarget.focus({ preventScroll: true })
+    else if (state.focus) document.getElementById(state.focus)?.focus({ preventScroll: true })
+    if (remaining.size) this.showToast('O menu foi atualizado. Um produto selecionado deixou de estar disponível e foi retirado do pedido.')
   }
 
   selectRoot(event) {

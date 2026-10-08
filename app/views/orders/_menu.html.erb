@@ -5,7 +5,7 @@
 } %>
 <% cart_quantities = local_assigns.fetch(:cart_quantities, {}) %>
 <% roots = categories.select { |category| category.root? && category.visible_to_customers? }.sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
-<div class="customer-menu" data-controller="customer-menu product-info">
+<div id="customer_menu" class="customer-menu" data-controller="customer-menu product-info">
   <div class="customer-menu-sticky">
     <label class="menu-search">
       <span class="sr-only">Pesquisar no menu</span>
