@@ -1,6 +1,5 @@
 <template class="product-information-template">
-  <div class="product-info-media">
-    <% if item.image.attached? %><%= image_tag item.image, alt: item.name %><% end %>
+  <div class="product-info-toolbar">
     <button type="button" class="product-info-close" data-product-info-close aria-label="Fechar informação do produto">×</button>
   </div>
   <div class="product-info-content">

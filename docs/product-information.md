@@ -11,7 +11,7 @@ oculta-a sem apagar os valores guardados. Não selecionar alergénios não decla
 o produto livre de alergénios: a secção fica ausente, salvo observações.
 
 O menu mostra um i discreto no canto superior direito da imagem quando existe
-informação. Abre uma janela com fotografia, nome, preço, descrição, alergénios e
+informação. Abre uma janela sem fotografia, com nome, preço, descrição, alergénios e
 valores preenchidos, sem adicionar artigos nem alterar quantidades. A janela
 tem apenas o botão X, suporta Escape, gere o foco e funciona com a mesa a
 aguardar ativação ou com o serviço pausado. A pré-visualização na gestão também
