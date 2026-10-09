@@ -68,3 +68,9 @@
 .scheduled-publish-save { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin: 24px 0; }
 [data-group-editor][hidden], [data-add-group][hidden] { display: none; }
 @media(max-width: 600px) { .scheduled-sale-modes { grid-template-columns: 1fr; } .scheduled-inclusion-grid { gap: 10px; } .scheduled-selection-count { font-size: 11px; padding: 5px; } .scheduled-publish-save > input { width: 100%; } }
+
+.menu-main-tabs { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: #fff; margin: 20px 0 24px; max-width: 520px; }
+.menu-main-tabs button { flex: 1; background: transparent; color: var(--green); border: 0; border-radius: 8px; min-height: 46px; padding: 10px; font-weight: 700; }
+.menu-main-tabs button[aria-pressed=true] { background: var(--green); color: #fff; }
+[data-menu-section-panel][hidden] { display: none; }
+[data-menu-section-panel] .scheduled-menu-overview { margin-top: 0; }
