@@ -152,7 +152,7 @@ export default class extends Controller {
   syncSubcategoryNavigation(searching = false) {
     const carta = !['menu-root-lunch', 'menu-root-breakfast'].includes(this.activeRootId)
     const categories = this.element.querySelector('[data-carta-categories]')
-    if (categories) categories.hidden = searching || !carta
+    if (categories) categories.hidden = !carta
     const tab = this.element.querySelector('[data-carta-tab]')
     if (tab) { tab.classList.toggle('is-active', carta); tab.setAttribute('aria-selected', String(carta)) }
     this.subcategoryNavTargets.forEach((nav) => {
