@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_09_180000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_09_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -150,6 +150,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_09_180000) do
     t.string "menu_kind", default: "lunch", null: false
     t.string "title"
     t.jsonb "group_definitions", default: [], null: false
+    t.boolean "groups_configured", default: false, null: false
     t.index ["establishment_id", "menu_kind"], name: "index_lunch_menus_on_establishment_id_and_menu_kind", unique: true
   end
 

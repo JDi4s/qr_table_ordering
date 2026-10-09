@@ -38,3 +38,33 @@
 
 @media(min-width: 361px) and (max-width: 760px) { .scheduled-menu-cards { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media(max-width: 760px) { .scheduled-menu-card { padding: 14px; flex-direction: column; align-items: stretch; gap: 12px; } .scheduled-menu-card > div { flex: 1; } .scheduled-menu-card .button { text-align: center; } .scheduled-menu-card h3 { font-size: 17px; } .scheduled-menu-card p { font-size: 13px; } }
+
+.scheduled-back-link { display: inline-block; margin-bottom: 16px; }
+.scheduled-help { color: var(--muted); line-height: 1.5; }
+.scheduled-inclusion-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 20px 0; }
+.scheduled-inclusion-row { border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; margin: 0; }
+.scheduled-inclusion-row legend { font-weight: 700; padding: 0 6px; }
+.scheduled-yes-no { display: flex; gap: 8px; }
+.scheduled-yes-no label { flex: 1; position: relative; margin: 0; cursor: pointer; }
+.scheduled-yes-no input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.scheduled-yes-no span { display: block; text-align: center; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: #fff; }
+.scheduled-yes-no input:checked + span { background: var(--green); color: #fff; border-color: var(--green); font-weight: 700; }
+.scheduled-yes-no input:focus-visible + span { outline: 2px solid var(--green); outline-offset: 3px; }
+.scheduled-custom-group { display: grid; gap: 12px; margin-top: 16px; }
+.scheduled-custom-group input, .scheduled-custom-group select { width: 100%; min-width: 0; }
+.scheduled-sale-modes { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 18px 0; }
+.scheduled-sale-mode { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 16px; cursor: pointer; }
+.scheduled-sale-mode:has(input:checked) { background: #eaf1e8; border-color: var(--green); }
+.scheduled-sale-mode input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--green); }
+.scheduled-sale-mode small, .scheduled-timing summary small { display: block; color: var(--muted); margin-top: 5px; }
+.scheduled-menu-simple .scheduled-group-products { border: 1px solid var(--line); border-radius: 12px; margin: 12px 0; padding: 0; overflow: hidden; }
+.scheduled-group-products summary, .scheduled-timing summary { display: flex; align-items: center; gap: 12px; padding: 18px; cursor: pointer; list-style: none; }
+.scheduled-group-products summary::-webkit-details-marker, .scheduled-timing summary::-webkit-details-marker { display: none; }
+.scheduled-group-products summary strong { flex: 1; }
+.scheduled-group-options { padding: 0 16px 16px; }
+.scheduled-timing { padding: 0; }
+.scheduled-timing summary { justify-content: space-between; }
+.scheduled-timing-fields { padding: 0 18px 20px; }
+.scheduled-publish-save { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin: 24px 0; }
+[data-group-editor][hidden], [data-add-group][hidden] { display: none; }
+@media(max-width: 600px) { .scheduled-sale-modes { grid-template-columns: 1fr; } .scheduled-inclusion-grid { gap: 10px; } .scheduled-selection-count { font-size: 11px; padding: 5px; } .scheduled-publish-save > input { width: 100%; } }

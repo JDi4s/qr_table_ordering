@@ -1,34 +1,40 @@
-<div class="lunch-management" data-controller="scheduled-menu-editor">
-  <%= link_to '← Menu', staff_menu_path %><h1><%= @kind == 'lunch' ? 'Menu de almoço' : 'Pequeno-almoço' %></h1>
-  <p class="scheduled-menu-intro">Escolhe o horário, o que inclui e os produtos que o cliente pode pedir.</p>
-  <% if @products.any? { |p| p.product_kind == 'unclassified' } %><div class="flash alert"><p>Existem produtos por classificar. <%= link_to 'Classificar produtos em lote', edit_staff_product_classification_path %> para filtrar as escolhas corretamente.</p></div><% end %>
+<div class="lunch-management scheduled-menu-simple" data-controller="scheduled-menu-editor">
+  <%= link_to '← Menu', staff_menu_path, class: 'scheduled-back-link' %>
+  <h1><%= @lunch_menu.title.presence || (@kind == 'lunch' ? 'Menu de almoço' : 'Pequeno-almoço') %></h1>
+  <p class="scheduled-menu-intro">Escolhe o que vais vender. Depois seleciona os produtos e os preços.</p>
+  <% if @products.any? { |p| p.product_kind == 'unclassified' } %><div class="flash alert"><p>Há produtos sem tipo. <%= link_to 'Classificar produtos', edit_staff_product_classification_path %> antes de os adicionar a este menu.</p></div><% end %>
   <%= form_with model: @lunch_menu, url: staff_lunch_menu_path(menu_kind: @kind), method: :patch, data: { turbo: false } do |f| %>
-    <% if @lunch_menu.errors.any? %><div class="flash alert" role="alert"><%= @lunch_menu.errors.full_messages.join('. ') %></div><% end %>
-    <section class="panel lunch-settings scheduled-publication">
-      <div class="scheduled-section-heading"><div><h2>Publicação e horário</h2><p>Aparece ao cliente apenas nos dias e horas definidos.</p></div><label class="lunch-toggle"><%= f.check_box :active %> Ativar <%= @kind == 'lunch' ? 'menu de almoço' : 'pequeno-almoço' %></label></div>
-      <div class="lunch-days"><%= hidden_field_tag 'lunch_menu[weekdays][]', '' %><% LunchMenu::DAYS.each do |label, value| %><label><%= check_box_tag 'lunch_menu[weekdays][]', value, @lunch_menu.weekdays.include?(value), id: "lunch_day_#{value}" %><%= label %></label><% end %></div>
-      <div class="lunch-times"><label>Começa às <%= f.time_field :starts_at, required: true %></label><label>Termina às <%= f.time_field :ends_at, required: true %></label></div>
-      <small>Horário de Lisboa. Fora deste horário, o menu deixa de aparecer automaticamente.</small>
+    <% if @lunch_menu.errors.any? %><div class="flash alert" role="alert"><p><%= @lunch_menu.errors.full_messages.join('. ') %></p></div><% end %>
+    <section class="panel scheduled-inclusions"><h2>O que inclui o menu completo?</h2><p class="scheduled-help">Escolhe Sim ou Não. Podes criar outros grupos e dar-lhes o nome que quiseres.</p>
+      <div class="scheduled-inclusion-grid"><% @editor_groups.each_with_index do |group,index| %>
+        <% selected = @lunch_menu.groups.any? { |g| g['key'] == group['key'] && (!g['optional'] || Array(@lunch_menu.combo_groups[g['key']]).any?) } %>
+        <fieldset class="scheduled-inclusion-row" data-group-editor="<%= group['key'] %>" <%= 'hidden' if group['name'].blank? %>><legend><%= group['name'].presence || 'Novo grupo' %></legend>
+          <div class="scheduled-yes-no"><label><%= radio_button_tag "groups[#{index}][enabled]", '1', selected, id: "include_#{group['key']}", data: { group_key: group['key'], group_types: group['types'].to_json, action: 'change->scheduled-menu-editor#sync' } %><span>Sim</span></label><label><%= radio_button_tag "groups[#{index}][enabled]", '0', !selected, id: "exclude_#{group['key']}", data: { action: 'change->scheduled-menu-editor#sync' } %><span>Não</span></label></div>
+          <% if group['editable'] %><div class="scheduled-custom-group"><label>Nome do grupo<%= text_field_tag "groups[#{index}][name]", group['name'], maxlength: 60, placeholder: 'Ex.: Sopas, Tostas, Brunch…', data: { group_name: group['key'], action: 'input->scheduled-menu-editor#sync' } %></label><label>Tipo de produtos<%= select_tag "groups[#{index}][types]", options_for_select(MenuItem::PRODUCT_KINDS.except('unclassified').map { |key,label| [label,key] } + [['Pratos e snacks','plate,snack'], ['Pão e pastelaria','snack,dessert'], ['Todos os tipos',MenuItem::PRODUCT_KINDS.except('unclassified').keys.join(',')]], group['types'].join(',')), prompt: 'Escolher tipo', data: { group_types_field: group['key'], action: 'change->scheduled-menu-editor#sync' } %></label></div><% end %>
+        </fieldset>
+        <%= hidden_field_tag "groups[#{index}][key]", group['key'] %><% unless group['editable'] %><%= hidden_field_tag "groups[#{index}][name]", group['name'] %><%= hidden_field_tag "groups[#{index}][types]", group['types'].join(',') %><% end %>
+      <% end %></div>
+      <button type="button" class="secondary scheduled-add-group" data-action="scheduled-menu-editor#addGroup" data-add-group>+ Criar grupo</button>
     </section>
-    <section class="panel lunch-settings"><div class="scheduled-section-heading"><div><h2>Produtos à unidade</h2><p>O cliente pede cada produto separadamente.</p></div><label class="lunch-toggle"><%= f.check_box :individual_enabled, data: { action: 'change->scheduled-menu-editor#sync', section_toggle: 'individual' } %> Vender à unidade</label></div>
-      <div data-sale-section="individual"><p>Escolhe os produtos e o preço neste horário. O preço da carta mantém-se.</p><%= render 'options', field: 'individual_items', selected: @lunch_menu.individual_offers, money_key: 'price', money_label: 'Preço neste menu', default_price: true %></div>
-    </section>
-    <section class="panel lunch-settings"><div class="scheduled-section-heading"><div><h2>Menu completo</h2><p>Um preço para o conjunto escolhido.</p></div><label class="lunch-toggle"><%= f.check_box :combo_enabled, data: { action: 'change->scheduled-menu-editor#sync', section_toggle: 'combo' } %> Vender menu completo</label></div>
-      <div data-sale-section="combo">
+    <section class="panel scheduled-sales"><h2>Como vais vender?</h2><div class="scheduled-sale-modes">
+      <label class="scheduled-sale-mode"><%= f.check_box :individual_enabled, data: { section_toggle: 'individual', action: 'change->scheduled-menu-editor#sync' } %><span><strong>Vender à unidade</strong><small>Cada produto tem o seu preço.</small></span></label>
+      <label class="scheduled-sale-mode"><%= f.check_box :combo_enabled, data: { section_toggle: 'combo', action: 'change->scheduled-menu-editor#sync' } %><span><strong>Vender menu completo</strong><small>Um preço para o conjunto escolhido.</small></span></label>
+    </div>
+      <div data-sale-section="individual" class="scheduled-unit-products"><h3>Produtos à unidade</h3><p class="scheduled-help">Seleciona os produtos e define o preço neste horário. Esta lista é independente do menu completo.</p><%= render 'options', field: 'individual_items', selected: @lunch_menu.individual_offers, money_key: 'price', money_label: 'Preço (€)', default_price: true %></div>
+      <div data-sale-section="combo" class="scheduled-combo-products">
         <label class="scheduled-base-price">Preço do menu completo (€)<%= f.number_field :combo_price, min: 0, max: '99999.99', step: '0.01', required: true %></label>
-        <h3>O que inclui?</h3><p>Assinala os grupos que fazem parte do menu. O cliente escolhe um produto de cada grupo incluído.</p>
-        <div class="scheduled-group-choices"><% @editor_groups.each_with_index do |group,index| %><% selected = @lunch_menu.groups.any? { |g| g['key'] == group['key'] && (!g['optional'] || Array(@lunch_menu.combo_groups[g['key']]).any?) } %>
-          <label class="scheduled-group-choice"><%= hidden_field_tag "groups[#{index}][enabled]", '0' %><%= check_box_tag "groups[#{index}][enabled]", '1', selected, id: "include_#{group['key']}", data: { group_key: group['key'], action: 'change->scheduled-menu-editor#sync' } %><%= group['name'] %></label>
-        <% end %></div>
-        <% @editor_groups.each_with_index do |group,index| %><% key,name = group.values_at('key','name') %>
-          <div class="scheduled-group-products" data-group-panel="<%= key %>">
-            <%= hidden_field_tag "groups[#{index}][key]", key %><%= hidden_field_tag "groups[#{index}][name]", name %><%= hidden_field_tag "groups[#{index}][types]", group['types'].join(',') %>
-            <div class="scheduled-section-heading"><div><h3><%= name %></h3><small>Escolhe os produtos disponíveis para este grupo.</small></div><span class="scheduled-selection-count" data-selection-count aria-live="polite"></span></div>
-            <%= render 'options', field: "combo_options[#{key}]", selected: Array(@lunch_menu.combo_groups[key]), money_key: 'supplement', money_label: 'Suplemento (€)', default_price: false, product_group: group %>
-          </div>
+        <p class="scheduled-help">O cliente escolhe um produto de cada grupo marcado com Sim. Podes acrescentar um suplemento.</p>
+        <% @editor_groups.each do |group| %><% key,name = group.values_at('key','name') %>
+          <details class="scheduled-group-products" data-group-panel="<%= key %>"><summary><strong data-group-title><%= name.presence || 'Novo grupo' %></strong><span class="scheduled-selection-count" data-selection-count aria-live="polite"></span><span class="scheduled-group-arrow" aria-hidden="true">⌄</span></summary>
+            <div class="scheduled-group-options"><%= render 'options', field: "combo_options[#{key}]", selected: Array(@lunch_menu.combo_groups[key]), money_key: 'supplement', money_label: 'Suplemento (€)', default_price: false, product_group: (group['editable'] ? nil : group) %></div>
+          </details>
         <% end %>
+        <p data-no-groups hidden>Marca pelo menos um grupo com Sim para compor o menu.</p>
       </div>
     </section>
-    <div class="scheduled-save-actions"><%= f.submit(@kind == 'lunch' ? 'Guardar menu de almoço' : 'Guardar pequeno-almoço') %></div>
+    <details class="panel scheduled-timing"><summary><span><strong>Dias e horário</strong><small><%= @lunch_menu.starts_at.strftime('%H:%M') %>–<%= @lunch_menu.ends_at.strftime('%H:%M') %> · <%= LunchMenu::DAYS.select { |_,value| @lunch_menu.weekdays.include?(value) }.map(&:first).join(', ') %></small></span><span aria-hidden="true">⌄</span></summary>
+      <div class="scheduled-timing-fields"><%= f.label :title, 'Nome do menu (opcional)' %><%= f.text_field :title, maxlength: 80, placeholder: (@kind == 'breakfast' ? 'Ex.: Brunch de fim de semana' : 'Ex.: Menu de almoço') %><div class="lunch-days"><%= hidden_field_tag 'lunch_menu[weekdays][]', '' %><% LunchMenu::DAYS.each do |label,value| %><label><%= check_box_tag 'lunch_menu[weekdays][]', value, @lunch_menu.weekdays.include?(value), id: "lunch_day_#{value}" %><%= label %></label><% end %></div><div class="lunch-times"><label>Começa às <%= f.time_field :starts_at, required: true %></label><label>Termina às <%= f.time_field :ends_at, required: true %></label></div><small>Horário de Lisboa. Fora deste horário, este menu não aparece ao cliente.</small></div>
+    </details>
+    <div class="scheduled-publish-save"><label class="lunch-toggle"><%= f.check_box :active %> Ativar <%= @kind == 'lunch' ? 'menu de almoço' : 'pequeno-almoço' %></label><%= f.submit(@kind == 'lunch' ? 'Guardar menu de almoço' : 'Guardar pequeno-almoço') %></div>
   <% end %>
 </div>

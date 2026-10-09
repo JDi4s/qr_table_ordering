@@ -1,5 +1,13 @@
 require 'test_helper'
 class MenuClarityTest < ActionDispatch::IntegrationTest
+  test 'explicitly empty groups remain empty while legacy groups remain compatible' do
+    venue, = build_venue
+    menu = venue.scheduled_menus.create!(menu_kind: 'lunch', active: false)
+    assert_includes menu.groups.map { |group| group['key'] }, 'soup'
+    menu.update!(groups_configured: true, group_definitions: [], combo_groups: {})
+    assert_empty menu.reload.groups
+    assert_not menu.combo_available?
+  end
   setup do
     @venue, @table, @product = build_venue
     @manager = venue_user(@venue)
