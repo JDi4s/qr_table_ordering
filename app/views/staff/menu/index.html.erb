@@ -18,7 +18,7 @@
     <div class="section-heading"><h2>Menus por horário</h2><p>Produtos e preços próprios, nos horários que escolheres.</p></div>
     <div class="scheduled-menu-cards"><% [['breakfast','Pequeno-almoço'],['lunch','Menu de almoço']].each do |kind,label| %>
       <% scheduled_menu = current_establishment.scheduled_menus.find_by(menu_kind: kind) %>
-      <article class="panel scheduled-menu-card"><div><h3><%= label %></h3><p><%= scheduled_menu ? "#{scheduled_menu.starts_at.strftime('%H:%M')}–#{scheduled_menu.ends_at.strftime('%H:%M')}" : 'Ainda não configurado' %></p><span class="menu-schedule-state"><%= scheduled_menu&.active? ? 'Programado' : 'Desativado' %></span></div><%= link_to (kind == 'lunch' ? 'Configurar almoço' : 'Configurar pequeno-almoço'), edit_staff_lunch_menu_path(menu_kind: kind), class: 'button secondary', aria: { label: "Configurar #{label.downcase}" } %></article>
+      <article class="panel scheduled-menu-card"><div><h3><%= label %></h3><p><%= scheduled_menu ? "#{scheduled_menu.starts_at.strftime('%H:%M')}–#{scheduled_menu.ends_at.strftime('%H:%M')}" : 'Ainda não configurado' %></p><span class="menu-schedule-state"><%= scheduled_menu&.active? ? 'Programado' : 'Desativado' %></span></div><%= link_to 'Configurar', edit_staff_lunch_menu_path(menu_kind: kind), class: 'button secondary', aria: { label: "Configurar #{label.downcase}" } %></article>
     <% end %></div>
   </section>
 <% end %>

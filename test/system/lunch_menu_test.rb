@@ -47,7 +47,7 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     click_on 'Entrar'
     assert_current_path staff_orders_path
     visit staff_menu_path
-    click_on 'Configurar almoço'
+    within('.scheduled-menu-card', text: 'Menu de almoço') { click_link 'Configurar' }
     assert_text 'Menu de almoço'
     check 'Ativar menu de almoço'
     check "#{'individual_items'.parameterize}-#{product.id}"

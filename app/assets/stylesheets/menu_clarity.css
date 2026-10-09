@@ -35,3 +35,6 @@
 .customer-carta-categories { margin-top: 12px; }
 .customer-menu-scopes[hidden], .customer-carta-categories[hidden], .scheduled-group-products[hidden], [data-sale-section][hidden] { display: none; }
 @media(max-width: 760px) { .scheduled-menu-cards { grid-template-columns: 1fr; } .scheduled-section-heading { align-items: start; } .scheduled-menu-card .button { min-height: 44px; } .scheduled-group-choice { flex: 1 1 140px; } .customer-menu-scopes { gap: 6px; } .customer-menu-scopes .menu-root-tab, .menu-scope-tab { padding: 9px 12px; } }
+
+@media(min-width: 361px) and (max-width: 760px) { .scheduled-menu-cards { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width: 760px) { .scheduled-menu-card { padding: 14px; flex-direction: column; align-items: stretch; gap: 12px; } .scheduled-menu-card > div { flex: 1; } .scheduled-menu-card .button { text-align: center; } .scheduled-menu-card h3 { font-size: 17px; } .scheduled-menu-card p { font-size: 13px; } }
