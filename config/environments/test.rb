@@ -37,6 +37,10 @@ Rails.application.configure do
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
 
+  # Transactional fixtures share a database connection; execute jobs in the
+  # request thread so image jobs cannot race or deadlock the next test.
+  config.active_job.queue_adapter = :inline
+
   config.action_mailer.perform_caching = false
 
   # Tell Action Mailer not to deliver emails to the real world.
@@ -62,3 +66,4 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
 end
+

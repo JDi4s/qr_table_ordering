@@ -2,7 +2,7 @@
 
 ## Configuração do gerente
 
-1. Em Menu → Classificar produtos, selecionar os produtos e definir tipo, preparação e presença no menu normal. Os existentes começam por classificar; nenhuma classificação por nome é aplicada automaticamente.
+1. Em Menu → Classificar produtos, selecionar os produtos por classificar e definir o tipo. Esta entrada só aparece quando há produtos por classificar. Na criação e edição, o tipo é obrigatório. A preparação é opcional e só aparece com a divisão ativa; a presença no menu normal é definida na edição individual. Nenhuma classificação por nome é aplicada automaticamente.
 2. Em Menu → Pequeno-almoço ou Menu de almoço, definir dias, horário de Lisboa, produtos avulso, preços e grupos do menu completo. Os produtos ocultos no menu normal continuam disponíveis nestes menus. A disponibilidade do produto e da categoria é respeitada em todos.
 3. Em Definições → Organização do serviço, ativar a divisão. Criam-se Balcão e Cozinha quando não existem. É possível criar outros postos, incluindo cozinha de snacks e vários balcões.
 4. Criar zonas e escolher os postos de destino de balcão, cozinha e snacks. Atribuir a zona a uma mesa ou a um intervalo de mesas.
@@ -31,3 +31,4 @@ Na Administração → Contrato e plano → Eliminar estabelecimento, escrever o
 ## Atualização na VPS
 
 Criar cópia PostgreSQL antes de atualizar. A imagem executa `db:prepare`, incluindo a migração `20261009140000`. A migração conserva os menus de almoço e adiciona a classificação, menus por horário, zonas e tarefas.
+

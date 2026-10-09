@@ -1,12 +1,23 @@
 class Staff::ProductClassificationsController < Staff::BaseController
   before_action :require_manager
+
   def edit
-    @products = current_establishment.menu_items.not_archived.includes(:category).order(:name)
+    @show_all = params[:scope] == 'all'
+    products = current_establishment.menu_items.not_archived
+    @unclassified_count = products.where(product_kind: 'unclassified').count
+    @products = (@show_all ? products : products.where(product_kind: 'unclassified')).includes(:category).order(:name)
   end
+
   def update
-    values = params.require(:classification).permit(:product_kind, :preparation_key, :normal_menu_visible).to_h.reject { |_, value| value.blank? }
+    raw = params.require(:classification)
+    values = raw.permit(:product_kind).to_h
+    kind = values['product_kind']
+    raise Order::InvalidTransition, 'Escolhe o tipo de produto.' unless MenuItem::PRODUCT_KINDS.except('unclassified').key?(kind)
+    if current_establishment.service_division_enabled? && raw[:preparation_key].present?
+      values['preparation_key'] = raw[:preparation_key]
+    end
     ids = Array(params[:product_ids]).reject(&:blank?)
-    raise Order::InvalidTransition, 'Seleciona produtos e pelo menos uma alteração.' if ids.empty? || values.empty? || ids.size > 5000
+    raise Order::InvalidTransition, 'Seleciona pelo menos um produto.' if ids.empty? || ids.size > 5000
     CustomerMenuBroadcast.batch do
       MenuItem.transaction do
         products = current_establishment.menu_items.not_archived.where(id: ids)
@@ -15,6 +26,7 @@ class Staff::ProductClassificationsController < Staff::BaseController
         AuditLogger.record(user: current_user, action: 'products_classified', record: current_establishment, metadata: { count: products.count, values: values })
       end
     end
-    redirect_to staff_menu_path, notice: 'Produtos atualizados.', status: :see_other
+    redirect_to edit_staff_product_classification_path(scope: ('all' if params[:scope] == 'all')), notice: "#{ids.uniq.size} produto(s) classificado(s).", status: :see_other
   end
 end
+

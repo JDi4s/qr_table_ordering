@@ -56,6 +56,7 @@ class ProductInformationSystemTest < ApplicationSystemTestCase
     fill_in 'Descrição (opcional)', with: 'Queijo e fiambre.'
     select item.category.name, from: 'Categoria'
     fill_in 'Preço (€)', with: '3.50'
+    select 'Snack / sandes', from: 'Tipo de produto'
     assert_no_selector '#menu_item_nutrition_energy'
     find('summary', text: 'Alergénios').click
     check 'Leite'

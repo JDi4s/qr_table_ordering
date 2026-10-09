@@ -1,6 +1,22 @@
-<%= link_to '← Menu', staff_menu_path %><h1>Classificar produtos</h1><p>Seleciona os produtos que devem receber a mesma alteração. Os campos «Manter» não são alterados.</p>
-<%= form_with url: staff_product_classification_path, method: :patch, data: { controller: 'product-classification' } do %>
-<section class="panel service-bulk-fields"><label>Tipo <%= select_tag 'classification[product_kind]', options_for_select(MenuItem::PRODUCT_KINDS.map { |key,label| [label,key] }), prompt: 'Manter' %></label><label>Preparação <%= select_tag 'classification[preparation_key]', options_for_select(MenuItem::PREPARATION_KEYS.map { |key,label| [label,key] }), prompt: 'Manter' %></label><label>Menu normal <%= select_tag 'classification[normal_menu_visible]', options_for_select([['Mostrar','1'],['Ocultar','0']]), prompt: 'Manter' %></label></section>
-<div class="toolbar"><button type="button" class="secondary" data-action="product-classification#all">Selecionar todos</button><button type="button" class="secondary" data-action="product-classification#none">Desmarcar todos</button></div>
-<section class="panel"><% @products.each do |product| %><label class="classification-product"><%= check_box_tag 'product_ids[]', product.id, false %><span><strong><%= product.name %></strong><small><%= product.category.name %> · <%= MenuItem::PRODUCT_KINDS[product.product_kind] %> · <%= product.menu_labels.join(' · ') %></small></span></label><% end %></section><%= submit_tag 'Aplicar aos selecionados' %>
+<%= link_to '← Menu', staff_menu_path %>
+<h1>Classificar produtos</h1>
+<p>Seleciona os produtos do mesmo tipo e classifica-os de uma só vez.</p>
+<nav class="toolbar" aria-label="Produtos para classificar">
+  <%= link_to "Por classificar (#{@unclassified_count})", edit_staff_product_classification_path, class: "menu-placement-tab #{'is-active' unless @show_all}", aria: { current: (@show_all ? nil : 'page') } %>
+  <%= link_to 'Todos os produtos', edit_staff_product_classification_path(scope: 'all'), class: "menu-placement-tab #{'is-active' if @show_all}", aria: { current: (@show_all ? 'page' : nil) } %>
+</nav>
+<% if @products.empty? %>
+  <section class="panel"><h2><%= @show_all ? 'Ainda não existem produtos.' : 'Todos os produtos estão classificados.' %></h2><p>Podes alterar o tipo na edição do produto ou em «Todos os produtos».</p></section>
+<% else %>
+  <%= form_with url: staff_product_classification_path, method: :patch, data: { controller: 'product-classification' } do %>
+    <%= hidden_field_tag :scope, (@show_all ? 'all' : 'unclassified') %>
+    <section class="panel service-bulk-fields">
+      <label>Tipo de produto <%= select_tag 'classification[product_kind]', options_for_select(MenuItem::PRODUCT_KINDS.except('unclassified').map { |key,label| [label,key] }), prompt: 'Escolher tipo', required: true %></label>
+      <% if current_establishment.service_division_enabled? %><label>Preparação (opcional) <%= select_tag 'classification[preparation_key]', options_for_select(MenuItem::PREPARATION_KEYS.map { |key,label| [label,key] }), prompt: 'Não alterar preparação' %></label><% end %>
+    </section>
+    <div class="toolbar"><button type="button" class="secondary" data-action="product-classification#all">Selecionar todos</button><button type="button" class="secondary" data-action="product-classification#none">Desmarcar todos</button></div>
+    <section class="panel"><% @products.each do |product| %><label class="classification-product"><%= check_box_tag 'product_ids[]', product.id, false %><span><strong><%= product.name %></strong><small><%= product.category.name %><% if @show_all %> · <%= MenuItem::PRODUCT_KINDS[product.product_kind] %><% end %></small></span></label><% end %></section>
+    <%= submit_tag 'Classificar selecionados' %>
+  <% end %>
 <% end %>
+

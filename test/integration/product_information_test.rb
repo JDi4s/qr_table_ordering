@@ -9,7 +9,7 @@ class ProductInformationIntegrationTest < ActionDispatch::IntegrationTest
   test 'manager saves edits and clears optional fields while another establishment cannot edit them' do
     sign_in(@manager)
     post staff_menu_items_path, params: { menu_item: {
-      name: 'Croissant misto', price: 3.5, category_id: @item.category_id, description: 'Queijo e fiambre',
+      name: 'Croissant misto', product_kind: 'snack', price: 3.5, category_id: @item.category_id, description: 'Queijo e fiambre',
       allergens: ['', 'milk', 'gluten'], allergen_notes: 'Pode conter ovos', nutrition_enabled: '1',
       nutrition_basis: '100g', nutrition_energy: '312', nutrition_protein: '10', nutrition_salt: ''
     } }
