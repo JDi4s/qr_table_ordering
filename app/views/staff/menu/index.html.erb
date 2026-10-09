@@ -1,7 +1,22 @@
-<div class="staff-menu-page" data-controller="staff-menu" data-staff-menu-key-value="<%= current_establishment.id %>" data-action="click->staff-menu#remember submit->staff-menu#remember turbo:frame-load->staff-menu#restore">
+<div class="staff-menu-page" data-controller="staff-menu menu-sections" data-staff-menu-key-value="<%= current_establishment.id %>" data-action="click->staff-menu#remember submit->staff-menu#remember turbo:frame-load->staff-menu#restore">
 <h1>Menu</h1>
 <p class="staff-menu-intro">Organiza as categorias e os produtos do teu espaço.</p>
 
+<% if manager_access? %>
+<nav class="menu-main-tabs" aria-label="Gestão do menu"><button type="button" data-menu-section="carta" data-action="menu-sections#select" aria-pressed="true">Carta</button><button type="button" data-menu-section="scheduled" data-action="menu-sections#select" aria-pressed="false">Diárias / Brunch</button></nav>
+<section data-menu-section-panel="scheduled" hidden>
+<% if manager_access? %>
+  <section class="scheduled-menu-overview" aria-label="Menus por horário">
+    <div class="section-heading"><h2>Menus por horário</h2><p>Produtos e preços próprios, nos horários que escolheres.</p></div>
+    <div class="scheduled-menu-cards"><% [['breakfast','Pequeno-almoço'],['lunch','Menu de almoço']].each do |kind,label| %>
+      <% scheduled_menu = current_establishment.scheduled_menus.find_by(menu_kind: kind) %>
+      <article class="panel scheduled-menu-card"><div><h3><%= scheduled_menu&.title.presence || label %></h3><p><%= scheduled_menu ? "#{scheduled_menu.starts_at.strftime('%H:%M')}–#{scheduled_menu.ends_at.strftime('%H:%M')}" : 'Ainda não configurado' %></p><span class="menu-schedule-state"><%= scheduled_menu&.active? ? 'Programado' : 'Desativado' %></span></div><%= link_to 'Configurar', edit_staff_lunch_menu_path(menu_kind: kind), class: 'button secondary', aria: { label: "Configurar #{label.downcase}" } %></article>
+    <% end %></div>
+  </section>
+<% end %>
+</section>
+<% end %>
+<section data-menu-section-panel="carta">
 <% if manager_access? %>
   <div class="toolbar menu-actions">
     <%= link_to 'Criar produto', new_staff_menu_item_path(menu_context_params), class: 'button' %>
@@ -13,22 +28,13 @@
   </div>
 <% end %>
 
-<% if manager_access? %>
-  <section class="scheduled-menu-overview" aria-label="Menus por horário">
-    <div class="section-heading"><h2>Menus por horário</h2><p>Produtos e preços próprios, nos horários que escolheres.</p></div>
-    <div class="scheduled-menu-cards"><% [['breakfast','Pequeno-almoço'],['lunch','Menu de almoço']].each do |kind,label| %>
-      <% scheduled_menu = current_establishment.scheduled_menus.find_by(menu_kind: kind) %>
-      <article class="panel scheduled-menu-card"><div><h3><%= scheduled_menu&.title.presence || label %></h3><p><%= scheduled_menu ? "#{scheduled_menu.starts_at.strftime('%H:%M')}–#{scheduled_menu.ends_at.strftime('%H:%M')}" : 'Ainda não configurado' %></p><span class="menu-schedule-state"><%= scheduled_menu&.active? ? 'Programado' : 'Desativado' %></span></div><%= link_to 'Configurar', edit_staff_lunch_menu_path(menu_kind: kind), class: 'button secondary', aria: { label: "Configurar #{label.downcase}" } %></article>
-    <% end %></div>
-  </section>
-<% end %>
 <h2>Produtos e categorias</h2>
 <%= turbo_frame_tag 'staff_menu_records' do %>
   <% if request.headers['Turbo-Frame'].present? %>
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
   <% end %>
 
-  <nav class="staff-menu-status-tabs" aria-label="Onde aparecem os produtos"><% [['all','Todos os produtos'],['normal','Carta'],['breakfast','Só ver pequeno-almoço'],['lunch','Só ver almoço']].each do |value,label| %><%= link_to label, staff_menu_path(menu_view: value, menu_status: @menu_status), class: "menu-placement-tab #{'is-active' if (params[:menu_view].presence || 'all') == value}", data: { turbo_frame: 'staff_menu_records', turbo_action: 'advance' } %><% end %></nav>
+  <nav class="staff-menu-status-tabs" aria-label="Onde aparecem os produtos"><% [['all','Todos os produtos'],['normal','Carta']].each do |value,label| %><%= link_to label, staff_menu_path(menu_view: value, menu_status: @menu_status), class: "menu-placement-tab #{'is-active' if (params[:menu_view].presence || 'all') == value}", data: { turbo_frame: 'staff_menu_records', turbo_action: 'advance' } %><% end %></nav>
   <div class="staff-menu-status">
     <nav class="staff-menu-status-tabs" aria-label="Estado do menu">
       <% menu_tabs = [['active', 'Ativas'], ['unavailable', 'Indisponíveis'], ['archived', 'Arquivadas']] %>
@@ -97,4 +103,5 @@
     </section>
   </div>
 <% end %>
+</section>
 </div>

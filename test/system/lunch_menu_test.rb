@@ -47,6 +47,8 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     click_on 'Entrar'
     assert_current_path staff_orders_path
     visit staff_menu_path
+    click_button 'Diárias / Brunch'
+    assert_selector '[data-menu-section-panel=carta]', visible: :hidden
     within('.scheduled-menu-card', text: 'Menu de almoço') { click_link 'Configurar' }
     assert_text 'Menu de almoço'
     check 'Ativar menu de almoço'
