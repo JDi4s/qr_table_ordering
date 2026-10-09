@@ -5,8 +5,7 @@ class Staff::ProductClassificationsController < Staff::BaseController
     @show_all = params[:scope] == 'all'
     products = current_establishment.menu_items.not_archived
     @areas = current_establishment.available_production_areas
-    missing = products.where(product_kind: 'unclassified')
-    missing = missing.or(products.where(production_area_id: nil)) if current_establishment.service_division_enabled?
+    missing = products.needing_classification(current_establishment)
     @unclassified_count = missing.count
     @products = (@show_all ? products : missing).includes(:category).order(:name)
   end
@@ -27,7 +26,8 @@ class Staff::ProductClassificationsController < Staff::BaseController
       MenuItem.transaction do
         products = current_establishment.menu_items.not_archived.where(id: ids)
         raise Order::InvalidTransition, 'Seleção de produtos inválida.' unless products.count == ids.uniq.size
-        if current_establishment.service_division_enabled? && !values['production_area_id'] && products.where(production_area_id: nil).exists?
+        missing_area = products.where(production_area_id: nil).or(products.where.not(production_area_id: current_establishment.available_production_areas.select(:id)))
+        if current_establishment.service_division_enabled? && !values['production_area_id'] && missing_area.exists?
           raise Order::InvalidTransition, 'Escolhe a área onde estes produtos são preparados.'
         end
         products.each { |product| product.update!(values) }

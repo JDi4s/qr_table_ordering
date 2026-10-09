@@ -2,6 +2,14 @@ class MenuItem < ApplicationRecord
   PRODUCT_KINDS = { 'unclassified' => 'Por classificar', 'soup' => 'Sopa', 'plate' => 'Prato', 'snack' => 'Snack / sandes', 'dessert' => 'Sobremesa', 'drink' => 'Bebida', 'coffee' => 'Café / bebida quente' }.freeze
   PREPARATION_KEYS = { 'counter' => 'Balcão', 'kitchen' => 'Cozinha', 'snacks' => 'Cozinha de snacks' }.freeze
   scope :normal_menu, -> { where(normal_menu_visible: true) }
+  scope :needing_classification, ->(venue) {
+    missing = not_archived.where(product_kind: 'unclassified')
+    if venue.service_division_enabled?
+      missing = missing.or(not_archived.where(production_area_id: nil))
+      missing = missing.or(not_archived.where.not(production_area_id: venue.available_production_areas.select(:id)))
+    end
+    missing
+  }
   validates :product_kind, inclusion: { in: PRODUCT_KINDS.keys }
   validates :preparation_key, inclusion: { in: PREPARATION_KEYS.keys }
   validate do

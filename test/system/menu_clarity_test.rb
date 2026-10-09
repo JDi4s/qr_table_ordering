@@ -15,7 +15,7 @@ class MenuClaritySystemTest < ApplicationSystemTestCase
     check 'Vender menu completo'
     uncheck 'Prato'
     uncheck 'Bebida'
-    check "combo-options-soup-#{soup.id}"
+    check "#{'combo_options[soup]'.parameterize}-#{soup.id}"
     assert_text '1 produto selecionado'
     click_button 'Guardar menu de almoço'
     assert_text 'Menu de almoço guardado'

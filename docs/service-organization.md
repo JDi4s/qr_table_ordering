@@ -2,9 +2,9 @@
 
 ## Configuração do gerente
 
-1. Em Menu → Classificar produtos, selecionar os produtos por classificar e definir o tipo. Esta entrada só aparece quando há produtos por classificar. Na criação e edição, o tipo é obrigatório. A preparação é opcional e só aparece com a divisão ativa; a presença no menu normal é definida na edição individual. Nenhuma classificação por nome é aplicada automaticamente.
+1. Em Menu → Classificar produtos, selecionar os produtos por classificar e definir o tipo. Esta entrada só aparece quando há produtos por classificar. Na criação e edição, o tipo é obrigatório. Com divisão ativa, a área de preparação é obrigatória. Produtos antigos com tipo ou área em falta aparecem na classificação. A presença na carta é definida na edição individual. Nenhuma classificação por nome é aplicada automaticamente.
 2. Em Menu → Pequeno-almoço ou Menu de almoço, definir dias, horário de Lisboa, produtos avulso, preços e grupos do menu completo. Os produtos ocultos no menu normal continuam disponíveis nestes menus. A disponibilidade do produto e da categoria é respeitada em todos.
-3. Em Definições → Organização do serviço, ativar a divisão. Criam-se Balcão e Cozinha quando não existem. É possível criar outros postos, incluindo cozinha de snacks e vários balcões.
+3. Em Definições → Organização do serviço, ativar a divisão depois da autorização da Administração. O número de áreas ativas respeita o limite do contrato. Na primeira configuração criam-se Balcão e Cozinha, até ao limite autorizado. É possível criar outros postos, incluindo cozinha de snacks e vários balcões.
 4. Criar zonas e escolher os postos de destino de balcão, cozinha e snacks. Atribuir a zona a uma mesa ou a um intervalo de mesas.
 5. Em Definições → Equipa, atribuir a função Preparação e pelo menos um posto ao funcionário. Uma conta de preparação tem acesso apenas ao seu painel e preferências pessoais. As contas existentes continuam como sala/atendimento.
 
@@ -26,9 +26,8 @@ A divisão permanece desligada até o gerente a ativar. A ativação inclui pedi
 
 ## Eliminar um estabelecimento
 
-Na Administração → Contrato e plano → Eliminar estabelecimento, escrever o identificador do cliente e confirmar. A eliminação retira o cliente da gestão, desativa os utilizadores e mesas, encerra intervenções de suporte e bloqueia novas operações. Pedidos, pagamentos e auditoria são preservados; não é destruição física do histórico. Pedidos por pagar ou chamadas em curso impedem a eliminação. Um estabelecimento eliminado não pode ser reativado pela edição normal.
+Na Administração → Contrato e plano → Eliminar estabelecimento, usar o botão de caixote do lixo e confirmar, sem escrever o identificador. A eliminação retira o cliente da gestão, desativa os utilizadores e mesas, encerra intervenções de suporte e bloqueia novas operações. Pedidos, pagamentos e auditoria são preservados; não é destruição física do histórico. Pedidos por pagar ou chamadas em curso impedem a eliminação. Um estabelecimento eliminado não pode ser reativado pela edição normal.
 
 ## Atualização na VPS
 
 Criar cópia PostgreSQL antes de atualizar. A imagem executa `db:prepare`, incluindo a migração `20261009140000`. A migração conserva os menus de almoço e adiciona a classificação, menus por horário, zonas e tarefas.
-

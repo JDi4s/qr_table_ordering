@@ -40,6 +40,9 @@ class MenuClarityTest < ActionDispatch::IntegrationTest
     assert_equal area.id, @product.reload.production_area_id
     get staff_menu_path
     assert_select 'a[href=?]', edit_staff_product_classification_path, count: 0
+    area.update!(active: false)
+    get edit_staff_product_classification_path
+    assert_select '.classification-product strong', text: @product.name
   end
 
   test 'included groups and typed products can be saved together without an optional field' do
@@ -78,5 +81,17 @@ class MenuClarityTest < ActionDispatch::IntegrationTest
     delete admin_establishment_path(@venue)
     assert @venue.reload.deleted_at
     assert_not @manager.reload.active?
+  end
+
+  test 'upgrade preserves existing division permission without enabling new venues' do
+    @venue.update_columns(service_division_enabled: true, production_areas_limit: 0)
+    3.times { |i| @venue.production_areas.create!(name: "Área #{i + 1}") }
+    other, = build_venue
+    require Rails.root.join('db/migrate/20261009180000_preserve_existing_service_area_permissions')
+    PreserveExistingServiceAreaPermissions.new.up
+    assert_equal 3, @venue.reload.production_areas_limit
+    assert_equal 3, @venue.available_production_areas.count
+    assert_equal 0, other.reload.production_areas_limit
+    assert_not other.production_areas_enabled?
   end
 end

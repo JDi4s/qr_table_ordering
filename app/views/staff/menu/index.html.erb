@@ -6,8 +6,7 @@
   <div class="toolbar menu-actions">
     <%= link_to 'Criar produto', new_staff_menu_item_path(menu_context_params), class: 'button' %>
     <% pending_products = current_establishment.menu_items.not_archived %>
-    <% missing_products = pending_products.where(product_kind: 'unclassified') %>
-    <% missing_products = missing_products.or(pending_products.where(production_area_id: nil)) if current_establishment.service_division_enabled? %>
+    <% missing_products = pending_products.needing_classification(current_establishment) %>
     <% pending_classification = missing_products.count %>
     <% if pending_classification.positive? %><%= link_to "Classificar produtos (#{pending_classification})", edit_staff_product_classification_path, class: 'button secondary' %><% end %>
     <%= link_to 'Criar categoria', new_staff_category_path(menu_context_params), class: 'button secondary' %>
