@@ -1,29 +1,34 @@
 <div class="lunch-management">
-  <%= link_to '← Menu', staff_menu_path %><h1>Menu de almoço</h1>
-  <p>Usa os teus produtos, com preços próprios para o almoço.</p>
-  <%= form_with model: @lunch_menu, url: staff_lunch_menu_path, method: :patch, data: { turbo: false } do |f| %>
+  <%= link_to '← Menu', staff_menu_path %><h1><%= @kind == 'lunch' ? 'Menu de almoço' : 'Pequeno-almoço' %></h1>
+  <p>Produtos e preços deste horário, incluindo os que não aparecem no menu normal.</p>
+  <% if @products.any? { |p| p.product_kind == 'unclassified' } %><p class="flash alert">Existem produtos por classificar. <%= link_to 'Classificar produtos em lote', edit_staff_product_classification_path %> para filtrar as escolhas corretamente.</p><% end %>
+  <%= form_with model: @lunch_menu, url: staff_lunch_menu_path(menu_kind: @kind), method: :patch, data: { turbo: false } do |f| %>
     <% if @lunch_menu.errors.any? %><div class="flash alert" role="alert"><%= @lunch_menu.errors.full_messages.join('. ') %></div><% end %>
     <section class="panel lunch-settings">
-      <label class="lunch-toggle"><%= f.check_box :active %> Disponibilizar menu de almoço</label>
+      <label class="lunch-toggle"><%= f.check_box :active %> Disponibilizar <%= @kind == 'lunch' ? 'menu de almoço' : 'pequeno-almoço' %></label>
       <details open><summary>Dias e horário</summary>
         <div class="lunch-days"><%= hidden_field_tag 'lunch_menu[weekdays][]', '' %><% LunchMenu::DAYS.each do |label, value| %><label><%= check_box_tag 'lunch_menu[weekdays][]', value, @lunch_menu.weekdays.include?(value), id: "lunch_day_#{value}" %><%= label %></label><% end %></div>
         <div class="lunch-times"><label>Das <%= f.time_field :starts_at, required: true %></label><label>Às <%= f.time_field :ends_at, required: true %></label></div>
-        <small>Fuso horário de Lisboa. Fora deste horário, o almoço sai automaticamente do menu.</small>
+        <small>Fuso horário de Lisboa. Fora deste horário, este menu sai automaticamente do menu.</small>
       </details>
     </section>
-    <section class="panel lunch-settings"><h2>Pratos avulso</h2>
-      <label class="lunch-toggle"><%= f.check_box :individual_enabled %> Vender pratos do dia à unidade</label>
-      <p>Escolhe os produtos e o preço de almoço. O preço normal mantém-se.</p>
-      <%= render 'options', field: 'individual_items', selected: @lunch_menu.individual_offers, money_key: 'price', money_label: 'Preço de almoço', default_price: true %>
+    <section class="panel lunch-settings"><h2>Produtos avulso</h2>
+      <label class="lunch-toggle"><%= f.check_box :individual_enabled %> Vender produtos à unidade</label>
+      <p>Escolhe os produtos e o preço neste menu. O preço normal mantém-se.</p>
+      <%= render 'options', field: 'individual_items', selected: @lunch_menu.individual_offers, money_key: 'price', money_label: 'Preço neste menu', default_price: true %>
     </section>
     <section class="panel lunch-settings"><h2>Menu completo</h2>
       <label class="lunch-toggle"><%= f.check_box :combo_enabled %> Vender menu completo</label>
       <label>Preço base (€)<%= f.number_field :combo_price, min: 0, max: '99999.99', step: '0.01', required: true %></label>
-      <p>O cliente escolhe uma sopa, um prato e uma bebida. O café é opcional. Podes definir suplementos por opção.</p>
-      <% LunchMenu::GROUPS.each do |key, name| %><details class="lunch-option-section"><summary><%= name %> <small><%= Array(@lunch_menu.combo_groups[key]).size %> opções</small></summary>
-        <%= render 'options', field: "combo_options[#{key}]", selected: Array(@lunch_menu.combo_groups[key]), money_key: 'supplement', money_label: 'Suplemento (€)', default_price: false %>
+      <p>O cliente escolhe uma opção em cada grupo obrigatório. Podes definir suplementos por opção.</p>
+      <details class="service-config-record"><summary>Configurar grupos de escolhas</summary>
+      <% (@lunch_menu.groups + [2, 8 - @lunch_menu.groups.size].min.times.map { |i| { 'key' => "extra_#{@lunch_menu.groups.size + i}", 'name' => '', 'types' => ['snack'], 'optional' => true } }).each_with_index do |group, index| %>
+        <div class="service-bulk-fields"><%= hidden_field_tag "groups[#{index}][key]", group['key'] %><label>Nome <%= text_field_tag "groups[#{index}][name]", group['name'], maxlength: 60, placeholder: 'Novo grupo (opcional)' %></label><label>Tipos permitidos <%= select_tag "groups[#{index}][types]", options_for_select(MenuItem::PRODUCT_KINDS.reject { |key,_| key == 'unclassified' }.map { |key,label| [label,key] } + [['Prato ou snack','plate,snack'],['Pão / pastelaria','snack,dessert']], group['types'].join(',')) %></label><label class="form-check"><%= hidden_field_tag "groups[#{index}][optional]", '0' %><%= check_box_tag "groups[#{index}][optional]", '1', group['optional'] %> Opcional</label></div>
+      <% end %><small>Para adicionar um grupo obrigatório, desmarca «Vender menu completo», guarda os grupos e escolhe os produtos antes de voltar a ativar o menu completo.</small></details>
+      <% @lunch_menu.groups.each do |group| %><% key, name = group.values_at('key', 'name') %><details class="lunch-option-section"><summary><%= name %> <small><%= Array(@lunch_menu.combo_groups[key]).size %> opções</small></summary>
+        <%= render 'options', field: "combo_options[#{key}]", selected: Array(@lunch_menu.combo_groups[key]), money_key: 'supplement', money_label: 'Suplemento (€)', default_price: false, product_group: group %>
       </details><% end %>
     </section>
-    <%= f.submit 'Guardar menu de almoço' %>
+    <%= f.submit(@kind == 'lunch' ? 'Guardar menu de almoço' : 'Guardar pequeno-almoço') %>
   <% end %>
 </div>

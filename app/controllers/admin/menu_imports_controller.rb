@@ -2,7 +2,7 @@ class Admin::MenuImportsController < Admin::BaseController
   before_action :load_destination
 
   def new
-    @sources = Establishment.where.not(id: @destination.id).joins(:menu_items).where(menu_items: { archived_at: nil }).distinct.order(:name)
+    @sources = Establishment.where(deleted_at: nil).where.not(id: @destination.id).joins(:menu_items).where(menu_items: { archived_at: nil }).distinct.order(:name)
     selection = Rails.application.message_verifier(:menu_import).verified(params[:quote].to_s)&.symbolize_keys if params[:quote].present?
     if selection && selection[:destination_id] == @destination.id
       params[:source_id] = selection[:source_id]
@@ -39,7 +39,7 @@ class Admin::MenuImportsController < Admin::BaseController
   private
 
   def load_destination
-    @destination = Establishment.find(params[:establishment_id])
+    @destination = Establishment.where(deleted_at: nil).find(params[:establishment_id])
     redirect_to admin_establishments_path, alert: 'Este estabelecimento já tem menu.', status: :see_other unless @destination.menu_empty?
   end
 end

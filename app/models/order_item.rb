@@ -1,5 +1,6 @@
 class OrderItem < ApplicationRecord
   belongs_to :order
+  has_many :preparation_tasks, dependent: :destroy
   belongs_to :menu_item, optional: true
   enum status: { pending: 'pending', accepted: 'accepted', denied: 'denied' }
   attribute :paid_quantity, :integer, default: 0

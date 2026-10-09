@@ -58,7 +58,7 @@
 
           <% if current_establishment.production_areas_enabled? %>
             <fieldset class="team-areas" data-team-form-target="areas" <%= 'hidden' if @user.manager? %>>
-              <legend>Áreas do funcionário</legend>
+              <legend>Áreas do funcionário</legend><%= f.label :service_role, 'Função no serviço' %><%= f.select :service_role, [['Sala / atendimento', 'floor'], ['Preparação', 'preparation']] %>
               <div class="team-area-options">
                 <% @production_areas.each do |area| %>
                   <label><%= check_box_tag 'user[production_area_ids][]', area.id, @user.production_area_ids.include?(area.id) %><span><%= area.name %></span></label>
@@ -178,7 +178,7 @@
 
                       <% if current_establishment.production_areas_enabled? %>
                         <fieldset class="team-areas" data-team-form-target="areas" <%= 'hidden' if display_user.manager? %>>
-                          <legend>Áreas do funcionário</legend>
+                          <legend>Áreas do funcionário</legend><%= f.label :service_role, 'Função no serviço' %><%= f.select :service_role, [['Sala / atendimento', 'floor'], ['Preparação', 'preparation']] %>
                           <div class="team-area-options">
                             <% @production_areas.each do |area| %>
                               <label><%= check_box_tag 'user[production_area_ids][]', area.id, display_user.production_area_ids.include?(area.id) %><span><%= area.name %></span></label>

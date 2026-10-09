@@ -211,7 +211,7 @@ class Staff::MenuItemsController < Staff::BaseController
       :description,
       :price,
       :category_id,
-      :production_area_id,
+      :production_area_id, :product_kind, :normal_menu_visible, :preparation_key,
       :available,
       :image,
       :allergen_notes, :nutrition_enabled, :nutrition_basis, :nutrition_portion,

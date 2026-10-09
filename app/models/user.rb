@@ -1,5 +1,9 @@
 class User < ApplicationRecord
   has_secure_password
+  validates :service_role, inclusion: { in: %w[floor preparation] }
+  def preparation_staff?
+    staff? && service_role == 'preparation' && establishment&.service_division_enabled?
+  end
   belongs_to :establishment, optional: true
   has_many :staff_push_subscriptions, dependent: :destroy
   has_many :payments, dependent: :restrict_with_error

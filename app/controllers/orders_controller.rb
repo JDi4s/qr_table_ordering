@@ -15,6 +15,7 @@ class OrdersController < ApplicationController
     @active_count = customer_orders.where.not(status: %w[served denied]).count
     @cart_quantities = draft_quantities
     @cart_note = draft_note
+    @menu_drafts = session.dig(:order_draft, 'scheduled') || {}
     @lunch_draft = session.dig(:order_draft, "lunch") || {}
   end
 
@@ -76,7 +77,7 @@ class OrdersController < ApplicationController
             end
             item = establishment.menu_items.includes(:category).find(id)
 
-            unless item.available? && !item.archived? && item.category.visible_to_customers? && (price.blank? || item.price == BigDecimal(price))
+            unless item.normal_menu_visible? && item.available? && !item.archived? && item.category.visible_to_customers? && (price.blank? || item.price == BigDecimal(price))
               raise Order::InvalidTransition, 'O menu mudou. Reveja os produtos e preços antes de enviar.'
             end
 
@@ -161,6 +162,7 @@ class OrdersController < ApplicationController
         'individual' => items.select { |item| item.dig(:lunch_selection, 'kind') == 'individual' }.to_h { |item| [item[:menu_item_id].to_s, item[:quantity]] },
         'combos' => items.select { |item| item.dig(:lunch_selection, 'kind') == 'combo' }.map { |item| { 'quantity' => item[:quantity], 'choices' => item[:lunch_selection]['choices'].to_h { |choice| [choice['group'], choice['menu_item_id']] } } }
       },
+      'scheduled' => @table.establishment.scheduled_menus.to_h { |menu| [menu.menu_kind, { 'individual' => items.select { |i| i.dig(:lunch_selection, 'lunch_menu_id') == menu.id && i.dig(:lunch_selection, 'kind') == 'individual' }.to_h { |i| [i[:menu_item_id].to_s,i[:quantity]] }, 'combos' => items.select { |i| i.dig(:lunch_selection, 'lunch_menu_id') == menu.id && i.dig(:lunch_selection, 'kind') == 'combo' }.map { |i| { 'quantity' => i[:quantity], 'choices' => i[:lunch_selection]['choices'].to_h { |c| [c['group'],c['menu_item_id']] } } } } ] },
       'note' => note
     }
   end
@@ -189,24 +191,25 @@ class OrdersController < ApplicationController
       next if qty.to_i.zero?
 
       item = @table.establishment.menu_items.includes(:category).find(id)
-      raise Order::InvalidTransition, "#{item.name} já não está disponível." unless item.available? && !item.archived? && item.category.visible_to_customers?
+      raise Order::InvalidTransition, "#{item.name} já não está disponível." unless item.normal_menu_visible? && item.available? && !item.archived? && item.category.visible_to_customers?
 
       { menu_item_id: item.id, name: item.name, quantity: qty.to_i, unit_price: item.price, line_total: item.price * qty.to_i }
     end
 
-    items.concat(selected_lunch_items)
+    items.concat(selected_lunch_items('lunch'))
+    items.concat(selected_lunch_items('breakfast'))
     raise Order::InvalidTransition, 'Selecione pelo menos um produto.' if items.empty?
     items
   end
 
-  def selected_lunch_items
-    individual = params.dig(:order, :lunch_items) || ActionController::Parameters.new
+  def selected_lunch_items(menu_kind)
+    individual = params.dig(:order, "#{menu_kind}_items") || ActionController::Parameters.new
     raise Order::InvalidTransition, 'Pratos de almoço inválidos.' unless individual.is_a?(ActionController::Parameters) && individual.keys.size <= 200
-    combos = JSON.parse(params.dig(:order, :lunch_combos).presence || '[]')
+    combos = JSON.parse(params.dig(:order, "#{menu_kind}_combos").presence || '[]')
     raise Order::InvalidTransition, 'Menus de almoço inválidos.' unless combos.is_a?(Array) && combos.size <= 10
     selected = individual.to_unsafe_h.reject { |_id, quantity| quantity.to_s == '0' }
     return [] if selected.empty? && combos.empty?
-    menu = @table.establishment.lunch_menu
+    menu = @table.establishment.scheduled_menus.find_by(menu_kind: menu_kind)
     raise Order::InvalidTransition, 'O almoço já não está disponível.' unless menu
     rows = selected.map { |id, quantity| menu.selection(kind: 'individual', menu_item_id: id, quantity: quantity) }
     rows + combos.map do |combo|
@@ -221,7 +224,7 @@ class OrdersController < ApplicationController
     ids = items.map { |item| item[:menu_item_id] }
     return MenuItem.none if ids.empty?
 
-    scope = @table.establishment.menu_items.not_archived
+    scope = @table.establishment.menu_items.not_archived.normal_menu
       .joins(:recommended_by, :category)
       .where(menu_item_recommendations: { menu_item_id: ids })
       .where.not(id: ids)
@@ -233,7 +236,7 @@ class OrdersController < ApplicationController
     source_items = @table.establishment.menu_items.includes(category: :parent).where(id: ids).to_a
     MenuSuggestionEngine.call(
       source_items: source_items,
-      scope: @table.establishment.menu_items.not_archived.where(available: true),
+      scope: @table.establishment.menu_items.not_archived.normal_menu.where(available: true),
       limit: 4
     )
   end
@@ -264,12 +267,12 @@ class OrdersController < ApplicationController
     source_items = @table.establishment.menu_items.includes(category: :parent).where(id: source_ids).to_a
     automatic = MenuSuggestionEngine.call(
       source_items: source_items,
-      scope: @table.establishment.menu_items.not_archived.where(available: true),
+      scope: @table.establishment.menu_items.not_archived.normal_menu.where(available: true),
       limit: 4
     ).map(&:id)
     allowed = (allowed + automatic).uniq
 
-    allowed = @table.establishment.menu_items.not_archived
+    allowed = @table.establishment.menu_items.not_archived.normal_menu
       .where(id: allowed, available: true)
       .select { |item| item.category.visible_to_customers? }
       .map(&:id)

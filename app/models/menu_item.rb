@@ -1,4 +1,22 @@
 class MenuItem < ApplicationRecord
+  PRODUCT_KINDS = { 'unclassified' => 'Por classificar', 'soup' => 'Sopa', 'plate' => 'Prato', 'snack' => 'Snack / sandes', 'dessert' => 'Sobremesa', 'drink' => 'Bebida', 'coffee' => 'Café / bebida quente' }.freeze
+  PREPARATION_KEYS = { 'counter' => 'Balcão', 'kitchen' => 'Cozinha', 'snacks' => 'Cozinha de snacks' }.freeze
+  scope :normal_menu, -> { where(normal_menu_visible: true) }
+  validates :product_kind, inclusion: { in: PRODUCT_KINDS.keys }
+  validates :preparation_key, inclusion: { in: PREPARATION_KEYS.keys }
+  validate do
+    errors.add(:production_area, 'não pertence ao estabelecimento') if production_area && production_area.establishment_id != category&.establishment_id
+  end
+
+  def menu_labels
+    labels = normal_menu_visible? ? ['Menu normal'] : []
+    establishment.scheduled_menus.each do |menu|
+      ids = menu.individual_offers.map { |o| o['menu_item_id'].to_i } + menu.combo_groups.values.flatten.map { |o| o['menu_item_id'].to_i }
+      labels << menu.display_title if ids.include?(id)
+    end
+    labels.presence || ['Sem menu atribuído']
+  end
+
   ALLERGENS = {
     'gluten' => 'Glúten', 'milk' => 'Leite', 'eggs' => 'Ovos', 'nuts' => 'Frutos de casca rija',
     'soy' => 'Soja', 'peanuts' => 'Amendoim', 'fish' => 'Peixe', 'crustaceans' => 'Crustáceos',

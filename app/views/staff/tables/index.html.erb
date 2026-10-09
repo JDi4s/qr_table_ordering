@@ -13,6 +13,7 @@
       <%= form_with model: [:staff, @table] do |f| %>
         <%= f.label :number, 'Número da mesa' %>
         <%= f.number_field :number, min: 1, required: true %>
+        <%= f.label :service_zone_id, 'Zona' %><%= f.collection_select :service_zone_id, current_establishment.service_zones.order(:name), :id, :name, prompt: 'Sem zona' %>
         <%= f.submit 'Criar mesa e QR' %>
       <% end %>
     </details>
@@ -44,6 +45,7 @@
               <%= form_with model: [:staff, table], class: 'staff-qr-edit-form' do |f| %>
                 <%= f.label :number, 'Número' %>
                 <%= f.number_field :number, min: 1, required: true %>
+                <%= f.label :service_zone_id, 'Zona' %><%= f.collection_select :service_zone_id, current_establishment.service_zones.order(:name), :id, :name, prompt: 'Sem zona' %>
                 <label><%= f.check_box :active %> Mesa ativa</label>
                 <%= f.submit 'Guardar alterações', class: 'secondary' %>
               <% end %>

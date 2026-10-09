@@ -5,7 +5,7 @@
   <section id="menu-category-<%= category.id %>" class="customer-menu-section menu-category level-<%= level %>" data-customer-menu-target="categoryPanel" <%= 'hidden' unless active %>>
     <%= content_tag(level.zero? ? :h2 : :h3, category.name, class: "menu-category-title level-#{level}") %>
 
-  <% items = category.menu_items.select { |item| item.available? && !item.archived? }.sort_by(&:name) %>
+  <% items = category.menu_items.select { |item| item.available? && item.normal_menu_visible? && !item.archived? }.sort_by(&:name) %>
 
     <% unless items.empty? %>
       <div class="customer-menu-grid">

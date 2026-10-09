@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   delete 'logout', to: 'sessions#destroy'
   namespace :admin do
     resources :landing_requests, only: [:index, :show, :update]
-    resources :establishments, except: [:show, :destroy] do
+    resources :establishments, except: [:show] do
       resource :menu_import, only: [:new, :create], controller: 'menu_imports' do
         post :review
         post :selection, to: 'menu_imports#new'
@@ -37,6 +37,9 @@ Rails.application.routes.draw do
     end
   end
   namespace :staff do
+    resource :service_organization, only: [:edit, :update], controller: 'service_organization'
+    resource :product_classification, only: [:edit, :update], controller: 'product_classifications'
+    resources :preparations, only: [:index, :update]
     resource :lunch_menu, only: [:edit, :update]
     resources :orders, only: [:index, :show, :update] do
       member { patch :mark_paid; patch :pay_item; patch :pay_selected }

@@ -3,10 +3,30 @@ class LunchMenu < ApplicationRecord
   DAYS = [['Seg', 1], ['Ter', 2], ['Qua', 3], ['Qui', 4], ['Sex', 5], ['Sáb', 6], ['Dom', 0]].freeze
   belongs_to :establishment
   include BroadcastsCustomerMenu
-  validates :establishment_id, uniqueness: true
+  validates :menu_kind, inclusion: { in: %w[lunch breakfast] }, uniqueness: { scope: :establishment_id }
+  validates :title, length: { maximum: 80 }
   validates :starts_at, :ends_at, presence: true
   validates :combo_price, numericality: { greater_than_or_equal_to: 0, less_than: 100000 }
   validate :configuration_is_valid
+
+  def display_title
+    title.presence || (menu_kind == 'breakfast' ? 'Pequeno-almoço' : 'Almoço')
+  end
+
+  def groups
+    return group_definitions if group_definitions.present?
+    if menu_kind == 'breakfast'
+      [{ 'key' => 'coffee', 'name' => 'Bebida quente', 'types' => ['coffee'], 'optional' => false },
+       { 'key' => 'bread', 'name' => 'Pão ou pastelaria', 'types' => %w[snack dessert], 'optional' => false },
+       { 'key' => 'drink', 'name' => 'Sumo / bebida', 'types' => ['drink'], 'optional' => true }]
+    else
+      GROUPS.map { |key, name| { 'key' => key, 'name' => name, 'types' => key == 'plate' ? %w[plate snack] : [key], 'optional' => key == 'coffee' } }
+    end
+  end
+
+  def product_matches?(item, group)
+    Array(group['types']).include?(item.product_kind) || (group_definitions.empty? && persisted? && item.product_kind == 'unclassified')
+  end
 
   def open?(at: Time.current)
     local = at.in_time_zone('Lisbon')
@@ -40,17 +60,19 @@ class LunchMenu < ApplicationRecord
   end
 
   def available_groups
-    GROUPS.map do |key, name|
+    groups.map do |group|
+      key, name = group.values_at('key', 'name')
       options = Array(combo_groups[key]).filter_map do |option|
         item = available_product(option['menu_item_id'])
-        { item: item, supplement: BigDecimal(option['supplement']), id: item.id } if item
+        { item: item, supplement: BigDecimal(option['supplement']), id: item.id } if item && product_matches?(item, group)
       end
-      { key: key, name: name, optional: key == 'coffee', options: options }
+      { key: key, name: name, optional: group['optional'] == true, options: options }
     end
   end
 
   def combo_available?
-    combo_enabled? && available_groups.reject { |group| group[:optional] }.all? { |group| group[:options].any? }
+    required = available_groups.reject { |group| group[:optional] }
+    combo_enabled? && required.any? && required.all? { |group| group[:options].any? }
   end
 
   def selection(kind:, quantity:, menu_item_id: nil, choices: {})
@@ -69,7 +91,7 @@ class LunchMenu < ApplicationRecord
       selected = available_groups.map do |group|
         choice_id = choices[group[:key]].to_s
         if group[:optional] && choice_id.blank?
-          { 'group' => group[:key], 'label' => group[:name], 'menu_item_id' => nil, 'name' => 'Sem café', 'supplement' => '0' }
+          { 'group' => group[:key], 'label' => group[:name], 'menu_item_id' => nil, 'name' => "Sem #{group[:name].downcase}", 'supplement' => '0' }
         else
           option = group[:options].find { |row| row[:id].to_s == choice_id }
           raise Order::InvalidTransition, "Escolhe uma opção disponível para #{group[:name].downcase}." unless option
@@ -78,7 +100,7 @@ class LunchMenu < ApplicationRecord
         end
       end
       raise Order::InvalidTransition, 'Preço do menu inválido.' if price >= 100000
-      { menu_item_id: nil, name: 'Menu completo', quantity: quantity, unit_price: price, line_total: price * quantity,
+      { menu_item_id: nil, name: (menu_kind == 'lunch' ? 'Menu completo' : "#{display_title} · Menu completo"), quantity: quantity, unit_price: price, line_total: price * quantity,
         lunch_selection: metadata.merge('choices' => selected) }
     else
       raise Order::InvalidTransition, 'Opção de almoço inválida.'
@@ -87,7 +109,7 @@ class LunchMenu < ApplicationRecord
 
   def self.validated_selection(establishment, metadata, item_id, quantity, price)
     metadata = metadata.stringify_keys
-    menu = establishment.lunch_menu
+    menu = establishment.scheduled_menus.find_by(id: metadata['lunch_menu_id'])
     unless menu && menu.id == metadata['lunch_menu_id'].to_i && menu.updated_at.iso8601(6) == metadata['version']
       raise Order::InvalidTransition, 'O menu de almoço mudou. Reveja o pedido.'
     end
@@ -118,18 +140,32 @@ class LunchMenu < ApplicationRecord
       errors.add(:base, 'Configuração de almoço inválida.')
       return
     end
+    unless group_definitions.is_a?(Array) && group_definitions.size <= 8 && group_definitions.all? { |g| g.is_a?(Hash) && g['key'].to_s.match?(/\A[a-z][a-z0-9_]{0,30}\z/) && g['name'].to_s.length.between?(1,60) && g['types'].is_a?(Array) && g['types'].any? && (g['types'] - MenuItem::PRODUCT_KINDS.keys).empty? && [true,false].include?(g['optional']) } && groups.map { |g| g['key'] }.uniq.size == groups.size
+      errors.add(:base, 'Grupos de escolhas inválidos.')
+      return
+    end
     rows = individual_offers + combo_groups.values.flat_map { |options| options.is_a?(Array) ? options : [nil] }
     valid_ids = establishment&.menu_items&.not_archived&.pluck(:id) || []
     valid = rows.size <= 1000 && rows.all? do |row|
       row.is_a?(Hash) && valid_ids.include?(row['menu_item_id'].to_i) && valid_money?(row.key?('price') ? row['price'] : row['supplement'])
     end
     errors.add(:base, 'Escolhe produtos deste estabelecimento e preços válidos.') unless valid
-    errors.add(:base, 'Grupos de menu inválidos.') unless (combo_groups.keys - GROUPS.keys).empty?
+    return unless valid
+    errors.add(:base, 'Grupos de menu inválidos.') unless (combo_groups.keys - groups.map { |g| g['key'] }).empty?
+    if group_definitions.present?
+      groups.each do |group|
+        Array(combo_groups[group['key']]).each do |row|
+          item = establishment.menu_items.find_by(id: row['menu_item_id'])
+          errors.add(:base, "#{item&.name}: classifica o produto no tipo correto para #{group['name']}.") if item && !product_matches?(item, group)
+        end
+      end
+    end
     return unless active?
     errors.add(:base, 'Ativa pratos avulso ou o menu completo.') unless individual_enabled? || combo_enabled?
     errors.add(:base, 'Seleciona pelo menos um prato avulso.') if individual_enabled? && individual_offers.empty?
-    if combo_enabled? && %w[soup plate drink].any? { |key| Array(combo_groups[key]).empty? }
-      errors.add(:base, 'O menu completo precisa de sopa, prato e bebida.')
+    if combo_enabled? && groups.reject { |g| g['optional'] }.any? { |g| Array(combo_groups[g['key']]).empty? }
+      errors.add(:base, 'Seleciona produtos em todos os grupos obrigatórios do menu completo.')
     end
+    errors.add(:base, 'O menu completo precisa de pelo menos um grupo obrigatório.') if combo_enabled? && groups.all? { |g| g['optional'] }
   end
 end

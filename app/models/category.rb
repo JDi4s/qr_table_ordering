@@ -32,6 +32,10 @@ class Category < ApplicationRecord
     archived_at.present?
   end
 
+  def normal_menu_contents?
+    visible_to_customers? && (menu_items.any? { |item| item.normal_menu_visible? && item.available? && !item.archived? } || children.any?(&:normal_menu_contents?))
+  end
+
   def uncategorized?
     name.to_s.strip.casecmp?('Sem categoria')
   end

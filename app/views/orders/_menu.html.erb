@@ -1,6 +1,7 @@
 <% establishment = local_assigns[:establishment] || categories.first&.establishment %>
-<% lunch = establishment&.lunch_menu %>
-<% has_lunch = lunch&.open? && (lunch.available_individual_offers.any? || lunch.combo_available?) %>
+<% scheduled = establishment ? establishment.scheduled_menus.order(:starts_at).to_a : [] %>
+<% menus = scheduled.select { |menu| menu.open? && (menu.available_individual_offers.any? || menu.combo_available?) } %>
+<% has_lunch = menus.any? %>
 <% lunch_draft = local_assigns.fetch(:lunch_draft, {}) %>
 <% preferred_order = { 'Comidas' => 0, 'Bebidas' => 1 } %>
 <% subcategory_order = {
@@ -8,8 +9,8 @@
   'Padaria' => 0, 'Pastelaria' => 1, 'Sandes' => 2
 } %>
 <% cart_quantities = local_assigns.fetch(:cart_quantities, {}) %>
-<% roots = categories.select { |category| category.root? && category.visible_to_customers? }.sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
-<div id="customer_menu" class="customer-menu" data-controller="customer-menu product-info lunch-menu" data-action="lunch-menu:changed->customer-menu#syncCart" data-lunch-transition="<%= lunch&.next_transition_at&.iso8601 %>">
+<% roots = categories.select { |category| category.root? && category.normal_menu_contents? }.sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
+<div id="customer_menu" class="customer-menu" data-controller="customer-menu product-info" data-action="lunch-menu:changed->customer-menu#syncCart" data-lunch-server-time="<%= Time.current.iso8601 %>" data-lunch-transition="<%= scheduled.filter_map(&:next_transition_at).min&.iso8601 %>">
   <div class="customer-menu-sticky">
     <label class="menu-search">
       <span class="sr-only">Pesquisar no menu</span>
@@ -17,7 +18,7 @@
     </label>
     <div class="customer-menu-toolbar">
       <nav class="menu-root-tabs" aria-label="Categorias principais">
-        <% if has_lunch %><button type="button" class="menu-root-tab is-active" data-action="customer-menu#selectRoot" data-root-id="menu-root-lunch" aria-selected="true">Almoço</button><% end %>
+        <% menus.each_with_index do |menu,index| %><button type="button" class="menu-root-tab <%= 'is-active' if index.zero? %>" data-action="customer-menu#selectRoot" data-root-id="menu-root-<%= menu.menu_kind %>" aria-selected="<%= index.zero? %>"><%= menu.display_title %></button><% end %>
         <% roots.each_with_index do |category, index| %>
           <button type="button" class="menu-root-tab <%= 'is-active' if index.zero? && !has_lunch %>" data-action="customer-menu#selectRoot" data-root-id="menu-root-<%= category.id %>" aria-selected="<%= index.zero? && !has_lunch %>">
             <%= category.name %>
@@ -28,7 +29,7 @@
 
     <div class="customer-menu-subcategory-bar">
       <% roots.each_with_index do |root, root_index| %>
-        <% children = root.children.select(&:visible_to_customers?).sort_by { |category| [subcategory_order.fetch(category.name, 99), category.name] } %>
+        <% children = root.children.select(&:normal_menu_contents?).sort_by { |category| [subcategory_order.fetch(category.name, 99), category.name] } %>
         <% if children.any? %>
           <nav class="menu-subcategory-tabs" data-customer-menu-target="subcategoryNav" data-root-id="menu-root-<%= root.id %>" aria-label="Subcategorias de <%= root.name %>" <%= 'hidden' unless root_index.zero? && !has_lunch %>>
             <% children.each_with_index do |category, category_index| %>
@@ -45,9 +46,9 @@
 
   <p class="menu-search-empty" data-customer-menu-target="empty" hidden>Não encontrámos produtos com essa pesquisa.</p>
 
-  <% if has_lunch %><%= render 'orders/lunch_menu', lunch: lunch, draft: lunch_draft %><% end %>
+  <% menus.each_with_index do |menu,index| %><%= render 'orders/lunch_menu', lunch: menu, draft: local_assigns.fetch(:menu_drafts, {}).fetch(menu.menu_kind, menu.menu_kind == 'lunch' ? lunch_draft : {}), active: index.zero? %><% end %>
   <% roots.each_with_index do |root, root_index| %>
-    <% children = root.children.select(&:visible_to_customers?).sort_by { |category| [subcategory_order.fetch(category.name, 99), category.name] } %>
+    <% children = root.children.select(&:normal_menu_contents?).sort_by { |category| [subcategory_order.fetch(category.name, 99), category.name] } %>
     <section id="menu-root-<%= root.id %>" class="customer-root-panel" data-customer-menu-target="rootPanel" <%= 'hidden' unless root_index.zero? && !has_lunch %>>
       <% if root.menu_items.any? %>
         <%= render 'orders/category_menu', category: root, level: 0, active: children.empty?, include_children: false, cart_quantities: cart_quantities %>
@@ -65,3 +66,4 @@
   </div>
   <div class="customer-menu-toast" data-customer-menu-target="toast" role="status" aria-live="polite" hidden></div>
 </div>
+

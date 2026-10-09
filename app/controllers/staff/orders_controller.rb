@@ -2,7 +2,7 @@ class Staff::OrdersController < Staff::BaseController
   def index
     @activation_tables = current_establishment.tables.where(active: true, deleted_at: nil).includes(:current_table_visit).order(:number).to_a
     scope = current_establishment.orders.not_voided.includes(:table, order_items: { menu_item: :production_area }).where.not(status: %w[served denied])
-    if current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
+    if !current_establishment.service_division_enabled? && current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
       scope = scope.where(<<~SQL, areas: current_user.production_area_ids)
         EXISTS (
           SELECT 1 FROM order_items oi
@@ -18,7 +18,7 @@ class Staff::OrdersController < Staff::BaseController
       SQL
     end
     @orders = scope.order(:created_at).to_a
-    @area_filter_active = current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
+    @area_filter_active = !current_establishment.service_division_enabled? && current_user.staff? && current_establishment.production_areas_enabled? && current_user.production_area_ids.any?
     @service_calls = current_establishment.service_calls.includes(:table, :assigned_user).where.not(status: 'resolved').order(:created_at).to_a
   end
 

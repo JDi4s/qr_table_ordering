@@ -1,6 +1,6 @@
 <div class="menu-product-row">
   <div class="menu-product-info">
-    <strong><%= item.name %></strong>
+    <strong><%= item.name %></strong><small><%= MenuItem::PRODUCT_KINDS[item.product_kind] %> · <%= item.menu_labels.join(' · ') %></small>
     <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
     <small><%= item.archived? ? 'Arquivado' : (item.available? ? 'Disponível' : 'Indisponível') %></small>
   </div>

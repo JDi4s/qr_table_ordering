@@ -2,12 +2,13 @@ require 'digest'
 
 class MenuImport
   class Invalid < StandardError; end
-  PRODUCT_FIELDS = %w[name description price available allergens allergen_notes nutrition_enabled nutrition_basis nutrition_portion].concat(MenuItem::NUTRITION_FIELDS.keys.map { |key| "nutrition_#{key}" }).freeze
-  LUNCH_FIELDS = %w[weekdays starts_at ends_at combo_price].freeze
+  PRODUCT_FIELDS = %w[name description price available normal_menu_visible product_kind preparation_key allergens allergen_notes nutrition_enabled nutrition_basis nutrition_portion].concat(MenuItem::NUTRITION_FIELDS.keys.map { |key| "nutrition_#{key}" }).freeze
+  LUNCH_FIELDS = %w[menu_kind title group_definitions weekdays starts_at ends_at combo_price].freeze
   attr_reader :source, :destination, :categories, :products, :selected_categories, :selected_products
 
   def initialize(source:, destination:, category_ids: nil, product_ids: nil)
     @source, @destination = source, destination
+    raise Invalid, 'Este estabelecimento foi eliminado.' if source.deleted_at? || destination.deleted_at?
     raise Invalid, 'Escolhe outro estabelecimento de origem.' if source.id == destination.id
     raise Invalid, 'Este estabelecimento já tem menu. A importação só está disponível para menus vazios.' unless destination.menu_empty?
     scope = source.categories.order(:name)
@@ -57,26 +58,30 @@ class MenuImport
       categories: selected_categories.map { |c| c.attributes.slice('id', 'name', 'parent_id', 'available') },
       products: selected_products.map { |p| p.attributes.slice('id', 'category_id', 'production_area_id', *PRODUCT_FIELDS).merge('photo' => p.image.blob&.id) },
       recommendations: recommendations.map { |r| [r.menu_item_id, r.recommended_menu_item_id] },
-      lunch: lunch_attributes, areas: destination.available_production_areas.pluck(:id, :name), limit: destination.production_areas_limit }
+      lunch: scheduled_attributes, areas: destination.available_production_areas.pluck(:id, :name), limit: destination.production_areas_limit }
     Digest::SHA256.hexdigest(canonical(payload.as_json).to_json)
   end
 
-  def lunch_attributes
-    return @lunch_attributes if defined?(@lunch_attributes)
-    menu = LunchMenu.find_by(establishment_id: source.id)
-    return @lunch_attributes = nil unless menu
+  def scheduled_attributes
+    return @scheduled_attributes if defined?(@scheduled_attributes)
     ids = selected_products.map(&:id)
-    offers = menu.individual_offers.select { |row| ids.include?(row['menu_item_id'].to_i) }
-    groups = LunchMenu::GROUPS.keys.to_h { |key| [key, Array(menu.combo_groups[key]).select { |row| ids.include?(row['menu_item_id'].to_i) }] }
-    return @lunch_attributes = nil if offers.empty? && groups.values.all?(&:empty?)
-    individual = menu.individual_enabled? && offers.any?
-    combo = menu.combo_enabled? && %w[soup plate drink].all? { |key| groups[key].any? }
-    @lunch_attributes = menu.attributes.slice(*LUNCH_FIELDS).merge('individual_offers' => offers, 'combo_groups' => groups,
-      'individual_enabled' => individual, 'combo_enabled' => combo, 'active' => menu.active? && (individual || combo))
+    @scheduled_attributes = source.scheduled_menus.order(:menu_kind).filter_map do |menu|
+      offers = menu.individual_offers.select { |row| ids.include?(row['menu_item_id'].to_i) }
+      groups = menu.groups.to_h { |group| [group['key'], Array(menu.combo_groups[group['key']]).select { |row| ids.include?(row['menu_item_id'].to_i) }] }
+      next if offers.empty? && groups.values.all?(&:empty?)
+      individual = menu.individual_enabled? && offers.any?
+      combo = menu.combo_enabled? && menu.groups.reject { |g| g['optional'] }.all? { |g| groups[g['key']].any? }
+      menu.attributes.slice(*LUNCH_FIELDS).merge('individual_offers' => offers, 'combo_groups' => groups,
+        'individual_enabled' => individual, 'combo_enabled' => combo, 'active' => menu.active? && (individual || combo))
+    end
+  end
+
+  def lunch_attributes
+    scheduled_attributes.find { |attributes| attributes['menu_kind'] == 'lunch' } || scheduled_attributes.first
   end
 
   def incomplete_lunch?
-    source.lunch_menu&.combo_enabled? && lunch_attributes && !lunch_attributes['combo_enabled']
+    source.scheduled_menus.any? { |menu| menu.combo_enabled? && scheduled_attributes.any? { |a| a['menu_kind'] == menu.menu_kind && !a['combo_enabled'] } }
   end
 
   def unassigned_areas
@@ -113,11 +118,11 @@ class MenuImport
         plan.send(:recommendations).each do |recommendation|
           product_map.fetch(recommendation.menu_item_id).recommendations.create!(recommended_menu_item: product_map.fetch(recommendation.recommended_menu_item_id))
         end
-        if (attributes = plan.lunch_attributes)
+        plan.scheduled_attributes.each do |attributes|
           attributes = attributes.deep_dup
           attributes['individual_offers'].each { |row| row['menu_item_id'] = product_map.fetch(row['menu_item_id'].to_i).id }
           attributes['combo_groups'].each_value { |rows| rows.each { |row| row['menu_item_id'] = product_map.fetch(row['menu_item_id'].to_i).id } }
-          destination.create_lunch_menu!(attributes)
+          destination.scheduled_menus.create!(attributes)
         end
         result = plan.counts
         AuditEvent.create!(establishment: destination, user: user, action: 'menu_imported', auditable: destination,
@@ -148,3 +153,4 @@ class MenuImport
     @recommendations ||= MenuItemRecommendation.where(menu_item_id: selected_products.map(&:id), recommended_menu_item_id: selected_products.map(&:id)).order(:id).to_a
   end
 end
+

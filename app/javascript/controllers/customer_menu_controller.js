@@ -12,8 +12,7 @@ export default class extends Controller {
       if (replacement) {
         const state = this.liveState()
         replacement.dataset.liveState = JSON.stringify(state)
-        const lunchInput = replacement.querySelector('[data-lunch-menu-target=input]')
-        if (lunchInput && state.combos) lunchInput.setAttribute('value', state.combos)
+        replacement.querySelectorAll('[data-lunch-menu-target=input]').forEach(input => { if (state.combos?.[input.name]) input.setAttribute('value', state.combos[input.name]) })
       }
     }
     document.addEventListener('turbo:before-stream-render', this.preserveLiveState)
@@ -42,7 +41,7 @@ export default class extends Controller {
       if (input && this.currentQuantity(input) > 0) quantities[input.id] = input.value
     })
     return {
-      combos: this.element.querySelector("[data-lunch-menu-target=input]")?.value,
+      combos: Object.fromEntries(Array.from(this.element.querySelectorAll('[data-lunch-menu-target=input]')).map(input => [input.name,input.value])),
       quantities, root: this.activeRootId, search: this.searchTarget.value,
       categories: Array.from(this.element.querySelectorAll('.menu-subcategory-tab.is-active')).map(tab => tab.dataset.categoryId),
       focus: this.element.contains(document.activeElement) ? document.activeElement.id || (document.activeElement === this.searchTarget ? 'search' : null) : null
@@ -50,8 +49,7 @@ export default class extends Controller {
   }
 
   restoreLiveState(state) {
-    const combos = this.element.querySelector('[data-lunch-menu-target=input]')
-    if (combos && state.combos) combos.value = state.combos
+    this.element.querySelectorAll('[data-lunch-menu-target=input]').forEach(input => { if (state.combos?.[input.name]) input.value = state.combos[input.name] })
     const remaining = new Set(Object.keys(state.quantities || {}))
     this.productTargets.forEach(card => {
       const input = this.quantityInput(card)
@@ -245,7 +243,7 @@ export default class extends Controller {
     })
 
     try {
-      const combos = JSON.parse(this.element.querySelector('[data-lunch-menu-target=input]')?.value || '[]')
+      const combos = Array.from(this.element.querySelectorAll('[data-lunch-menu-target=input]')).flatMap(input => JSON.parse(input.value || '[]'))
       combos.forEach(combo => { count += Number(combo.quantity) || 0; totalCents += (Number(combo.quantity) || 0) * (Number(combo.priceCents) || 0) })
     } catch { /* Empty lunch selection while reconnecting. */ }
     this.cartBarTarget.hidden = count === 0
@@ -254,7 +252,9 @@ export default class extends Controller {
   }
 
   scheduleLunchRefresh() {
-    this.lunchDeadline = Date.parse(this.element.dataset.lunchTransition)
+    const transition = Date.parse(this.element.dataset.lunchTransition)
+    const serverNow = Date.parse(this.element.dataset.lunchServerTime)
+    this.lunchDeadline = Number.isFinite(serverNow) ? Date.now() + transition - serverNow : transition
     if (Number.isFinite(this.lunchDeadline)) this.lunchTimer = setTimeout(() => this.refreshLunch(), Math.min(2147483647, Math.max(0, this.lunchDeadline - Date.now() + 1000)))
   }
 
@@ -298,3 +298,4 @@ export default class extends Controller {
     this.toastTimer = setTimeout(() => { this.toastTarget.hidden = true }, 1800)
   }
 }
+

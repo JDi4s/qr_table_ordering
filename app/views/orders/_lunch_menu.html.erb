@@ -1,12 +1,12 @@
-<section id="menu-root-lunch" class="customer-root-panel" data-customer-menu-target="rootPanel">
-  <p class="lunch-schedule">Menu de almoço · <%= lunch.starts_at.strftime('%H:%M') %>–<%= lunch.ends_at.strftime('%H:%M') %></p>
+<section id="menu-root-<%= lunch.menu_kind %>" class="customer-root-panel" data-controller="lunch-menu" data-customer-menu-target="rootPanel" <%= 'hidden' unless local_assigns.fetch(:active,true) %>>
+  <p class="lunch-schedule"><%= lunch.display_title %> · <%= lunch.starts_at.strftime('%H:%M') %>–<%= lunch.ends_at.strftime('%H:%M') %></p>
   <% if lunch.combo_available? %>
     <section class="panel lunch-combo-card" data-customer-menu-target="product" data-search-text="menu completo almoço sopa prato bebida café">
-      <div><span class="eyebrow">MENU COMPLETO</span><h2>O almoço, à tua escolha</h2><p>Sopa + prato + bebida<%= ' + café' if lunch.available_groups.last[:options].any? %></p></div>
+      <div><span class="eyebrow">MENU COMPLETO</span><h2><%= lunch.display_title %>, à tua escolha</h2><p><%= lunch.available_groups.select { |g| g[:options].any? }.map { |g| g[:name] }.join(' + ') %></p></div>
       <strong><%= euros(lunch.combo_price) %></strong>
       <button type="button" data-action="lunch-menu#open">Escolher menu</button>
     </section>
-    <%= hidden_field_tag 'order[lunch_combos]', Array(draft['combos']).to_json, data: { lunch_menu_target: 'input' } %>
+    <%= hidden_field_tag "order[#{lunch.menu_kind}_combos]", Array(draft['combos']).to_json, data: { lunch_menu_target: 'input' } %>
     <div class="lunch-selected" data-lunch-menu-target="selected" aria-live="polite"></div>
     <dialog class="lunch-dialog" data-lunch-menu-target="dialog" data-base-cents="<%= (lunch.combo_price * 100).round %>">
       <button type="button" class="lunch-close" aria-label="Fechar menu completo" data-action="lunch-menu#close">×</button>
@@ -14,9 +14,9 @@
       <% lunch.available_groups.each do |group| %>
         <% next if group[:optional] && group[:options].empty? %>
         <fieldset class="lunch-choice-group" data-group="<%= group[:key] %>"><legend><%= group[:name] %></legend>
-          <% if group[:optional] %><label class="lunch-choice"><input type="radio" name="lunch_choice_<%= group[:key] %>" value="" data-supplement="0" data-name="Sem café" checked data-action="lunch-menu#price"> Sem café</label><% end %>
+          <% if group[:optional] %><label class="lunch-choice"><input type="radio" name="<%= lunch.menu_kind %>_choice_<%= group[:key] %>" value="" data-supplement="0" data-name="Sem <%= group[:name].downcase %>" checked data-action="lunch-menu#price"> Sem <%= group[:name].downcase %></label><% end %>
           <% group[:options].each_with_index do |option, index| %>
-            <label class="lunch-choice"><input type="radio" name="lunch_choice_<%= group[:key] %>" value="<%= option[:id] %>" data-name="<%= option[:item].name %>" data-supplement="<%= (option[:supplement] * 100).round %>" <%= 'checked' if index.zero? && !group[:optional] %> data-action="lunch-menu#price">
+            <label class="lunch-choice"><input type="radio" name="<%= lunch.menu_kind %>_choice_<%= group[:key] %>" value="<%= option[:id] %>" data-name="<%= option[:item].name %>" data-supplement="<%= (option[:supplement] * 100).round %>" <%= 'checked' if index.zero? && !group[:optional] %> data-action="lunch-menu#price">
               <span><%= option[:item].name %></span><% if option[:supplement].positive? %><small>+<%= euros(option[:supplement]) %></small><% end %>
             </label>
           <% end %>
@@ -27,9 +27,9 @@
     </dialog>
   <% end %>
   <% if lunch.available_individual_offers.any? %>
-    <h2 class="menu-category-title">Pratos do dia</h2><p>Prefere só o prato? Escolhe à unidade.</p>
+    <h2 class="menu-category-title">Produtos à unidade</h2><p>Escolhe os teus produtos à unidade.</p>
     <div class="customer-menu-grid"><% lunch.available_individual_offers.each do |offer| %>
-      <%= render 'orders/product_card', item: offer[:item], price: offer[:price], quantity: draft.fetch('individual', {})[offer[:item].id.to_s].to_i, input_name: "order[lunch_items][#{offer[:item].id}]", input_id: "quantity_lunch_#{offer[:item].id}" %>
+      <%= render 'orders/product_card', item: offer[:item], price: offer[:price], quantity: draft.fetch('individual', {})[offer[:item].id.to_s].to_i, input_name: "order[#{lunch.menu_kind}_items][#{offer[:item].id}]", input_id: "quantity_#{lunch.menu_kind}_#{offer[:item].id}" %>
     <% end %></div>
   <% end %>
 </section>

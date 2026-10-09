@@ -7,6 +7,7 @@ class Order < ApplicationRecord
   belongs_to :voided_by_user, class_name: 'User', optional: true
   has_one :establishment, through: :table
   has_many :order_items, dependent: :destroy
+  has_many :preparation_tasks, through: :order_items
   has_many :payments, dependent: :restrict_with_error
   has_many :menu_items, through: :order_items
   has_many :audit_events, as: :auditable, dependent: :nullify
@@ -53,6 +54,7 @@ class Order < ApplicationRecord
       next_status = items.all?(&:denied?) ? 'denied' : 'accepted'
       update!(status: next_status, total: payable_total,
               denial_reason: next_status == 'denied' ? 'Todos os produtos foram rejeitados.' : nil)
+      PreparationTask.build_for!(self) if accepted?
     end
   end
 
@@ -71,6 +73,10 @@ class Order < ApplicationRecord
   def serve!
     with_lock do
       ensure_state!('accepted')
+      if establishment.service_division_enabled? && preparation_tasks.where(state: 'preparing').exists?
+        raise InvalidTransition, 'Aguarda que todos os postos terminem a preparação.'
+      end
+      preparation_tasks.where(state: 'ready').update_all(state: 'delivered', delivered_at: Time.current, updated_at: Time.current)
       update!(status: 'served', served_at: Time.current)
     end
   end
@@ -254,7 +260,11 @@ class Order < ApplicationRecord
   end
 
   def broadcast_updated
+    PreparationNotifier.call(self)
     broadcast_replace_to(customer_stream, target: dom_id(self), partial: 'orders/my_order_card', locals: { order: self })
+    if establishment.service_division_enabled?
+      broadcast_replace_to(establishment.staff_stream, target: 'preparation_refresh', html: '<span id="preparation_refresh" data-controller="preparation-refresh"></span>')
+    end
     if served? || denied? || voided?
       broadcast_remove_to(establishment.staff_stream, target: dom_id(self))
     else

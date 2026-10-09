@@ -5,6 +5,7 @@ class StaffPushNotifier
 
   def notify_table_activation(visit)
     notify_staff_devices(visit.table.establishment_id) do |subscription|
+      next if subscription.user.preparation_staff?
       send_notification(subscription, title: 'Mesa a aguardar ativação',
                         body: "Mesa #{visit.table.number}: um cliente abriu o menu. Ativa a mesa quando os clientes estiverem presentes.",
                         tag: "table-activation-#{visit.id}", url: '/staff/orders?activate=1')
@@ -20,6 +21,7 @@ class StaffPushNotifier
 
   def notify_service_call(service_call)
     notify_staff_devices(service_call.table.establishment_id) do |subscription|
+      next if subscription.user.preparation_staff?
       send_notification(
         subscription,
         title: 'Chamada de cliente',
@@ -31,6 +33,7 @@ class StaffPushNotifier
 
   def notify_order(order)
     notify_staff_devices(order.table.establishment_id) do |subscription|
+      next if subscription.user.preparation_staff?
       send_notification(
         subscription,
         title: 'Novo pedido',

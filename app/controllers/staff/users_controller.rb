@@ -14,6 +14,7 @@ class Staff::UsersController < Staff::BaseController
     User.transaction do
       @user.save!
       sync_production_areas!(@user, area_ids)
+      validate_preparation!(@user)
     end
     AuditLogger.record(user: current_user, action: 'team_member_created', record: @user)
 
@@ -39,6 +40,7 @@ class Staff::UsersController < Staff::BaseController
     User.transaction do
       user.save!
       sync_production_areas!(user, area_ids)
+      validate_preparation!(user)
     end
     AuditLogger.record(user: current_user, action: 'team_member_updated', record: user)
 
@@ -100,7 +102,7 @@ class Staff::UsersController < Staff::BaseController
 
   def user_params
     values = params.require(:user)
-      .permit(:name, :username, :email, :password, :role, :active, production_area_ids: [])
+      .permit(:name, :username, :email, :password, :role, :active, :service_role, production_area_ids: [])
       .to_h
       .symbolize_keys
     values.delete(:password) if values[:password].blank?
@@ -108,6 +110,12 @@ class Staff::UsersController < Staff::BaseController
     raise Order::InvalidTransition, 'Perfil inválido.' if values[:role].present? && !%w[staff manager].include?(values[:role])
 
     values
+  end
+
+  def validate_preparation!(user)
+    return unless user.preparation_staff? && user.production_areas.empty?
+    user.errors.add(:base, 'Atribui pelo menos um posto à conta de preparação.')
+    raise ActiveRecord::RecordInvalid, user
   end
 
   def sync_production_areas!(user, ids)
