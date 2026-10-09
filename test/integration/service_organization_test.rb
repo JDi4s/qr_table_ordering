@@ -56,13 +56,51 @@ class ServiceOrganizationIntegrationTest < ActionDispatch::IntegrationTest
     foreign_area = foreign.production_areas.create!(name: 'Outra cozinha')
     sign_in @manager
     patch staff_product_classification_path, params: { product_ids: [@product.id], classification: { normal_menu_visible: '0', product_kind: 'soup' } }
-    assert_not @product.reload.normal_menu_visible?
+    assert @product.reload.normal_menu_visible?
     assert_equal 'soup', @product.product_kind
     assert @drink.reload.normal_menu_visible?
-    patch staff_product_classification_path, params: { product_ids: [foreign_product.id], classification: { normal_menu_visible: '0' } }
+    patch staff_product_classification_path, params: { product_ids: [foreign_product.id], classification: { product_kind: 'drink' } }
     assert foreign_product.reload.normal_menu_visible?
     assert_not @zone.update(routing: { 'kitchen' => foreign_area.id })
     assert_not @table.update(service_zone: foreign.service_zones.create!(name: 'Outra zona'))
+  end
+
+  test 'unclassified list excludes classified products and classification preserves menu visibility without division' do
+    @venue.update!(service_division_enabled: false)
+    @product.update!(product_kind: 'unclassified', normal_menu_visible: false, preparation_key: 'kitchen')
+    sign_in @manager
+    get edit_staff_product_classification_path
+    assert_select '.classification-product strong', text: @product.name
+    assert_select '.classification-product strong', text: @drink.name, count: 0
+    assert_select 'select[name="classification[preparation_key]"]', count: 0
+    assert_select 'select[name="classification[normal_menu_visible]"]', count: 0
+    patch staff_product_classification_path, params: { product_ids: [@product.id], classification: { product_kind: 'drink', preparation_key: 'counter', normal_menu_visible: '1' } }
+    assert_redirected_to edit_staff_product_classification_path
+    assert_equal 'drink', @product.reload.product_kind
+    assert_equal 'kitchen', @product.preparation_key
+    assert_not @product.normal_menu_visible?
+    get edit_staff_product_classification_path
+    assert_select '.classification-product strong', text: @product.name, count: 0
+    get edit_staff_product_classification_path(scope: 'all')
+    assert_select '.classification-product strong', text: @product.name
+    patch staff_product_classification_path, params: { product_ids: [@product.id], classification: { product_kind: '' } }
+    assert_equal 'drink', @product.reload.product_kind
+  end
+
+  test 'new product requires a type and classification entry only appears while needed' do
+    sign_in @manager
+    assert_no_difference('MenuItem.count') do
+      post staff_menu_items_path, params: { menu_item: { name: 'Novo', price: 1, category_id: @product.category_id } }
+    end
+    assert_response :unprocessable_entity
+    assert_select '.error-messages, .errors, .flash', text: /Escolhe o tipo de produto./
+    post staff_menu_items_path, params: { menu_item: { name: 'Novo', price: 1, category_id: @product.category_id, product_kind: 'drink' } }
+    assert_response :see_other
+    get staff_menu_path
+    assert_select 'a[href=?]', edit_staff_product_classification_path, count: 0
+    @product.update!(product_kind: 'unclassified')
+    get staff_menu_path
+    assert_select 'a[href=?]', edit_staff_product_classification_path, text: 'Classificar produtos (1)'
   end
 
   test 'admin deletion requires explicit identifier and preserves history while blocking accounts' do

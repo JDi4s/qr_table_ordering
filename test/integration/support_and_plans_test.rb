@@ -70,7 +70,7 @@ class SupportAndPlansTest < ActionDispatch::IntegrationTest
     assert order.reload.pending?
 
     assert_difference('MenuItem.count', 1) do
-      post staff_menu_items_path, params: { menu_item: { name: 'Criado pelo suporte', price: 2, category_id: @product.category_id } }
+      post staff_menu_items_path, params: { menu_item: { name: 'Criado pelo suporte', product_kind: 'snack', price: 2, category_id: @product.category_id } }
     end
     assert AuditEvent.where(user: @owner, action: 'menu_item_created').exists?
 

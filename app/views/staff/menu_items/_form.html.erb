@@ -7,7 +7,7 @@
       <div><%= f.label :category_id, 'Categoria' %><%= f.select :category_id, options_for_select(category_options(current_establishment.categories.not_archived.to_a), @menu_item.category_id), { prompt: 'Escolhe uma categoria' }, required: true, data: { recommendation_options_target: 'category', action: 'change->recommendation-options#filter' } %></div>
       <div><%= f.label :price, 'Preço (€)' %><%= f.number_field :price, min: 0, step: '0.01', required: true, placeholder: '0,00' %></div>
     </div>
-    <div class="product-editor-price-row"><div><%= f.label :product_kind, 'Tipo de produto' %><%= f.select :product_kind, MenuItem::PRODUCT_KINDS.map { |key, label| [label,key] }, {}, data: { action: 'change->product-routing#kind' } %></div><div><%= f.label :preparation_key, 'Preparado em' %><%= f.select :preparation_key, MenuItem::PREPARATION_KEYS.map { |key,label| [label,key] }, {}, data: { action: 'change->product-routing#override' } %></div></div>
+    <div class="product-editor-price-row"><div><%= f.label :product_kind, 'Tipo de produto' %><%= f.select :product_kind, MenuItem::PRODUCT_KINDS.except('unclassified').map { |key, label| [label,key] }, { prompt: 'Escolher tipo' }, required: true, data: { action: 'change->product-routing#kind' } %></div><% if current_establishment.service_division_enabled? %><div><%= f.label :preparation_key, 'Preparado em' %><%= f.select :preparation_key, MenuItem::PREPARATION_KEYS.map { |key,label| [label,key] }, {}, data: { action: 'change->product-routing#override' } %></div><% end %></div>
     <label class="form-check"><%= f.check_box :normal_menu_visible %> Mostrar no menu normal</label>
     <small>Podes incluir este produto nos menus por horário mesmo que esteja oculto no menu normal.</small>
     <label class="form-check"><%= f.check_box :available %> Disponível para pedir</label>
@@ -33,15 +33,16 @@
   </details>
   <%= render 'product_information_fields', f: f %>
   <details class="product-editor-option" <%= 'open' if @menu_item.errors.any? %>>
-    <summary><span><strong>Sugestões e preparação</strong><small>Produtos relacionados<%= ' e área de produção' if current_establishment.production_areas_enabled? %></small></span></summary>
+    <summary><span><strong><%= current_establishment.service_division_enabled? ? 'Sugestões e preparação' : 'Sugestões' %></strong><small>Produtos relacionados<%= ' e área de produção' if current_establishment.service_division_enabled? %></small></span></summary>
     <div class="product-editor-option-body">
       <%= f.label :recommended_menu_item_ids, 'Produtos sugeridos quando este for pedido' %>
       <%= render 'recommendation_picker', selected_ids: @menu_item.recommended_menu_item_ids, excluded_id: @menu_item.id %>
       <small>Escolhe produtos ou deixa a aplicação sugerir automaticamente.</small>
-      <% if current_establishment.production_areas_enabled? %><%= f.label :production_area_id, 'Área de produção' %><%= f.select :production_area_id, options_from_collection_for_select(@production_areas, :id, :name, @menu_item.production_area_id), { prompt: 'Escolher área' } %><% end %>
+      <% if current_establishment.service_division_enabled? %><%= f.label :production_area_id, 'Área de produção' %><%= f.select :production_area_id, options_from_collection_for_select(@production_areas, :id, :name, @menu_item.production_area_id), { prompt: 'Escolher área' } %><% end %>
     </div>
   </details>
   <div class="menu-form-actions"><button type="button" class="secondary" data-action="menu-item-preview#open">Pré-visualizar cartão</button><%= f.submit(@menu_item.persisted? ? 'Guardar alterações' : 'Guardar produto') %></div>
   <%= render 'preview_modal' %>
 <% end %>
+
 

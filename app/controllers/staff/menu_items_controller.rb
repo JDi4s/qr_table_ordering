@@ -21,6 +21,7 @@ class Staff::MenuItemsController < Staff::BaseController
   def create
     @menu_item = MenuItem.new
     @menu_item.assign_attributes(menu_item_params)
+    @menu_item.errors.add(:base, 'Escolhe o tipo de produto.') if @menu_item.product_kind == 'unclassified'
 
     if @menu_item.errors.empty? && @menu_item.save
       sync_recommendations!
@@ -36,7 +37,9 @@ class Staff::MenuItemsController < Staff::BaseController
 
   def update
     attributes = menu_item_params
-    if @menu_item.errors.empty? && @menu_item.update(attributes)
+    @menu_item.assign_attributes(attributes)
+    @menu_item.errors.add(:base, 'Escolhe o tipo de produto.') if @menu_item.product_kind == 'unclassified'
+    if @menu_item.errors.empty? && @menu_item.save
       sync_recommendations!
       AuditLogger.record(user: current_user, action: 'menu_item_updated', record: @menu_item)
       redirect_to menu_return_path(@menu_item.category_id), notice: 'Produto atualizado.', status: :see_other
@@ -252,3 +255,4 @@ class Staff::MenuItemsController < Staff::BaseController
     end
   end
 end
+

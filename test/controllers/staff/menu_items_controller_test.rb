@@ -118,7 +118,7 @@ class Staff::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     assert_select 'input[name="menu_status"][value="unavailable"]'
     patch staff_menu_item_path(product), params: {
       menu_status: 'unavailable', open_category_id: product.category_id,
-      menu_item: { name: 'Renomeado', price: 10, category_id: product.category_id }
+      menu_item: { name: 'Renomeado', product_kind: 'snack', price: 10, category_id: product.category_id }
     }
     assert_redirected_to staff_menu_path(menu_status: 'unavailable', open_category_id: product.category_id)
   end
