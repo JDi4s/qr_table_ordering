@@ -42,7 +42,6 @@ class Admin::EstablishmentsController < Admin::BaseController
   def destroy
     venue = Establishment.where(deleted_at: nil).find(params[:id])
     venue.with_lock do
-      raise Order::InvalidTransition, 'Escreve o identificador do estabelecimento para confirmar.' unless params[:confirmation].to_s == venue.slug
       if venue.orders.unpaid.exists? || venue.service_calls.where.not(status: 'resolved').exists?
         raise Order::InvalidTransition, 'Conclui os pedidos, pagamentos e chamadas antes de eliminar.'
       end

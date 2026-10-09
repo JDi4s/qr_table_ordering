@@ -71,13 +71,13 @@ class LunchMenuIntegrationTest < ActionDispatch::IntegrationTest
     @menu.update!(starts_at: '12:00', ends_at: '15:00')
     travel_to Time.utc(2026, 10, 8, 13, 59) do
       get new_table_order_path(@table)
-      assert_select '.menu-root-tab', text: 'Almoço'
+      assert_select '.customer-menu-scopes .menu-root-tab span', text: 'Almoço'
     end
     travel_to Time.utc(2026, 10, 8, 14) do
       assert_no_difference('TableVisit.count') { get table_menu_snapshot_path(@table) }
       assert_nil response.headers['Set-Cookie']
       doc = Nokogiri::HTML.fragment(response.body)
-      assert_not_includes doc.css('template').inner_html, '>Almoço</button>'
+      assert_not_includes doc.css('template').inner_html, '>Almoço</span>'
       assert @table.current_table_visit.open?
     end
   end

@@ -32,6 +32,7 @@ class ServiceOrganizationSystemTest < ApplicationSystemTestCase
         click_button 'Adicionar menu'
       end
       assert_selector '.customer-cart-bar', text: '17,00 €'
+      click_button 'Carta'
       click_button 'Comida'
       assert_no_selector '.customer-product-card strong', text: bread.name
       assert page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')
@@ -48,7 +49,7 @@ class ServiceOrganizationSystemTest < ApplicationSystemTestCase
 
   test 'kitchen tablet only shows assigned preparation and fits landscape portrait and mobile' do
     venue, table, food = build_venue
-    venue.update!(service_division_enabled: true)
+    venue.update!(production_areas_limit: 2, service_division_enabled: true)
     kitchen = venue.production_areas.create!(name: 'Cozinha', preparation_key: 'kitchen')
     counter = venue.production_areas.create!(name: 'Balcão', preparation_key: 'counter')
     food.update!(name: 'Baguete', product_kind: 'snack', preparation_key: 'kitchen')
@@ -93,4 +94,3 @@ class ServiceOrganizationSystemTest < ApplicationSystemTestCase
   end
 
 end
-

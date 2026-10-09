@@ -12,8 +12,8 @@ class Staff::LunchMenusController < Staff::BaseController
     if params[:groups].present?
       raise ActionController::BadRequest unless params[:groups].is_a?(ActionController::Parameters) && params[:groups].keys.size <= 8 && params[:groups].values.all? { |g| g.is_a?(ActionController::Parameters) }
       @lunch_menu.group_definitions = params.require(:groups).to_unsafe_h.values.filter_map do |group|
-        next if group['name'].blank?
-        { 'key' => group['key'].to_s, 'name' => group['name'].to_s.strip, 'types' => group['types'].to_s.split(','), 'optional' => group['optional'] == '1' }
+        next if group['name'].blank? || group['enabled'] == '0' || group['name'].to_s.match?(/\bovos?\b/i)
+        { 'key' => group['key'].to_s, 'name' => group['name'].to_s.strip, 'types' => group['types'].to_s.split(','), 'optional' => group.key?('enabled') ? false : group['optional'] == '1' }
       end
     end
     @lunch_menu.individual_offers = selected_options(params[:individual_items], 'price')
@@ -37,6 +37,14 @@ class Staff::LunchMenusController < Staff::BaseController
       @lunch_menu.starts_at = '08:00'; @lunch_menu.ends_at = '11:00'; @lunch_menu.combo_price = 5
     end
     @products = current_establishment.menu_items.not_archived.includes(:category).order(:name)
+    defaults = if @kind == 'breakfast'
+      [{ 'key' => 'coffee', 'name' => 'Bebida quente', 'types' => ['coffee'] }, { 'key' => 'bread', 'name' => 'Pão ou pastelaria', 'types' => %w[snack dessert] }, { 'key' => 'drink', 'name' => 'Bebida', 'types' => ['drink'] }]
+    else
+      [{ 'key' => 'soup', 'name' => 'Sopa', 'types' => ['soup'] }, { 'key' => 'plate', 'name' => 'Prato', 'types' => %w[plate snack] }, { 'key' => 'drink', 'name' => 'Bebida', 'types' => ['drink'] }, { 'key' => 'coffee', 'name' => 'Bebida quente', 'types' => ['coffee'] }]
+    end
+    defaults << { 'key' => 'dessert', 'name' => 'Sobremesa', 'types' => ['dessert'] }
+    @editor_groups = (@lunch_menu.groups + defaults).uniq { |g| g['key'] }.reject { |g| g['name'].to_s.match?(/\bovos?\b/i) }.first(8)
+    @editor_groups = @editor_groups.map { |group| group['key'] == 'coffee' ? group.merge('name' => 'Bebida quente') : group }
   end
 
   def selected_options(raw, money_key)

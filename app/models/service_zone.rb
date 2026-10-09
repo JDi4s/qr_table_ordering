@@ -5,13 +5,13 @@ class ServiceZone < ApplicationRecord
   validate :routing_belongs_to_venue
 
   def destination(key)
-    establishment.production_areas.where(active: true).find_by(id: routing[key].to_i)
+    establishment.available_production_areas.find_by(id: routing[key].to_i)
   end
 
   private
 
   def routing_belongs_to_venue
-    unless routing.is_a?(Hash) && routing.size <= 20 && routing.values.all? { |id| id.blank? || establishment.production_areas.where(active: true).exists?(id: id) }
+    unless routing.is_a?(Hash) && routing.size <= 20 && routing.values.all? { |id| id.blank? || establishment.available_production_areas.exists?(id: id) }
       errors.add(:routing, 'seleciona postos deste estabelecimento')
     end
   end

@@ -25,6 +25,7 @@ class Establishment < ApplicationRecord
   validates :plan, inclusion: { in: %w[essential management] }
   validate :logo_must_be_an_accepted_image
   validate :limit_covers_active_tables
+  validate :limit_covers_preparation_areas
   validate :google_review_url_must_be_safe
   before_validation { self.google_review_url = google_review_url.to_s.strip.presence }
 
@@ -52,7 +53,7 @@ class Establishment < ApplicationRecord
   end
 
   def production_areas_enabled?
-    production_areas_limit.to_i.positive? || service_division_enabled?
+    production_areas_limit.to_i.positive?
   end
 
   def essential_plan?
@@ -77,16 +78,26 @@ class Establishment < ApplicationRecord
 
   def available_production_areas
     scope = production_areas.where(active: true).order(:position, :name)
-    service_division_enabled? ? scope : scope.limit(production_areas_limit)
+    production_areas.where(id: scope.limit(production_areas_limit).select(:id)).order(:position, :name)
   end
 
   def ensure_default_production_areas!
-    %w[Balcão Cozinha].each_with_index do |name, index|
+    return if production_areas.exists?
+    %w[Balcão Cozinha].first(production_areas_limit.to_i).each_with_index do |name, index|
       production_areas.find_or_create_by!(name: name) { |area| area.position = index; area.preparation_key = index.zero? ? 'counter' : 'kitchen' }
     end
   end
 
   private
+
+  def limit_covers_preparation_areas
+    return unless persisted? && production_areas_limit_changed? && production_areas_limit
+    if production_areas_limit.positive? && production_areas_limit < production_areas.where(active: true).count
+      errors.add(:production_areas_limit, 'não pode ser inferior ao número de áreas ativas. Desativa primeiro as áreas que já não usas.')
+    elsif production_areas_limit.zero? && service_division_enabled?
+      errors.add(:production_areas_limit, 'desliga primeiro a divisão por áreas nas definições do estabelecimento.')
+    end
+  end
 
   def google_review_url_must_be_safe
     return if google_review_url.blank?
