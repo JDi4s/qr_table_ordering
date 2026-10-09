@@ -10,7 +10,7 @@
 } %>
 <% cart_quantities = local_assigns.fetch(:cart_quantities, {}) %>
 <% roots = categories.select { |category| category.root? && category.normal_menu_contents? }.sort_by { |category| [preferred_order.fetch(category.name, 2), category.name] } %>
-<div id="customer_menu" class="customer-menu" data-controller="customer-menu product-info" data-action="lunch-menu:changed->customer-menu#syncCart" data-lunch-transition="<%= scheduled.filter_map(&:next_transition_at).min&.iso8601 %>">
+<div id="customer_menu" class="customer-menu" data-controller="customer-menu product-info" data-action="lunch-menu:changed->customer-menu#syncCart" data-lunch-server-time="<%= Time.current.iso8601 %>" data-lunch-transition="<%= scheduled.filter_map(&:next_transition_at).min&.iso8601 %>">
   <div class="customer-menu-sticky">
     <label class="menu-search">
       <span class="sr-only">Pesquisar no menu</span>
@@ -66,3 +66,4 @@
   </div>
   <div class="customer-menu-toast" data-customer-menu-target="toast" role="status" aria-live="polite" hidden></div>
 </div>
+

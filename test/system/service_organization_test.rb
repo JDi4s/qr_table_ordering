@@ -39,6 +39,10 @@ class ServiceOrganizationSystemTest < ApplicationSystemTestCase
       click_button 'Rever pedido'
       assert_text 'Pequeno-almoço'
       assert_text 'Menu completo'
+      click_button 'Enviar pedido'
+      assert_text 'Pedido enviado'
+      assert_equal BigDecimal('17'), table.orders.last.total
+      assert_equal 2, table.orders.last.order_items.count
     end
   end
 

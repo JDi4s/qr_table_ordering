@@ -252,7 +252,9 @@ export default class extends Controller {
   }
 
   scheduleLunchRefresh() {
-    this.lunchDeadline = Date.parse(this.element.dataset.lunchTransition)
+    const transition = Date.parse(this.element.dataset.lunchTransition)
+    const serverNow = Date.parse(this.element.dataset.lunchServerTime)
+    this.lunchDeadline = Number.isFinite(serverNow) ? Date.now() + transition - serverNow : transition
     if (Number.isFinite(this.lunchDeadline)) this.lunchTimer = setTimeout(() => this.refreshLunch(), Math.min(2147483647, Math.max(0, this.lunchDeadline - Date.now() + 1000)))
   }
 
@@ -296,3 +298,4 @@ export default class extends Controller {
     this.toastTimer = setTimeout(() => { this.toastTarget.hidden = true }, 1800)
   }
 }
+

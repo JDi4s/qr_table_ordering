@@ -16,7 +16,9 @@
 .classification-product small { display: block; color: var(--muted); margin-top: 4px; }
 @media(min-width: 761px) and (max-width: 1180px) {
   .staff-header { flex-wrap: wrap; padding: 18px 24px; }
-  .staff-main-nav { flex: 1 1 100%; justify-content: space-between; gap: 12px; }
+  .staff-header > .staff-identity { order: 1; }
+  .staff-header > form { order: 2; margin-left: auto; }
+  .staff-main-nav { order: 3; flex: 1 1 100%; justify-content: space-between; gap: 12px; }
   .staff-nav-group { flex-wrap: wrap; }
   body > main { width: min(100% - 40px, 1040px); margin-inline: auto; }
   .staff-order-card-heading { flex-wrap: wrap; }
@@ -29,3 +31,6 @@
 
 .menu-placement-tab { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; min-height: 44px; border: 1px solid var(--line); border-radius: 24px; text-decoration: none; background: white; font-weight: 700; }
 .menu-placement-tab.is-active { background: var(--green); color: white; }
+
+@media(min-width: 761px) { .settings-tabs { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); } .settings-tabs a { display: flex; align-items: center; justify-content: center; text-align: center; } }
+
