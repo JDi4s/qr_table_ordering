@@ -12,21 +12,27 @@ class Staff::ServiceOrganizationController < Staff::BaseController
         case params[:operation]
         when 'division'
           enabled = params[:enabled] == '1'
+          raise Order::InvalidTransition, 'A Administração tem de autorizar a divisão por áreas.' if enabled && !current_establishment.production_areas_enabled?
           if !enabled && current_establishment.orders.where(status: 'accepted').joins(:preparation_tasks).exists?
             raise Order::InvalidTransition, 'Conclui os pedidos em preparação antes de desligar a divisão.'
           end
           current_establishment.update!(service_division_enabled: enabled)
           current_establishment.ensure_default_production_areas! if enabled
+          raise Order::InvalidTransition, 'Cria ou ativa pelo menos uma área antes de ligar a divisão.' if enabled && current_establishment.available_production_areas.empty?
           if enabled
             current_establishment.orders.where(status: 'accepted', voided_at: nil).find_each do |order|
               order.with_lock { PreparationTask.build_for!(order); order.touch }
             end
           end
         when 'area'
+          raise Order::InvalidTransition, 'A Administração tem de autorizar a divisão por áreas.' unless current_establishment.production_areas_enabled?
           area = params[:area_id].present? ? current_establishment.production_areas.find(params[:area_id]) : current_establishment.production_areas.new
           area.assign_attributes(params.require(:area).permit(:name, :preparation_key, :active))
           if !area.active? && area.preparation_tasks.where(state: %w[preparing ready]).joins(:order).where(orders: { status: 'accepted', voided_at: nil }).exists?
             raise Order::InvalidTransition, 'Este posto ainda tem preparação em curso.'
+          end
+          if area.active? && (area.new_record? || area.active_changed?) && current_establishment.production_areas.where(active: true).where.not(id: area.id).count >= current_establishment.production_areas_limit
+            raise Order::InvalidTransition, 'Atingiste o limite de áreas autorizado pela Administração.'
           end
           area.save!
         when 'zone'

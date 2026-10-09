@@ -47,9 +47,9 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     click_on 'Entrar'
     assert_current_path staff_orders_path
     visit staff_menu_path
-    click_on 'Menu de almoço'
+    click_on 'Configurar almoço'
     assert_text 'Menu de almoço'
-    check 'Disponibilizar menu de almoço'
+    check 'Ativar menu de almoço'
     check "#{'individual_items'.parameterize}-#{product.id}"
     find("input[name='individual_items[#{product.id}][price]']").set('8.50')
     page.execute_script('window.scrollTo(0, 0)')

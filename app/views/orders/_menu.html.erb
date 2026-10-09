@@ -17,8 +17,11 @@
       <input type="search" placeholder="Pesquisar no menu" data-customer-menu-target="search" data-action="input->customer-menu#filter">
     </label>
     <div class="customer-menu-toolbar">
-      <nav class="menu-root-tabs" aria-label="Categorias principais">
-        <% menus.each_with_index do |menu,index| %><button type="button" class="menu-root-tab <%= 'is-active' if index.zero? %>" data-action="customer-menu#selectRoot" data-root-id="menu-root-<%= menu.menu_kind %>" aria-selected="<%= index.zero? %>"><%= menu.display_title %></button><% end %>
+      <nav class="menu-root-tabs customer-menu-scopes" aria-label="Escolher menu" <%= 'hidden' unless has_lunch %>>
+        <% if roots.any? %><button type="button" class="menu-scope-tab" data-action="customer-menu#selectCarta" data-carta-tab data-root-id="menu-root-<%= roots.first.id %>" aria-selected="false">Carta</button><% end %>
+        <% menus.each_with_index do |menu,index| %><button type="button" class="menu-root-tab <%= 'is-active' if index.zero? %>" data-action="customer-menu#selectRoot" data-root-id="menu-root-<%= menu.menu_kind %>" aria-selected="<%= index.zero? %>"><span><%= menu.display_title %></span><small>Até às <%= menu.ends_at.strftime('%H:%M') %></small></button><% end %>
+      </nav>
+      <nav class="menu-root-tabs customer-carta-categories" data-carta-categories aria-label="Categorias da carta" <%= 'hidden' if has_lunch %>>
         <% roots.each_with_index do |category, index| %>
           <button type="button" class="menu-root-tab <%= 'is-active' if index.zero? && !has_lunch %>" data-action="customer-menu#selectRoot" data-root-id="menu-root-<%= category.id %>" aria-selected="<%= index.zero? && !has_lunch %>">
             <%= category.name %>
@@ -66,4 +69,3 @@
   </div>
   <div class="customer-menu-toast" data-customer-menu-target="toast" role="status" aria-live="polite" hidden></div>
 </div>
-

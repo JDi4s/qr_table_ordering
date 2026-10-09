@@ -32,9 +32,9 @@ class ProductClassificationSystemTest < ApplicationSystemTestCase
     assert page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')
     visit edit_staff_menu_item_path(product)
     assert_no_selector 'select[name="menu_item[preparation_key]"]'
-    venue.update!(service_division_enabled: true)
+    venue.update!(production_areas_limit: 2, service_division_enabled: true)
+    venue.ensure_default_production_areas!
     visit edit_staff_product_classification_path(scope: 'all')
-    assert_selector 'select[name="classification[preparation_key]"]'
+    assert_selector 'select[name="classification[production_area_id]"]'
   end
 end
-

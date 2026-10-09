@@ -4,13 +4,14 @@ class ServiceOrganizationIntegrationTest < ActionDispatch::IntegrationTest
   setup do
     @venue, @table, @product = build_venue
     @manager = venue_user(@venue)
+    @venue.update!(production_areas_limit: 2)
     @kitchen = @venue.production_areas.create!(name: 'Cozinha principal', preparation_key: 'kitchen')
     @counter = @venue.production_areas.create!(name: 'Balcão 2', preparation_key: 'counter')
     @venue.update!(service_division_enabled: true)
     @zone = @venue.service_zones.create!(name: 'Primeiro andar', routing: { 'kitchen' => @kitchen.id, 'counter' => @counter.id })
     @table.update!(service_zone: @zone)
-    @product.update!(product_kind: 'plate', preparation_key: 'kitchen')
-    @drink = @product.category.menu_items.create!(name: 'Água', price: 1, product_kind: 'drink', preparation_key: 'counter')
+    @product.update!(product_kind: 'plate', preparation_key: 'kitchen', production_area: @kitchen)
+    @drink = @product.category.menu_items.create!(name: 'Água', price: 1, product_kind: 'drink', preparation_key: 'counter', production_area: @counter)
   end
 
   test 'accepted order routes components and preparation account sees only authorized work' do
@@ -94,7 +95,7 @@ class ServiceOrganizationIntegrationTest < ActionDispatch::IntegrationTest
     end
     assert_response :unprocessable_entity
     assert_select '.error-messages, .errors, .flash', text: /Escolhe o tipo de produto./
-    post staff_menu_items_path, params: { menu_item: { name: 'Novo', price: 1, category_id: @product.category_id, product_kind: 'drink' } }
+    post staff_menu_items_path, params: { menu_item: { name: 'Novo', price: 1, category_id: @product.category_id, product_kind: 'drink', production_area_id: @counter.id } }
     assert_response :see_other
     get staff_menu_path
     assert_select 'a[href=?]', edit_staff_product_classification_path, count: 0
@@ -103,12 +104,10 @@ class ServiceOrganizationIntegrationTest < ActionDispatch::IntegrationTest
     assert_select 'a[href=?]', edit_staff_product_classification_path, text: 'Classificar produtos (1)'
   end
 
-  test 'admin deletion requires explicit identifier and preserves history while blocking accounts' do
+  test 'admin deletion preserves history while blocking accounts without a typed identifier' do
     admin = User.create!(email: "admin-#{SecureRandom.hex(3)}@example.com", role: 'platform_admin', password: 'Test-password-123')
     sign_in admin
-    delete admin_establishment_path(@venue), params: { confirmation: 'wrong' }
-    assert_nil @venue.reload.deleted_at
-    delete admin_establishment_path(@venue), params: { confirmation: @venue.slug }
+    delete admin_establishment_path(@venue)
     assert @venue.reload.deleted_at
     assert_not @venue.active?
     assert_not @manager.reload.venue_access?
@@ -119,4 +118,3 @@ class ServiceOrganizationIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 end
-

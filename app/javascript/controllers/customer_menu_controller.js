@@ -96,6 +96,11 @@ export default class extends Controller {
     if (firstCategory) this.showCategory(rootPanel, firstCategory.dataset.categoryId, firstCategory)
   }
 
+  selectCarta(event) {
+    const selected = this.element.querySelector('[data-carta-categories] .menu-root-tab.is-active') || this.element.querySelector('[data-carta-categories] .menu-root-tab')
+    if (selected) this.selectRoot({ currentTarget: selected })
+  }
+
   selectCategory(event) {
     const rootPanel = document.getElementById(event.currentTarget.dataset.rootId)
     this.showCategory(rootPanel, event.currentTarget.dataset.categoryId, event.currentTarget)
@@ -145,6 +150,11 @@ export default class extends Controller {
   }
 
   syncSubcategoryNavigation(searching = false) {
+    const carta = !['menu-root-lunch', 'menu-root-breakfast'].includes(this.activeRootId)
+    const categories = this.element.querySelector('[data-carta-categories]')
+    if (categories) categories.hidden = searching || !carta
+    const tab = this.element.querySelector('[data-carta-tab]')
+    if (tab) { tab.classList.toggle('is-active', carta); tab.setAttribute('aria-selected', String(carta)) }
     this.subcategoryNavTargets.forEach((nav) => {
       nav.hidden = searching || nav.dataset.rootId !== this.activeRootId
     })
@@ -298,4 +308,3 @@ export default class extends Controller {
     this.toastTimer = setTimeout(() => { this.toastTarget.hidden = true }, 1800)
   }
 }
-

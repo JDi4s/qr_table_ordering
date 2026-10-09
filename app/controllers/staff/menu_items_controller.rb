@@ -229,6 +229,10 @@ class Staff::MenuItemsController < Staff::BaseController
       values.delete(:category_id)
     end
     area = current_establishment.available_production_areas.find_by(id: values[:production_area_id]) if values[:production_area_id].present?
+    if current_establishment.service_division_enabled? && !area
+      @menu_item.errors.add(:base, 'Escolhe a área onde este produto é preparado.')
+    end
+    values[:preparation_key] = area.preparation_key if area
     if current_establishment.production_areas_enabled? && values[:production_area_id].present? && !area
       @menu_item.errors.add(:production_area, 'não está disponível para este estabelecimento')
       values.delete(:production_area_id)
@@ -255,4 +259,3 @@ class Staff::MenuItemsController < Staff::BaseController
     end
   end
 end
-
