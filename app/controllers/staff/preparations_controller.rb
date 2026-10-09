@@ -2,7 +2,7 @@ class Staff::PreparationsController < Staff::BaseController
   def index
     @areas = current_user.preparation_staff? ? current_user.production_areas.where(active: true) : current_establishment.available_production_areas
     @area_id = params[:area_id].to_i
-    @area_id = @areas.first&.id if current_user.preparation_staff? && !@areas.exists?(id: @area_id)
+    @area_id = @areas.first&.id if current_user.preparation_staff? && @area_id.positive? && !@areas.exists?(id: @area_id)
     scope = current_establishment.orders.where(status: 'accepted', voided_at: nil)
     @tasks = PreparationTask.joins(:order_item).where(order_items: { order_id: scope.select(:id) }).where.not(state: %w[delivered cancelled])
     @tasks = @tasks.where(production_area_id: @areas.select(:id)) if current_user.preparation_staff?
@@ -25,3 +25,4 @@ class Staff::PreparationsController < Staff::BaseController
     redirect_to staff_preparations_path(area_id: params[:area_id]), status: :see_other
   end
 end
+

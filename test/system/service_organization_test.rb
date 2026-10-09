@@ -71,4 +71,22 @@ class ServiceOrganizationSystemTest < ApplicationSystemTestCase
     assert_text '✓ Pronto'
     assert_equal 'accepted', order.reload.status
   end
+  test 'manager configuration and product management fit tablets and desktop' do
+    venue, table, product = build_venue
+    manager = venue_user(venue)
+    visit login_path
+    fill_in 'Email', with: manager.email
+    fill_in 'Palavra-passe', with: 'Test-password-123'
+    click_button 'Entrar'
+    [[768,1024],[1024,768],[1440,900]].each do |width,height|
+      page.current_window.resize_to(width,height)
+      [edit_staff_service_organization_path, staff_menu_path, new_staff_menu_item_path, edit_staff_lunch_menu_path(menu_kind: 'breakfast')].each_with_index do |path,index|
+        visit path
+        assert page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth'), "Overflow at #{width}: #{path}"
+        page.save_screenshot(Rails.root.join("tmp/screenshots/manager-#{width}-#{index}.png"))
+      end
+    end
+  end
+
 end
+

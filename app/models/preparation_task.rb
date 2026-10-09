@@ -27,6 +27,9 @@ class PreparationTask < ApplicationRecord
   end
 
   def transition!(next_state, user)
+    unless user.venue_access? && user.establishment_id == order.establishment.id && (!user.preparation_staff? || user.production_areas.where(active: true).exists?(id: production_area_id))
+      raise Order::InvalidTransition, 'Não tens acesso a este posto.'
+    end
     order.with_lock do
       reload
       return if state == next_state
@@ -40,3 +43,4 @@ class PreparationTask < ApplicationRecord
     end
   end
 end
+

@@ -31,6 +31,7 @@ class ServiceOrganizationIntegrationTest < ActionDispatch::IntegrationTest
     assert_select '.preparation-line', text: /#{@product.name}/
     kitchen_task = order.preparation_tasks.find_by!(production_area: @kitchen)
     counter_task = order.preparation_tasks.find_by!(production_area: @counter)
+    assert_raises(Order::InvalidTransition) { counter_task.transition!('ready', cook) }
     patch staff_preparation_path(counter_task), params: { state: 'ready' }
     assert_response :forbidden
     patch staff_preparation_path(kitchen_task), params: { state: 'ready' }
@@ -80,3 +81,4 @@ class ServiceOrganizationIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 end
+

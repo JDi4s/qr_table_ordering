@@ -8,6 +8,7 @@ class MenuImport
 
   def initialize(source:, destination:, category_ids: nil, product_ids: nil)
     @source, @destination = source, destination
+    raise Invalid, 'Este estabelecimento foi eliminado.' if source.deleted_at? || destination.deleted_at?
     raise Invalid, 'Escolhe outro estabelecimento de origem.' if source.id == destination.id
     raise Invalid, 'Este estabelecimento já tem menu. A importação só está disponível para menus vazios.' unless destination.menu_empty?
     scope = source.categories.order(:name)
@@ -152,3 +153,4 @@ class MenuImport
     @recommendations ||= MenuItemRecommendation.where(menu_item_id: selected_products.map(&:id), recommended_menu_item_id: selected_products.map(&:id)).order(:id).to_a
   end
 end
+
