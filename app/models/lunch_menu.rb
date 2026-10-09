@@ -14,7 +14,7 @@ class LunchMenu < ApplicationRecord
   end
 
   def groups
-    return group_definitions if group_definitions.present?
+    return group_definitions if groups_configured? || group_definitions.present?
     if menu_kind == 'breakfast'
       [{ 'key' => 'coffee', 'name' => 'Bebida quente', 'types' => ['coffee'], 'optional' => false },
        { 'key' => 'bread', 'name' => 'Pão ou pastelaria', 'types' => %w[snack dessert], 'optional' => false },
@@ -25,7 +25,7 @@ class LunchMenu < ApplicationRecord
   end
 
   def product_matches?(item, group)
-    Array(group['types']).include?(item.product_kind) || (group_definitions.empty? && persisted? && item.product_kind == 'unclassified')
+    Array(group['types']).include?(item.product_kind) || (!groups_configured? && group_definitions.empty? && persisted? && item.product_kind == 'unclassified')
   end
 
   def open?(at: Time.current)
@@ -166,6 +166,6 @@ class LunchMenu < ApplicationRecord
     if combo_enabled? && groups.reject { |g| g['optional'] }.any? { |g| Array(combo_groups[g['key']]).empty? }
       errors.add(:base, 'Seleciona produtos em todos os grupos obrigatórios do menu completo.')
     end
-    errors.add(:base, 'O menu completo precisa de pelo menos um grupo obrigatório.') if combo_enabled? && groups.all? { |g| g['optional'] }
+    errors.add(:base, 'Escolhe pelo menos um grupo para o menu completo.') if combo_enabled? && groups.all? { |g| g['optional'] }
   end
 end
