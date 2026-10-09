@@ -13,9 +13,10 @@
   <%= stylesheet_link_tag 'report_extract', 'data-turbo-track': 'reload' %>
   <%= stylesheet_link_tag 'table_activation', 'data-turbo-track': 'reload' %>
   <%= stylesheet_link_tag 'product_information', 'data-turbo-track': 'reload' %>
+  <%= stylesheet_link_tag 'service_organization', 'data-turbo-track': 'reload' %>
   <%= javascript_importmap_tags %>
 </head>
-<body data-controller="staff-orders table-activation"
+<body data-controller="staff-orders <%= 'table-activation' unless current_user.preparation_staff? %>"
       data-table-activation-url-value="<%= staff_table_visits_path %>"
       data-table-activation-orders-url-value="<%= staff_orders_path %>"
       data-table-activation-key-value="<%= current_establishment.id %>-<%= current_user.id %>"
@@ -23,11 +24,13 @@
       data-vapid-public-key="<%= h(ENV['VAPID_PUBLIC_KEY'].to_s) %>"
       data-web-push-enabled="<%= ENV['VAPID_PUBLIC_KEY'].present? ? '1' : '0' %>">
   <%= render 'staff/shared/nav' %>
+  <% if current_establishment.service_division_enabled? %><%= turbo_stream_from 'preparation', channel: 'PreparationChannel' %><% end %>
   <% if current_user.manager? && !support_mode? %>
     <%= turbo_stream_from 'support', channel: 'SupportTicketsChannel', data: { scope: 'notifications' } %>
   <% end %>
   <main>
     <%= render 'layouts/flash_notifications' %>
+    <div id="preparation_notifications" hidden></div>
     <div id="staff_notifications" aria-live="assertive"></div>
     <div id="support_notifications" aria-live="polite"></div>
     <%= yield %>

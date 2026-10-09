@@ -1,5 +1,7 @@
 class Table < ApplicationRecord
   belongs_to :establishment
+  belongs_to :service_zone, optional: true
+  validate { errors.add(:service_zone, 'não pertence ao estabelecimento') if service_zone && service_zone.establishment_id != establishment_id }
   has_many :orders, dependent: :restrict_with_error
   has_many :service_calls, dependent: :restrict_with_error
   has_many :table_visits, dependent: :restrict_with_error

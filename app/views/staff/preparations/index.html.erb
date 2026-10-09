@@ -1,0 +1,18 @@
+<h1>Preparação</h1>
+<p>Os artigos de cada posto. Marca pronto quando puderem ser entregues.</p>
+<%= form_with url: staff_preparations_path, method: :get, data: { turbo_frame: 'preparation_board' }, class: 'service-filter' do %>
+  <%= label_tag :area_id, 'Posto' %><%= select_tag :area_id, options_from_collection_for_select(@areas, :id, :name, @area_id), include_blank: (current_user.preparation_staff? ? 'Todos os meus postos' : 'Todos os postos') %><%= submit_tag 'Ver' %>
+<% end %>
+<%= turbo_frame_tag 'preparation_board', data: { controller: 'preparation-board', url: staff_preparations_path(area_id: @area_id) } do %>
+  <div class="service-order-grid">
+  <% @groups.each do |order, tasks| %>
+    <article class="panel preparation-card"><div class="section-heading"><h2>Mesa <%= order.table.number %> · #<%= order.id %></h2><span><%= order.created_at.strftime('%H:%M') %></span></div><p><%= order.table.service_zone&.name || 'Sem zona' %></p>
+      <% if order.note.present? %><p class="preparation-note"><strong>Observações:</strong> <%= order.note %></p><% end %>
+      <% tasks.each do |task| %><div class="preparation-line"><div><strong><%= task.quantity %> × <%= task.name %></strong><small><%= task.production_area&.name || 'Sem posto — atribuir na organização' %> · <%= task.state == 'ready' ? 'Pronto' : 'A preparar' %></small></div>
+        <% if task.state == 'preparing' %><%= button_to '✓ Pronto', staff_preparation_path(task), method: :patch, params: { state: 'ready', area_id: @area_id }, class: 'order-serve-button' %><% elsif !current_user.preparation_staff? %><%= button_to 'Entregue', staff_preparation_path(task), method: :patch, params: { state: 'delivered', area_id: @area_id } %><% else %><span class="badge">✓ Pronto</span><% end %>
+      </div><% end %>
+    </article>
+  <% end %>
+  </div>
+  <% if @groups.empty? %><div class="panel">Sem artigos a preparar neste posto.</div><% end %>
+<% end %>

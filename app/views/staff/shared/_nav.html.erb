@@ -5,7 +5,9 @@
   <button type="button" class="staff-nav-toggle" aria-label="Abrir menu" aria-controls="staff-main-nav" aria-expanded="false" data-staff-navigation-target="toggle" data-action="staff-navigation#toggle"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16 M4 12h16 M4 18h16" /></svg></button>
   <div class="staff-mobile-context"><strong><%= current_establishment.name %></strong><span class="staff-service-indicator <%= 'is-paused' unless current_establishment.accepting_orders? %>"><%= current_establishment.accepting_orders? ? 'Serviço aberto' : 'Serviço pausado' %></span></div>
   <nav class="staff-main-nav" id="staff-main-nav" aria-label="Navegação principal" data-staff-navigation-target="nav">
+    <% if current_user.preparation_staff? %><div class="staff-nav-group"><%= link_to 'Preparação', staff_preparations_path, class: 'is-active' %><%= link_to 'Definições', edit_staff_settings_path %></div><% else %>
     <div class="staff-nav-group">
+      <% if current_establishment.service_division_enabled? %><%= link_to 'Preparação', staff_preparations_path, class: ('is-active' if controller_path == 'staff/preparations') %><% end %>
       <%= link_to 'Pedidos', staff_orders_path, class: ('is-active' if staff_nav_active?(:orders)), aria: { current: (staff_nav_active?(:orders) ? 'page' : nil) } %>
       <%= link_to 'Mesas', active_staff_tables_path, class: ('is-active' if staff_nav_active?(:tables)), aria: { current: (staff_nav_active?(:tables) ? 'page' : nil) } %>
       <%= link_to 'Menu', staff_menu_path, class: ('is-active' if staff_nav_active?(:menu)), aria: { current: (staff_nav_active?(:menu) ? 'page' : nil) } %>
@@ -16,7 +18,7 @@
       <% if manager_access? %><%= link_to 'Relatórios', staff_reports_path, class: ('is-active' if staff_nav_active?(:reports)), aria: { current: (staff_nav_active?(:reports) ? 'page' : nil) } %><% end %>
       <%= link_to 'Definições', edit_staff_settings_path, class: ('is-active' if controller_path.start_with?('staff/settings') || controller_path.start_with?('staff/users') || controller_path.start_with?('staff/support_ticket')), aria: { current: ((controller_path.start_with?('staff/settings') || controller_path.start_with?('staff/users') || controller_path.start_with?('staff/support_ticket')) ? 'page' : nil) } %>
     </div>
-  </nav>
+  <% end %></nav>
   <% if support_mode? %><%= button_to 'Terminar suporte', admin_support_session_path(active_support_session), method: :delete, class: 'secondary staff-logout' %><% else %><%= button_to 'Sair', logout_path, method: :delete, class: 'secondary staff-logout' %><% end %>
 </header>
 <% if support_mode? %><div class="support-mode-banner"><span><strong>Modo Suporte</strong> · <%= current_establishment.name %></span><small>Configuração autorizada · operação apenas para consulta · termina em <%= active_support_session.expires_at.strftime('%H:%M') %></small></div><% end %>

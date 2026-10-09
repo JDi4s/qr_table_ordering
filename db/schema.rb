@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_09_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -105,6 +105,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.boolean "google_reviews_enabled", default: false, null: false
     t.string "google_review_url"
     t.datetime "google_review_tracking_started_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "deleted_at"
+    t.boolean "service_division_enabled", default: false, null: false
     t.index ["service_paused_by_user_id"], name: "index_establishments_on_service_paused_by_user_id"
     t.index ["slug"], name: "index_establishments_on_slug", unique: true
     t.check_constraint "plan::text = ANY (ARRAY['essential'::character varying::text, 'management'::character varying::text])", name: "valid_establishment_plan"
@@ -145,7 +147,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.jsonb "combo_groups", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["establishment_id"], name: "index_lunch_menus_on_establishment_id", unique: true
+    t.string "menu_kind", default: "lunch", null: false
+    t.string "title"
+    t.jsonb "group_definitions", default: [], null: false
+    t.index ["establishment_id", "menu_kind"], name: "index_lunch_menus_on_establishment_id_and_menu_kind", unique: true
   end
 
   create_table "menu_item_recommendations", force: :cascade do |t|
@@ -182,6 +187,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.decimal "nutrition_protein", precision: 8, scale: 2
     t.decimal "nutrition_fibre", precision: 8, scale: 2
     t.decimal "nutrition_salt", precision: 8, scale: 2
+    t.string "product_kind", default: "unclassified", null: false
+    t.boolean "normal_menu_visible", default: true, null: false
+    t.string "preparation_key", default: "counter", null: false
     t.index ["archived_at"], name: "index_menu_items_on_archived_at"
     t.index ["category_id"], name: "index_menu_items_on_category_id"
     t.index ["production_area_id"], name: "index_menu_items_on_production_area_id"
@@ -268,6 +276,24 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.check_constraint "payment_method::text = ANY (ARRAY['cash'::character varying::text, 'card'::character varying::text, 'mbway'::character varying::text, 'other'::character varying::text])", name: "valid_payment_method"
   end
 
+  create_table "preparation_tasks", force: :cascade do |t|
+    t.bigint "order_item_id", null: false
+    t.bigint "production_area_id"
+    t.string "name", null: false
+    t.string "component_key", null: false
+    t.string "state", default: "preparing", null: false
+    t.integer "quantity", null: false
+    t.datetime "ready_at"
+    t.datetime "delivered_at"
+    t.bigint "updated_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_item_id", "component_key"], name: "index_preparation_tasks_on_order_item_id_and_component_key", unique: true
+    t.index ["order_item_id"], name: "index_preparation_tasks_on_order_item_id"
+    t.index ["production_area_id"], name: "index_preparation_tasks_on_production_area_id"
+    t.index ["updated_by_id"], name: "index_preparation_tasks_on_updated_by_id"
+  end
+
   create_table "production_area_users", id: false, force: :cascade do |t|
     t.bigint "production_area_id", null: false
     t.bigint "user_id", null: false
@@ -283,6 +309,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "preparation_key", default: "counter", null: false
     t.index ["establishment_id", "name"], name: "index_production_areas_on_establishment_id_and_name", unique: true
     t.index ["establishment_id"], name: "index_production_areas_on_establishment_id"
   end
@@ -298,6 +325,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.index ["table_id"], name: "index_service_calls_on_table_id"
     t.index ["table_id"], name: "one_open_call_per_table", unique: true, where: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('claimed'::character varying)::text]))"
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'claimed'::character varying::text, 'resolved'::character varying::text])", name: "valid_service_call_status"
+  end
+
+  create_table "service_zones", force: :cascade do |t|
+    t.bigint "establishment_id", null: false
+    t.string "name", null: false
+    t.jsonb "routing", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["establishment_id", "name"], name: "index_service_zones_on_establishment_id_and_name", unique: true
+    t.index ["establishment_id"], name: "index_service_zones_on_establishment_id"
   end
 
   create_table "staff_push_subscriptions", force: :cascade do |t|
@@ -374,10 +411,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.bigint "establishment_id", null: false
     t.boolean "active", default: true, null: false
     t.datetime "deleted_at"
+    t.bigint "service_zone_id"
     t.index ["deleted_at"], name: "index_tables_on_deleted_at"
     t.index ["establishment_id", "number"], name: "index_tables_on_establishment_id_and_number", unique: true, where: "(deleted_at IS NULL)"
     t.index ["establishment_id"], name: "index_tables_on_establishment_id"
     t.index ["qr_token"], name: "index_tables_on_qr_token", unique: true
+    t.index ["service_zone_id"], name: "index_tables_on_service_zone_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -393,6 +432,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
     t.string "username"
     t.boolean "must_change_password", default: false, null: false
     t.datetime "deleted_at"
+    t.string "service_role", default: "floor", null: false
     t.index "lower((username)::text)", name: "index_users_on_lower_username", unique: true, where: "(deleted_at IS NULL)"
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["establishment_id"], name: "index_users_on_establishment_id"
@@ -425,11 +465,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
   add_foreign_key "payments", "orders"
   add_foreign_key "payments", "users"
   add_foreign_key "payments", "users", column: "voided_by_user_id"
+  add_foreign_key "preparation_tasks", "order_items"
+  add_foreign_key "preparation_tasks", "production_areas"
+  add_foreign_key "preparation_tasks", "users", column: "updated_by_id"
   add_foreign_key "production_area_users", "production_areas"
   add_foreign_key "production_area_users", "users"
   add_foreign_key "production_areas", "establishments"
   add_foreign_key "service_calls", "tables"
   add_foreign_key "service_calls", "users", column: "assigned_user_id"
+  add_foreign_key "service_zones", "establishments"
   add_foreign_key "staff_push_subscriptions", "users"
   add_foreign_key "support_sessions", "establishments"
   add_foreign_key "support_sessions", "support_tickets"
@@ -441,5 +485,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_08_150000) do
   add_foreign_key "support_tickets", "users", column: "created_by_id"
   add_foreign_key "table_visits", "tables"
   add_foreign_key "tables", "establishments"
+  add_foreign_key "tables", "service_zones"
   add_foreign_key "users", "establishments"
 end

@@ -5,6 +5,8 @@
 <% if manager_access? %>
   <div class="toolbar menu-actions">
     <%= link_to 'Criar produto', new_staff_menu_item_path(menu_context_params), class: 'button' %>
+    <%= link_to 'Pequeno-almoço', edit_staff_lunch_menu_path(menu_kind: 'breakfast'), class: 'button secondary' %>
+    <%= link_to 'Classificar produtos', edit_staff_product_classification_path, class: 'button secondary' %>
     <%= link_to 'Menu de almoço', edit_staff_lunch_menu_path, class: 'button secondary' %>
     <%= link_to 'Criar categoria', new_staff_category_path(menu_context_params), class: 'button secondary' %>
   </div>
@@ -15,12 +17,13 @@
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
   <% end %>
 
+  <nav class="staff-menu-status-tabs" aria-label="Onde aparecem os produtos"><% [['all','Todos'],['normal','Menu normal'],['breakfast','Pequeno-almoço'],['lunch','Almoço']].each do |value,label| %><%= link_to label, staff_menu_path(menu_view: value, menu_status: @menu_status), class: "menu-placement-tab #{'is-active' if (params[:menu_view].presence || 'all') == value}", data: { turbo_frame: 'staff_menu_records', turbo_action: 'advance' } %><% end %></nav>
   <div class="staff-menu-status">
     <nav class="staff-menu-status-tabs" aria-label="Estado do menu">
       <% menu_tabs = [['active', 'Ativas'], ['unavailable', 'Indisponíveis'], ['archived', 'Arquivadas']] %>
       <% menu_tabs << ['uncategorized', 'Sem categoria'] if @menu_counts['uncategorized'].positive? %>
       <% menu_tabs.each do |value, label| %>
-        <%= link_to staff_menu_path(menu_status: value),
+        <%= link_to staff_menu_path(menu_status: value, menu_view: params[:menu_view]),
           class: "staff-menu-status-tab #{'is-active' if @menu_status == value}",
           aria: { current: ('page' if @menu_status == value) },
           data: { turbo_frame: 'staff_menu_records', turbo_action: 'advance' } do %>

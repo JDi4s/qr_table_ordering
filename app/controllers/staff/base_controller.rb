@@ -4,6 +4,7 @@ class Staff::BaseController < ApplicationController
   before_action :require_venue_access
   before_action :require_password_change
   before_action :restrict_support_operations
+  before_action :restrict_preparation_access
 
   private
 
@@ -35,6 +36,13 @@ class Staff::BaseController < ApplicationController
     else
       redirect_to login_path, alert: 'Inicie sessão numa conta ativa.'
     end
+  end
+
+  def restrict_preparation_access
+    return unless current_user&.preparation_staff?
+    return if %w[staff/preparations staff/push_subscriptions].include?(controller_path)
+    return if controller_path == 'staff/settings' && (action_name == 'edit' || action_name == 'update')
+    redirect_to staff_preparations_path, alert: 'Esta conta está atribuída à preparação.', status: :see_other
   end
 
   def require_manager

@@ -10,7 +10,7 @@ class SessionsController < ApplicationController
       remove_current_device_subscription
       reset_session
       session[:user_id] = user.id
-      redirect_to(user.platform_admin? ? admin_establishments_path : (user.must_change_password? ? edit_staff_settings_path : staff_orders_path))
+      redirect_to(user.platform_admin? ? admin_establishments_path : (user.must_change_password? ? edit_staff_settings_path : (user.preparation_staff? ? staff_preparations_path : staff_orders_path)))
     else
       flash.now[:alert] = 'Utilizador/email ou palavra-passe inválidos, ou conta suspensa.'
       render :new, status: :unprocessable_entity

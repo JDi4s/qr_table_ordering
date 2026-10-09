@@ -38,7 +38,7 @@
     <%= render 'orders/table_access_notice' %>
     <% if establishment.accepting_orders? %>
       <%= form_with url: review_table_orders_path(@table), data: { turbo: false } do %>
-        <%= render 'menu', categories: @categories, establishment: establishment, lunch_draft: @lunch_draft, cart_quantities: @cart_quantities %>
+        <%= render 'menu', categories: @categories, establishment: establishment, lunch_draft: @lunch_draft, menu_drafts: @menu_drafts, cart_quantities: @cart_quantities %>
       <% end %>
     <% else %>
       <div class="flash notice service-paused-notice"><strong>Serviço temporariamente pausado.</strong> Podes consultar o menu, mas ainda não é possível enviar pedidos ou chamar um funcionário.</div>

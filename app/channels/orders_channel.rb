@@ -6,6 +6,7 @@ class OrdersChannel < ApplicationCable::Channel
       name = "table_#{@table_id}_customer_#{connection.customer_token}"
     else
       return reject unless authorized?
+      return reject if connection.current_user&.preparation_staff?
       establishment = connection.current_user.establishment || connection.support_establishment
       name = establishment.staff_stream
     end

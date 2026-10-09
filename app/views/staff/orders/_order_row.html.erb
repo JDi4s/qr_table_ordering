@@ -5,6 +5,7 @@
   </div>
   <div class="staff-order-content"><ul class="staff-order-items"><% order.order_items.each do |item| %><li><%= item.quantity %> × <%= item.display_name %><%= render "orders/lunch_choices", selection: item.lunch_selection %> <%= "· #{item.menu_item&.production_area.name}" if item.menu_item&.production_area.present? %> <%= '(rejeitado)' if item.denied? %></li><% end %></ul><strong><%= euros(order.outstanding_total) %></strong></div>
   <% if order.note.present? %><p class="staff-order-note">Observação: <%= truncate(order.note, length: 90) %></p><% end %>
+  <% if order.accepted? && order.preparation_tasks.any? %><div class="preparation-progress"><% order.preparation_tasks.includes(:production_area).group_by(&:production_area).each do |area,tasks| %><span class="badge"><%= area&.name || 'Sem posto' %> · <%= tasks.all? { |t| t.state == 'delivered' } ? 'Entregue' : tasks.all? { |t| %w[ready delivered].include?(t.state) } ? 'Pronto' : 'A preparar' %></span><% end %><%= link_to 'Acompanhar preparação', staff_preparations_path, class: 'menu-edit-link' %></div><% end %>
   <div class="staff-card-actions">
     <%= link_to(order.pending? ? 'Avaliar pedido' : 'Abrir pedido', staff_order_path(order), class: 'button secondary') %>
     <% if order.pending? %><%= button_to 'Aceitar', staff_order_path(order, status: 'accepted'), method: :patch, aria: { label: 'Aceitar pedido sem alterações' } %><% end %>

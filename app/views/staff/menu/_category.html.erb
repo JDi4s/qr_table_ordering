@@ -1,6 +1,7 @@
 <% state = @menu_category_states.fetch(category.id) %>
 <% matching_children = Array(@menu_children[category.id]).select { |child| @menu_visible_category_ids.include?(child.id) } %>
 <% items = category.menu_items.sort_by(&:name).select do |item|
+  next false unless menu_product_matches?(item)
   case status
   when 'active' then !state[:archived] && !state[:unavailable] && !item.archived? && item.available?
   when 'unavailable' then !state[:archived] && !item.archived? && (state[:unavailable] || !item.available?)

@@ -55,6 +55,7 @@ class Staff::MenuController < Staff::BaseController
       else
         false
       end
+      own_match &&= category.menu_items.any? { |item| menu_product_matches?(item) } if params[:menu_view].present? && params[:menu_view] != 'all'
       matches = own_match || child_matches
       ids << category.id if matches
       matches

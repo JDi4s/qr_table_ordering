@@ -1,6 +1,9 @@
 class Establishment < ApplicationRecord
   has_one_attached :logo
-  has_one :lunch_menu, dependent: :destroy
+  has_many :scheduled_menus, class_name: 'LunchMenu', dependent: :destroy
+  has_one :lunch_menu, -> { where(menu_kind: 'lunch') }, class_name: 'LunchMenu'
+  has_one :breakfast_menu, -> { where(menu_kind: 'breakfast') }, class_name: 'LunchMenu'
+  has_many :service_zones, dependent: :destroy
 
   has_many :tables, dependent: :restrict_with_error
   has_many :categories, dependent: :restrict_with_error
@@ -26,7 +29,7 @@ class Establishment < ApplicationRecord
   before_validation { self.google_review_url = google_review_url.to_s.strip.presence }
 
   def menu_empty?
-    !categories.exists? && !lunch_menu
+    !categories.exists? && !scheduled_menus.exists?
   end
 
   def google_reviews_available?
@@ -49,7 +52,7 @@ class Establishment < ApplicationRecord
   end
 
   def production_areas_enabled?
-    production_areas_limit.to_i.positive?
+    production_areas_limit.to_i.positive? || service_division_enabled?
   end
 
   def essential_plan?
@@ -73,12 +76,13 @@ class Establishment < ApplicationRecord
   end
 
   def available_production_areas
-    production_areas.where(active: true).order(:position, :name).limit(production_areas_limit)
+    scope = production_areas.where(active: true).order(:position, :name)
+    service_division_enabled? ? scope : scope.limit(production_areas_limit)
   end
 
   def ensure_default_production_areas!
-    %w[Balcão Bar Cozinha Sobremesas].each_with_index do |name, index|
-      production_areas.find_or_create_by!(name: name) { |area| area.position = index }
+    %w[Balcão Cozinha].each_with_index do |name, index|
+      production_areas.find_or_create_by!(name: name) { |area| area.position = index; area.preparation_key = index.zero? ? 'counter' : 'kitchen' }
     end
   end
 

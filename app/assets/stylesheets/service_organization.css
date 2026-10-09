@@ -1,0 +1,31 @@
+.service-config-grid, .service-order-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin: 22px 0; }
+.service-config-grid .panel, .preparation-card { min-width: 0; margin: 0; }
+.service-config-record { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.service-config-record summary { font-weight: 700; cursor: pointer; padding: 10px 0; }
+.service-config-record form { padding: 12px 0; }
+.service-filter, .service-bulk-fields { display: flex; align-items: end; flex-wrap: wrap; gap: 14px; }
+.service-filter select { min-width: 190px; }
+.service-bulk-fields > label { flex: 1 1 180px; min-width: 0; }
+.preparation-line { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
+.preparation-line small { display: block; color: var(--muted); margin-top: 5px; }
+.preparation-line form, .preparation-line button { margin: 0; }
+.preparation-line button { min-height: 48px; min-width: 96px; }
+.preparation-progress { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 14px 0; }
+.classification-product { display: flex; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.classification-product input { width: 22px; height: 22px; margin: 0; flex-shrink: 0; }
+.classification-product small { display: block; color: var(--muted); margin-top: 4px; }
+@media(min-width: 761px) and (max-width: 1180px) {
+  .staff-header { flex-wrap: wrap; padding: 18px 24px; }
+  .staff-main-nav { flex: 1 1 100%; justify-content: space-between; gap: 12px; }
+  .staff-nav-group { flex-wrap: wrap; }
+  body > main { width: min(100% - 40px, 1040px); margin-inline: auto; }
+  .staff-order-card-heading { flex-wrap: wrap; }
+  .staff-card-actions { flex-wrap: wrap; }
+  .team-form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(min-width: 1181px) { body > main { margin-inline: auto; } }
+@media(max-width: 760px) { .service-config-grid, .service-order-grid { grid-template-columns: 1fr; } .service-filter { align-items: stretch; } .service-filter select { min-width: 0; } .preparation-line { align-items: start; } .preparation-card .section-heading { flex-wrap: wrap; } }
+@media(pointer: coarse) { .staff-main-nav a, .staff-card-actions button, .settings-tabs a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; } }
+
+.menu-placement-tab { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; min-height: 44px; border: 1px solid var(--line); border-radius: 24px; text-decoration: none; background: white; font-weight: 700; }
+.menu-placement-tab.is-active { background: var(--green); color: white; }

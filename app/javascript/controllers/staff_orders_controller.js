@@ -4,6 +4,8 @@ export default class extends Controller {
   static targets = ["pushStatus", "pushButton", "soundStatus"]
 
   connect() {
+    this.preparationSound = event => { if (event.detail?.sound) this.beep('order') }
+    window.addEventListener('bocato:preparation', this.preparationSound)
     this.handler = (event) => {
       const stream = event.target
       const action = stream.getAttribute("action")
@@ -34,6 +36,7 @@ export default class extends Controller {
     this.registerServiceWorker()
   }
   disconnect() {
+    window.removeEventListener('bocato:preparation', this.preparationSound)
     document.removeEventListener("turbo:before-stream-render", this.handler)
     this.removeAudioActivationListeners()
     // Keep the unlocked context across Turbo navigation within this document.
