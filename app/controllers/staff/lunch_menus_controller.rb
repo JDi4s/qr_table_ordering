@@ -9,8 +9,8 @@ class Staff::LunchMenusController < Staff::BaseController
     values = params.require(:lunch_menu).permit(:title, :active, :starts_at, :ends_at, :individual_enabled, :combo_enabled, :combo_price, weekdays: [])
     values[:weekdays] = Array(values[:weekdays]).reject(&:blank?).map { |day| Integer(day, exception: false) }
     values[:individual_enabled] = false
-      values[:combo_enabled] = true
-      @lunch_menu.assign_attributes(values)
+    values[:combo_enabled] = true
+    @lunch_menu.assign_attributes(values)
     if params[:groups].present?
       @lunch_menu.groups_configured = true
       raise ActionController::BadRequest unless params[:groups].is_a?(ActionController::Parameters) && params[:groups].keys.size <= 8 && params[:groups].values.all? { |g| g.is_a?(ActionController::Parameters) }
@@ -72,3 +72,4 @@ class Staff::LunchMenusController < Staff::BaseController
     end
   end
 end
+
