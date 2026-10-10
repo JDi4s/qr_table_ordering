@@ -1,4 +1,4 @@
-<div class="staff-menu-page" data-controller="staff-menu" data-staff-menu-key-value="<%= current_establishment.id %>" data-action="click->staff-menu#remember submit->staff-menu#remember turbo:frame-load->staff-menu#restore">
+<div class="staff-menu-page" data-controller="staff-menu" data-menu-area="<%= params[:menu_section] == 'scheduled' ? 'scheduled' : 'carta' %>" data-menu-kind="<%= selected_menu_kind %>" data-staff-menu-key-value="<%= current_establishment.id %>" data-action="click->staff-menu#remember submit->staff-menu#remember turbo:frame-load->staff-menu#restore">
 <h1>Menu</h1>
 
 

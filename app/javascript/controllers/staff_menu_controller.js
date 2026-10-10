@@ -4,7 +4,7 @@ export default class extends Controller {
   static values = { key: String }
 
   connect() {
-    this.storageKey = `bocato-menu-context-${this.keyValue}`
+    this.storageKey = `bocato-menu-context-${this.keyValue}-${this.element.dataset.menuArea || "carta"}-${this.element.dataset.menuKind || "lunch"}`
     this.loadHandler = () => this.restore()
     this.toggleHandler = (event) => {
       if (!this.restoring && event.target.matches(".staff-category-details")) this.remember()
