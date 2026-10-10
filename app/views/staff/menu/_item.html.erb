@@ -4,24 +4,25 @@
     <% if item.description.present? %><p class="product-description"><%= item.description %></p><% end %>
     <small><%= item.archived? ? 'Arquivado' : (item.available? ? 'Disponível' : 'Indisponível') %></small>
   </div>
-  <strong class="menu-product-price"><%= euros(item.price) %></strong>
+  <strong class="menu-product-price"><%= euros(local_assigns[:item_price] || item.price) %></strong>
   <% if manager_access? %><%= link_to 'Editar', edit_staff_menu_item_path(item, menu_context_params(item.category_id)), class: 'menu-edit-link', data: { turbo_frame: '_top' } %><% end %>
   <details class="menu-record-actions menu-product-actions">
     <summary aria-label="Mais ações de <%= item.name %>">⋯</summary>
     <div class="menu-record-actions-list">
       <% unless item.archived? %>
-        <%= button_to (item.available? ? 'Desativar' : 'Ativar'), toggle_availability_staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section]), method: :patch, class: 'secondary compact-action' %>
+        <%= button_to (item.available? ? 'Desativar' : 'Ativar'), toggle_availability_staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section], menu_kind: selected_menu_kind), method: :patch, class: 'secondary compact-action' %>
       <% end %>
       <% if manager_access? %>
+        <% if local_assigns[:pending_menu] && !item.archived? %><%= button_to 'Adicionar a este menu', menu_membership_staff_menu_item_path(item, menu_context_params(item.category_id).merge(target: 'scheduled')), method: :patch, class: 'secondary compact-action' %><% end %>
         <% unless item.archived? %>
           <% if params[:menu_section] == 'scheduled' && !item.normal_menu_visible? %><%= button_to 'Adicionar à Carta', menu_membership_staff_menu_item_path(item, menu_context_params(item.category_id).merge(target: 'carta')), method: :patch, class: 'secondary compact-action' %><% elsif params[:menu_section] != 'scheduled' && !item.scheduled_menu_visible? %><%= button_to 'Adicionar a Diárias / Brunch', menu_membership_staff_menu_item_path(item, menu_context_params(item.category_id).merge(target: 'scheduled')), method: :patch, class: 'secondary compact-action' %><% end %>
         <% end %>
         <% if item.archived? %>
-          <%= button_to 'Restaurar', restore_staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section]), method: :patch, class: 'secondary compact-action' %>
+          <%= button_to 'Restaurar', restore_staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section], menu_kind: selected_menu_kind), method: :patch, class: 'secondary compact-action' %>
         <% else %>
-          <%= button_to 'Arquivar', staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section]), method: :delete, class: 'secondary compact-action' %>
+          <%= button_to 'Arquivar', staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section], menu_kind: selected_menu_kind), method: :delete, class: 'secondary compact-action' %>
         <% end %>
-        <%= button_to purge_staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section]), method: :delete, class: 'trash-button', title: "Eliminar produto #{item.name}", aria: { label: "Eliminar produto #{item.name}" }, form: { class: 'trash-button-form' } do %>
+        <%= button_to purge_staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section], menu_kind: selected_menu_kind), method: :delete, class: 'trash-button', title: "Eliminar produto #{item.name}", aria: { label: "Eliminar produto #{item.name}" }, form: { class: 'trash-button-form' } do %>
           <span aria-hidden="true">🗑︎</span>
         <% end %>
       <% end %>

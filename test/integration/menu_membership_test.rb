@@ -36,7 +36,7 @@ class MenuMembershipTest < ActionDispatch::IntegrationTest
     assert_select '.menu-product-info strong', text: soup.name
     patch menu_membership_staff_menu_item_path(soup), params: { target: 'carta', menu_section: 'scheduled' }
     assert soup.reload.normal_menu_visible?
-    assert_redirected_to staff_menu_path(menu_section: 'scheduled', menu_status: 'active', open_category_id: soup.category_id)
+    assert_redirected_to staff_menu_path(menu_section: 'scheduled', menu_kind: 'lunch', menu_status: 'active', open_category_id: soup.category_id)
   end
 
   test 'membership cannot modify another establishment' do

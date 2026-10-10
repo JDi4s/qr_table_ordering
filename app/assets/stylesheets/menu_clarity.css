@@ -76,3 +76,27 @@
 [data-menu-section-panel] .scheduled-menu-overview { margin-top: 0; }
 
 .menu-main-tabs a { text-align: center; text-decoration: none; }
+
+.staff-menu-page { max-width: 1000px; margin-inline: auto; }
+.menu-selector { max-width: 520px; margin: 18px 0 12px; }
+.menu-selector label { font-weight: 700; }
+.menu-selector select { width: 100%; margin-top: 6px; }
+.menu-schedule-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #eaf1e8; margin: 12px 0 18px; }
+.menu-schedule-strip small { display: block; color: var(--muted); margin-top: 4px; }
+.menu-schedule-strip .button { flex-shrink: 0; }
+.menu-products-heading { font-size: 20px; margin: 18px 0; }
+.menu-state-picker { margin: 12px 0 18px; }
+.menu-state-picker > summary { display: inline-flex; align-items: center; min-height: 44px; border: 1px solid var(--line); background: #fff; padding: 8px 12px; border-radius: 9px; cursor: pointer; list-style: none; }
+.menu-state-picker > summary::-webkit-details-marker { display: none; }
+.menu-group-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin: 18px 0 12px; }
+.menu-group-heading h3 { margin: 0; }
+.menu-group-create { padding: 10px 0; font-weight: 700; }
+.menu-production-group { padding: 0; margin: 0; min-width: 0; }
+.menu-production-group > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; cursor: pointer; list-style: none; }
+.menu-production-group > summary::-webkit-details-marker { display: none; }
+.menu-production-group > summary small { color: var(--muted); }
+.menu-production-group .menu-product-row { padding: 14px 16px; border-top: 1px solid var(--line); margin: 0; }
+.menu-group-empty { padding: 0 16px 16px; color: var(--muted); }
+.menu-group-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; align-items: start; }
+.menu-pending-products { margin: 18px 0; }
+@media(max-width: 600px) { .menu-group-grid { grid-template-columns: 1fr; } .menu-schedule-strip { padding: 12px; } .menu-schedule-strip .button { padding: 9px 11px; } .menu-products-heading { font-size: 18px; } }
