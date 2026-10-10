@@ -61,6 +61,7 @@ Rails.application.routes.draw do
         delete :purge_uncategorized
       end
       member do
+        patch :menu_membership
         patch :toggle_availability
         patch :restore
         delete :purge

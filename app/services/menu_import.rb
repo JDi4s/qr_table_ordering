@@ -2,7 +2,7 @@ require 'digest'
 
 class MenuImport
   class Invalid < StandardError; end
-  PRODUCT_FIELDS = %w[name description price available normal_menu_visible product_kind preparation_key allergens allergen_notes nutrition_enabled nutrition_basis nutrition_portion].concat(MenuItem::NUTRITION_FIELDS.keys.map { |key| "nutrition_#{key}" }).freeze
+  PRODUCT_FIELDS = %w[name description price available normal_menu_visible scheduled_menu_visible product_kind preparation_key allergens allergen_notes nutrition_enabled nutrition_basis nutrition_portion].concat(MenuItem::NUTRITION_FIELDS.keys.map { |key| "nutrition_#{key}" }).freeze
   LUNCH_FIELDS = %w[menu_kind title group_definitions groups_configured weekdays starts_at ends_at combo_price].freeze
   attr_reader :source, :destination, :categories, :products, :selected_categories, :selected_products
 

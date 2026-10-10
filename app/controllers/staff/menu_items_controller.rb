@@ -2,7 +2,7 @@ class Staff::MenuItemsController < Staff::BaseController
   include Staff::MenuContext
   rescue_from Order::InvalidTransition, with: :invalid_menu_operation
   before_action :require_manager, except: [:index, :show, :toggle_availability]
-  before_action :set_menu_item, only: [:edit, :update, :destroy, :toggle_availability, :restore, :purge]
+  before_action :set_menu_item, only: [:edit, :update, :destroy, :toggle_availability, :restore, :purge, :menu_membership]
   before_action :load_recommendation_options, only: [:new, :create, :edit, :update]
   before_action :load_production_area_options, only: [:new, :create, :edit, :update]
 
@@ -15,12 +15,14 @@ class Staff::MenuItemsController < Staff::BaseController
   end
 
   def new
-    @menu_item = MenuItem.new
+    @menu_item = MenuItem.new(normal_menu_visible: params[:menu_section] != "scheduled", scheduled_menu_visible: params[:menu_section] == "scheduled")
   end
 
   def create
     @menu_item = MenuItem.new
     @menu_item.assign_attributes(menu_item_params)
+    @menu_item.normal_menu_visible = params[:menu_section] != "scheduled"
+    @menu_item.scheduled_menu_visible = params[:menu_section] == "scheduled"
     @menu_item.errors.add(:base, 'Escolhe o tipo de produto.') if @menu_item.product_kind == 'unclassified'
 
     if @menu_item.errors.empty? && @menu_item.save
@@ -75,7 +77,7 @@ class Staff::MenuItemsController < Staff::BaseController
 
   def purge_uncategorized
     category = uncategorized_category
-    items = category ? category.menu_items.to_a : []
+    items = category ? category.menu_items.select { |item| menu_product_matches?(item) } : []
     deleted, blocked = delete_products(items)
 
     AuditLogger.record(
@@ -84,7 +86,7 @@ class Staff::MenuItemsController < Staff::BaseController
       metadata: { deleted_products: deleted, blocked_products: blocked }
     ) if deleted.positive?
 
-    redirect_to staff_menu_path(menu_status: 'uncategorized'),
+    redirect_to staff_menu_path(menu_status: 'uncategorized', menu_section: params[:menu_section]),
       notice: bulk_delete_message(deleted, blocked), status: :see_other
   end
 
@@ -97,6 +99,7 @@ class Staff::MenuItemsController < Staff::BaseController
     products = products.where.not(category_id: uncategorized_id) if uncategorized_id
     products = products.to_a
     products |= current_establishment.menu_items.where(category_id: archived_ids).to_a if archived_ids.any?
+    products.select! { |item| menu_product_matches?(item) }
     deleted = blocked = deleted_categories = 0
     Category.transaction do
       deleted, blocked = delete_products(products)
@@ -109,7 +112,7 @@ class Staff::MenuItemsController < Staff::BaseController
       metadata: { deleted_products: deleted, deleted_categories: deleted_categories, blocked_products: blocked }
     ) if deleted.positive? || deleted_categories.positive?
 
-    redirect_to staff_menu_path(menu_status: 'archived'),
+    redirect_to staff_menu_path(menu_status: 'archived', menu_section: params[:menu_section]),
       notice: bulk_delete_message(deleted, blocked, deleted_categories), status: :see_other
   end
 
@@ -120,6 +123,14 @@ class Staff::MenuItemsController < Staff::BaseController
     AuditLogger.record(user: current_user, action: 'menu_item_availability_changed', record: @menu_item,
                        metadata: { available: @menu_item.available? })
     redirect_to menu_destination(@menu_item.category_id), status: :see_other
+  end
+
+  def menu_membership
+    raise ActionController::BadRequest unless %w[carta scheduled].include?(params[:target])
+    field = params[:target] == 'carta' ? :normal_menu_visible : :scheduled_menu_visible
+    @menu_item.update!(field => true)
+    AuditLogger.record(user: current_user, action: 'menu_item_added_to_menu', record: @menu_item, metadata: { target: params[:target] })
+    redirect_to menu_destination(@menu_item.category_id), notice: 'Produto adicionado.', status: :see_other
   end
 
   private

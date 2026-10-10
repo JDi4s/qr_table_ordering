@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_09_190000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_10_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -190,6 +190,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_09_190000) do
     t.decimal "nutrition_salt", precision: 8, scale: 2
     t.string "product_kind", default: "unclassified", null: false
     t.boolean "normal_menu_visible", default: true, null: false
+    t.boolean "scheduled_menu_visible", default: false, null: false
     t.string "preparation_key", default: "counter", null: false
     t.index ["archived_at"], name: "index_menu_items_on_archived_at"
     t.index ["category_id"], name: "index_menu_items_on_category_id"

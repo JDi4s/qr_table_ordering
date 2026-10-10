@@ -8,6 +8,8 @@ module Staff::MenuContext
   private
 
   def menu_product_matches?(item)
+    return item.scheduled_menu_visible? if params[:menu_section] == 'scheduled'
+    return item.normal_menu_visible? if params[:menu_view].blank?
     case params[:menu_view]
     when 'normal' then item.normal_menu_visible?
     when 'lunch', 'breakfast'
@@ -21,7 +23,7 @@ module Staff::MenuContext
     status = %w[active unavailable archived uncategorized].include?(params[:menu_status].to_s) ? params[:menu_status].to_s : 'active'
     selected_id = Integer(params[:open_category_id], exception: false) || category_id
     selected_id = nil unless current_establishment.categories.exists?(id: selected_id)
-    { menu_view: params[:menu_view].presence, menu_status: status, open_category_id: selected_id }.compact
+    { menu_section: params[:menu_section].presence, menu_view: params[:menu_view].presence, menu_status: status, open_category_id: selected_id }.compact
   end
 
   def menu_return_path(category_id = nil)

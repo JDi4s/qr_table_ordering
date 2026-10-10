@@ -2,7 +2,7 @@ require 'application_system_test_case'
 class MenuClaritySystemTest < ApplicationSystemTestCase
   test 'manager saves a typed combo in one step and layout fits mobile tablet and desktop' do
     venue, _, soup = build_venue
-    soup.update!(name: 'Sopa de legumes', product_kind: 'soup')
+    soup.update!(scheduled_menu_visible: true, name: 'Sopa de legumes', product_kind: 'soup')
     manager = venue_user(venue)
     visit login_path
     fill_in 'Email', with: manager.email
@@ -35,7 +35,7 @@ class MenuClaritySystemTest < ApplicationSystemTestCase
   end
   test 'manager creates a named group and selects matching products' do
     venue, _, soup = build_venue
-    soup.update!(name: 'Sopa de cenoura', product_kind: 'soup')
+    soup.update!(scheduled_menu_visible: true, name: 'Sopa de cenoura', product_kind: 'soup')
     manager = venue_user(venue)
     visit login_path
     fill_in 'Email', with: manager.email
