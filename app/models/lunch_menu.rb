@@ -21,6 +21,8 @@ class LunchMenu < ApplicationRecord
     defaults << ['dessert', 'Sobremesa', ['dessert']]
     menu.group_definitions = defaults.map { |key,name,types| { 'key' => key, 'name' => name, 'types' => types, 'optional' => false } }
     menu.groups_configured = true
+    menu.individual_enabled = false
+    menu.combo_enabled = true
     if kind == 'breakfast'
       menu.starts_at = '08:00'; menu.ends_at = '11:30'; menu.combo_price = 5
     end

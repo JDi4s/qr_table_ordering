@@ -7,7 +7,11 @@ class ScheduledMenuProducts
     end
     menu.save! if menu.new_record?
     menu.with_lock do
-      group = menu.groups.find { |g| g['key'] == group_key } if group_key.present?
+      group = if group_key.present?
+        menu.groups.find { |g| g['key'] == group_key }
+      else
+        menu.groups.find { |g| menu.product_matches?(item, g) }
+      end
       if group_key.present? && (!group || !menu.product_matches?(item, group))
         raise Order::InvalidTransition, 'Escolhe um grupo compatível com o tipo do produto.'
       end
