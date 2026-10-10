@@ -25,7 +25,7 @@ class Staff::MenuItemsController < Staff::BaseController
     @menu_item.scheduled_menu_visible = params[:menu_section] == "scheduled"
     @menu_item.errors.add(:base, 'Escolhe o tipo de produto.') if @menu_item.product_kind == 'unclassified'
 
-    if @menu_item.errors.empty? && @menu_item.save
+    if save_product_with_menu
       sync_recommendations!
       AuditLogger.record(user: current_user, action: 'menu_item_created', record: @menu_item)
       redirect_to menu_return_path(@menu_item.category_id), notice: 'Produto criado.', status: :see_other
@@ -35,13 +35,21 @@ class Staff::MenuItemsController < Staff::BaseController
   end
 
   def edit
+    if params[:menu_section] == 'scheduled'
+      menu = current_establishment.scheduled_menus.find_by(menu_kind: selected_menu_kind)
+      offer = menu&.individual_offers&.find { |row| row['menu_item_id'].to_i == @menu_item.id }
+      @scheduled_price = offer&.fetch('price', nil) || @menu_item.price
+    end
   end
 
   def update
     attributes = menu_item_params
+    if params[:menu_section] == 'scheduled'
+      @scheduled_price = attributes.delete(:price)
+    end
     @menu_item.assign_attributes(attributes)
     @menu_item.errors.add(:base, 'Escolhe o tipo de produto.') if @menu_item.product_kind == 'unclassified'
-    if @menu_item.errors.empty? && @menu_item.save
+    if save_product_with_menu
       sync_recommendations!
       AuditLogger.record(user: current_user, action: 'menu_item_updated', record: @menu_item)
       redirect_to menu_return_path(@menu_item.category_id), notice: 'Produto atualizado.', status: :see_other
@@ -128,12 +136,33 @@ class Staff::MenuItemsController < Staff::BaseController
   def menu_membership
     raise ActionController::BadRequest unless %w[carta scheduled].include?(params[:target])
     field = params[:target] == 'carta' ? :normal_menu_visible : :scheduled_menu_visible
-    @menu_item.update!(field => true)
+    if params[:target] == 'scheduled'
+      MenuItem.transaction { ScheduledMenuProducts.add!(current_establishment, @menu_item, kind: selected_menu_kind) }
+    else
+      @menu_item.update!(field => true)
+    end
     AuditLogger.record(user: current_user, action: 'menu_item_added_to_menu', record: @menu_item, metadata: { target: params[:target] })
     redirect_to menu_destination(@menu_item.category_id), notice: 'Produto adicionado.', status: :see_other
   end
 
   private
+
+  def save_product_with_menu
+    return false if @menu_item.errors.any?
+    MenuItem.transaction do
+      @menu_item.save!
+      if params[:menu_section] == 'scheduled'
+        ScheduledMenuProducts.add!(current_establishment, @menu_item, kind: selected_menu_kind, group_key: params[:scheduled_group].presence, price: @scheduled_price.presence || @menu_item.price)
+      end
+    end
+    true
+  rescue ActiveRecord::RecordInvalid => error
+    @menu_item.errors.add(:base, error.record.errors.full_messages.join('. ')) unless error.record == @menu_item
+    false
+  rescue Order::InvalidTransition => error
+    @menu_item.errors.add(:base, error.message)
+    false
+  end
 
   def menu_destination(category_id = nil)
     menu_return_path(category_id)

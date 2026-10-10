@@ -1,20 +1,16 @@
-<div class="staff-menu-page" data-controller="staff-menu" data-staff-menu-key-value="<%= current_establishment.id %>" data-action="click->staff-menu#remember submit->staff-menu#remember turbo:frame-load->staff-menu#restore">
+<div class="staff-menu-page" data-controller="staff-menu" data-menu-area="<%= params[:menu_section] == 'scheduled' ? 'scheduled' : 'carta' %>" data-menu-kind="<%= selected_menu_kind %>" data-staff-menu-key-value="<%= current_establishment.id %>" data-action="click->staff-menu#remember submit->staff-menu#remember turbo:frame-load->staff-menu#restore">
 <h1>Menu</h1>
-<p class="staff-menu-intro">Organiza as categorias e os produtos do teu espaço.</p>
+
 
 <% if manager_access? %>
 <nav class="menu-main-tabs" aria-label="Gestão do menu"><%= link_to 'Carta', staff_menu_path, class: ('is-active' unless params[:menu_section] == 'scheduled') %><%= link_to 'Diárias / Brunch', staff_menu_path(menu_section: 'scheduled'), class: ('is-active' if params[:menu_section] == 'scheduled') %></nav>
-<% if params[:menu_section] == 'scheduled' %><section data-menu-section-panel="scheduled">
-<% if manager_access? %>
-  <section class="scheduled-menu-overview" aria-label="Menus por horário">
-    <div class="section-heading"><h2>Menus por horário</h2><p>Produtos e preços próprios, nos horários que escolheres.</p></div>
-    <div class="scheduled-menu-cards"><% [['breakfast','Pequeno-almoço'],['lunch','Menu de almoço']].each do |kind,label| %>
-      <% scheduled_menu = current_establishment.scheduled_menus.find_by(menu_kind: kind) %>
-      <article class="panel scheduled-menu-card"><div><h3><%= scheduled_menu&.title.presence || label %></h3><p><%= scheduled_menu ? "#{scheduled_menu.starts_at.strftime('%H:%M')}–#{scheduled_menu.ends_at.strftime('%H:%M')}" : 'Ainda não configurado' %></p><span class="menu-schedule-state"><%= scheduled_menu&.active? ? 'Programado' : 'Desativado' %></span></div><%= link_to 'Configurar', edit_staff_lunch_menu_path(menu_kind: kind), class: 'button secondary', aria: { label: "Configurar #{label.downcase}" } %></article>
-    <% end %></div>
-  </section>
 <% end %>
-</section><% end %>
+<% if params[:menu_section] == 'scheduled' %>
+  <%= form_with url: staff_menu_path, method: :get, class: 'menu-selector', data: { turbo: false } do %>
+    <%= hidden_field_tag :menu_section, 'scheduled' %>
+    <label for="managed-menu">Menu que estás a gerir</label><%= select_tag :menu_kind, options_for_select([['Menu de almoço','lunch'],['Pequeno-almoço / Brunch','breakfast']], selected_menu_kind), id: 'managed-menu', onchange: 'this.form.requestSubmit()' %><noscript><button type="submit">Abrir menu</button></noscript>
+  <% end %>
+  <section class="menu-schedule-strip" aria-label="Horário do menu"><div><strong><%= @selected_menu.active? ? 'Programado' : 'Desativado' %></strong><small><%= @selected_menu.starts_at.strftime('%H:%M') %>–<%= @selected_menu.ends_at.strftime('%H:%M') %> · <%= LunchMenu::DAYS.select { |_,day| @selected_menu.weekdays.include?(day) }.map(&:first).join(', ') %></small></div><% if manager_access? %><%= link_to 'Configurar', edit_staff_lunch_menu_path(menu_kind: selected_menu_kind), class: 'button secondary' %><% end %></section>
 <% end %>
 <section data-menu-section-panel="products">
 <% if manager_access? %>
@@ -24,39 +20,41 @@
     <% missing_products = pending_products.needing_classification(current_establishment) %>
     <% pending_classification = missing_products.count %>
     <% if pending_classification.positive? %><%= link_to "Classificar produtos (#{pending_classification})", edit_staff_product_classification_path, class: 'button secondary' %><% end %>
-    <%= link_to 'Criar categoria', new_staff_category_path(menu_context_params), class: 'button secondary' %>
+    <% if params[:menu_section] != 'scheduled' %><%= link_to 'Criar categoria', new_staff_category_path(menu_context_params), class: 'button secondary menu-create-category' %><% end %>
   </div>
 <% end %>
 
-<h2><%= params[:menu_section] == 'scheduled' ? 'Produtos de Diárias / Brunch' : 'Produtos da carta' %></h2>
+<% unless params[:menu_section] == 'scheduled' %><h2 class="menu-products-heading">Produtos da carta</h2><% end %>
 <%= turbo_frame_tag 'staff_menu_records' do %>
   <% if request.headers['Turbo-Frame'].present? %>
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>
   <% end %>
 
   <div class="staff-menu-status">
-    <nav class="staff-menu-status-tabs" aria-label="Estado do menu">
+    <details class="menu-state-picker"><summary>Estado: <%= {'active' => 'Ativos', 'unavailable' => 'Indisponíveis', 'archived' => 'Arquivados', 'uncategorized' => 'Sem categoria'}[@menu_status] %> ⌄</summary><nav class="staff-menu-status-tabs" aria-label="Estado do menu">
       <% menu_tabs = [['active', 'Ativas'], ['unavailable', 'Indisponíveis'], ['archived', 'Arquivadas']] %>
       <% menu_tabs << ['uncategorized', 'Sem categoria'] if @menu_counts['uncategorized'].positive? %>
       <% menu_tabs.each do |value, label| %>
-        <%= link_to staff_menu_path(menu_status: value, menu_view: params[:menu_view], menu_section: params[:menu_section]),
+        <%= link_to staff_menu_path(menu_status: value, menu_view: params[:menu_view], menu_section: params[:menu_section], menu_kind: selected_menu_kind),
           class: "staff-menu-status-tab #{'is-active' if @menu_status == value}",
           aria: { current: ('page' if @menu_status == value) },
           data: { turbo_frame: 'staff_menu_records', turbo_action: 'advance' } do %>
           <%= label %> <span><%= @menu_counts[value] %></span>
         <% end %>
       <% end %>
-    </nav>
+    </nav></details>
 
     <section class="staff-menu-status-panel" data-menu-status="<%= @menu_status %>">
-      <% if @menu_status == 'uncategorized' %>
+      <% if params[:menu_section] == 'scheduled' %>
+        <%= render 'staff/menu/scheduled_products' %>
+      <% elsif @menu_status == 'uncategorized' %>
         <div class="panel menu-records-heading">
           <div>
             <h2>Produtos sem categoria</h2>
             <p>Produtos que ficaram sem categoria depois de uma eliminação.</p>
           </div>
           <% if manager_access? && @uncategorized_category&.menu_items&.any? %>
-            <%= button_to purge_uncategorized_staff_menu_items_path(menu_status: 'uncategorized', menu_section: params[:menu_section]),
+            <%= button_to purge_uncategorized_staff_menu_items_path(menu_status: 'uncategorized', menu_section: params[:menu_section], menu_kind: selected_menu_kind),
               method: :delete, class: 'bulk-delete-button' do %>
               <span aria-hidden="true">🗑︎</span> Apagar todos
             <% end %>
@@ -79,7 +77,7 @@
               <h2>Registos arquivados</h2>
               <p>Elimina definitivamente todos os produtos e categorias desta área.</p>
             </div>
-            <%= button_to purge_archived_staff_menu_items_path(menu_status: 'archived', menu_section: params[:menu_section]),
+            <%= button_to purge_archived_staff_menu_items_path(menu_status: 'archived', menu_section: params[:menu_section], menu_kind: selected_menu_kind),
               method: :delete, class: 'bulk-delete-button' do %>
               <span aria-hidden="true">🗑︎</span> Apagar todos
             <% end %>

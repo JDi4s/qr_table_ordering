@@ -54,8 +54,8 @@ class Staff::MenuControllerTest < ActionDispatch::IntegrationTest
     assert_select '.menu-product-row', text: /#{Regexp.escape(product.name)}/
     assert_select '.menu-product-price', text: '10,00 €'
     assert_select '.menu-product-actions summary[aria-label]', count: 1
-    assert_select "form[action='#{toggle_availability_staff_menu_item_path(product, menu_status: 'active')}']", count: 1
-    assert_select "form[action='#{staff_menu_item_path(product, menu_status: 'active')}']", count: 1
+    assert_select "form[action='#{toggle_availability_staff_menu_item_path(product, menu_status: 'active', menu_kind: 'lunch')}']", count: 1
+    assert_select "form[action='#{staff_menu_item_path(product, menu_status: 'active', menu_kind: 'lunch')}']", count: 1
   end
 
   test 'unavailable products stay reachable inside active categories and subcategories' do
@@ -73,7 +73,7 @@ class Staff::MenuControllerTest < ActionDispatch::IntegrationTest
     assert_select '.menu-product-row', text: /#{Regexp.escape(product.name)}/
     assert_select '.menu-product-row', text: /#{Regexp.escape(nested.name)}/
     assert_select '.menu-product-row', count: 2
-    assert_select ".staff-menu-status-tab[href='#{staff_menu_path(menu_status: 'unavailable')}'] span", text: '2'
+    assert_select ".staff-menu-status-tab[href='#{staff_menu_path(menu_status: 'unavailable', menu_kind: 'lunch')}'] span", text: '2'
     assert_select "#category-#{child.id} > details[open]"
     assert_select "#category-#{parent.id} > details[open]"
   end

@@ -20,7 +20,7 @@ class StaffMenuTest < ApplicationSystemTestCase
     page.execute_script('arguments[0].scrollIntoView({block: "center"})', row)
     original_scroll = page.evaluate_script('window.scrollY')
     assert_operator original_scroll, :>, 500
-    within(row) { click_on 'Editar' }
+    within(row) { find('summary').click; click_on 'Editar' }
 
     assert_selector 'h1', text: 'Editar produto'
     fill_in 'Nome', with: 'Indisponível 29 revisto'

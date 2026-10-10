@@ -2,6 +2,15 @@ class Staff::MenuController < Staff::BaseController
   include Staff::MenuContext
 
   def index
+    if params[:menu_section] == 'scheduled'
+      @selected_menu = LunchMenu.for_management(current_establishment, selected_menu_kind)
+      if @selected_menu.new_record? && selected_menu_kind == 'breakfast'
+        @selected_menu.starts_at = '08:00'; @selected_menu.ends_at = '11:30'
+      end
+      @scheduled_groups = @selected_menu.groups
+      @scheduled_ids = (@selected_menu.individual_offers + @selected_menu.combo_groups.values.flatten).map { |row| row['menu_item_id'].to_i }
+      @scheduled_products = current_establishment.menu_items.where(scheduled_menu_visible: true).includes(:category).order(:name).to_a
+    end
     @menu_status = %w[active unavailable archived uncategorized].include?(params[:menu_status].to_s) ? params[:menu_status].to_s : 'active'
     @open_category_id = Integer(params[:open_category_id], exception: false)
     @categories = current_establishment.categories.includes(:menu_items, :children).order(:name).to_a
