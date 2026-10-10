@@ -100,3 +100,7 @@
 .menu-group-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; align-items: start; }
 .menu-pending-products { margin: 18px 0; }
 @media(max-width: 600px) { .menu-group-grid { grid-template-columns: 1fr; } .menu-schedule-strip { padding: 12px; } .menu-schedule-strip .button { padding: 9px 11px; } .menu-products-heading { font-size: 18px; } }
+
+.menu-product-actions[open] .menu-record-actions-list { display: flex; flex-direction: column; align-items: stretch; }
+.menu-product-actions .menu-record-actions-list form, .menu-product-actions .menu-record-actions-list button, .menu-product-actions .menu-record-actions-list a { width: 100%; text-align: left; }
+.menu-product-actions .menu-record-actions-list a { padding: 9px 10px; min-height: 44px; display: flex; align-items: center; box-sizing: border-box; }

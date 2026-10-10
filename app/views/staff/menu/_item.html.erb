@@ -5,10 +5,11 @@
     <small><%= item.archived? ? 'Arquivado' : (item.available? ? 'Disponível' : 'Indisponível') %></small>
   </div>
   <strong class="menu-product-price"><%= euros(local_assigns[:item_price] || item.price) %></strong>
-  <% if manager_access? %><%= link_to 'Editar', edit_staff_menu_item_path(item, menu_context_params(item.category_id)), class: 'menu-edit-link', data: { turbo_frame: '_top' } %><% end %>
   <details class="menu-record-actions menu-product-actions">
     <summary aria-label="Mais ações de <%= item.name %>">⋯</summary>
     <div class="menu-record-actions-list">
+  <% if manager_access? %><%= link_to 'Editar', edit_staff_menu_item_path(item, menu_context_params(item.category_id)), class: 'menu-edit-link', data: { turbo_frame: '_top' } %><% end %>
+
       <% unless item.archived? %>
         <%= button_to (item.available? ? 'Desativar' : 'Ativar'), toggle_availability_staff_menu_item_path(item, menu_status: status, menu_section: params[:menu_section], menu_kind: selected_menu_kind), method: :patch, class: 'secondary compact-action' %>
       <% end %>
