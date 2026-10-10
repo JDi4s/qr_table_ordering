@@ -34,7 +34,7 @@ class Staff::LunchMenusController < Staff::BaseController
 
   def load_menu
     @kind = params[:menu_kind] == 'breakfast' ? 'breakfast' : 'lunch'
-    @lunch_menu = current_establishment.scheduled_menus.find_or_initialize_by(menu_kind: @kind)
+    @lunch_menu = LunchMenu.for_management(current_establishment, @kind)
     if @lunch_menu.new_record? && @kind == 'breakfast'
       @lunch_menu.starts_at = '08:00'; @lunch_menu.ends_at = '11:00'; @lunch_menu.combo_price = 5
     end

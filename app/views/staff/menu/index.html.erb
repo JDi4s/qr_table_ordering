@@ -24,7 +24,7 @@
   </div>
 <% end %>
 
-<h2 class="menu-products-heading"><%= params[:menu_section] == 'scheduled' ? @selected_menu.display_title : 'Produtos da carta' %></h2>
+<% unless params[:menu_section] == 'scheduled' %><h2 class="menu-products-heading">Produtos da carta</h2><% end %>
 <%= turbo_frame_tag 'staff_menu_records' do %>
   <% if request.headers['Turbo-Frame'].present? %>
     <% flash.each do |kind, message| %><div class="flash <%= kind %>" role="status"><%= message %></div><% end %>

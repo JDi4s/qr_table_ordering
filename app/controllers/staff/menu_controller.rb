@@ -3,7 +3,7 @@ class Staff::MenuController < Staff::BaseController
 
   def index
     if params[:menu_section] == 'scheduled'
-      @selected_menu = current_establishment.scheduled_menus.find_or_initialize_by(menu_kind: selected_menu_kind)
+      @selected_menu = LunchMenu.for_management(current_establishment, selected_menu_kind)
       if @selected_menu.new_record? && selected_menu_kind == 'breakfast'
         @selected_menu.starts_at = '08:00'; @selected_menu.ends_at = '11:30'
       end

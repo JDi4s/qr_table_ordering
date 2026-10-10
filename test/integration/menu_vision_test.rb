@@ -17,6 +17,7 @@ class MenuVisionTest < ActionDispatch::IntegrationTest
   end
   test 'scheduled price does not change carta price and invalid group rolls back creation' do
     ScheduledMenuProducts.add!(@venue, @product, kind: 'lunch', price: 3)
+    assert_equal %w[soup plate coffee dessert], @venue.scheduled_menus.find_by!(menu_kind: 'lunch').groups.map { |g| g['key'] }
     original = @product.price
     patch staff_menu_item_path(@product), params: { menu_section: 'scheduled', menu_kind: 'lunch', menu_item: { name: @product.name, category_id: @product.category_id, product_kind: 'soup', price: 4 } }
     assert_response :see_other

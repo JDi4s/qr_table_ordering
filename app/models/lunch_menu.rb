@@ -9,6 +9,24 @@ class LunchMenu < ApplicationRecord
   validates :combo_price, numericality: { greater_than_or_equal_to: 0, less_than: 100000 }
   validate :configuration_is_valid
 
+  def self.for_management(venue, kind)
+    kind = kind == 'breakfast' ? 'breakfast' : 'lunch'
+    menu = venue.scheduled_menus.find_or_initialize_by(menu_kind: kind)
+    return menu unless menu.new_record?
+    defaults = if kind == 'breakfast'
+      [['coffee', 'Bebida quente', ['coffee']], ['bread', 'Pão ou pastelaria', %w[snack dessert]], ['drink', 'Bebida', ['drink']]]
+    else
+      [['soup', 'Sopa', ['soup']], ['plate', 'Prato', %w[plate snack]], ['coffee', 'Café', ['coffee']]]
+    end
+    defaults << ['dessert', 'Sobremesa', ['dessert']]
+    menu.group_definitions = defaults.map { |key,name,types| { 'key' => key, 'name' => name, 'types' => types, 'optional' => false } }
+    menu.groups_configured = true
+    if kind == 'breakfast'
+      menu.starts_at = '08:00'; menu.ends_at = '11:30'; menu.combo_price = 5
+    end
+    menu
+  end
+
   def display_title
     title.presence || (menu_kind == 'breakfast' ? 'Pequeno-almoço' : 'Almoço')
   end

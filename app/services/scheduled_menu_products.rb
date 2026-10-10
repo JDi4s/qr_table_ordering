@@ -1,7 +1,7 @@
 class ScheduledMenuProducts
   def self.add!(venue, item, kind:, group_key: nil, price: item.price)
     raise Order::InvalidTransition, 'Este produto não pertence ao estabelecimento.' unless item.establishment.id == venue.id
-    menu = venue.scheduled_menus.find_or_initialize_by(menu_kind: kind == 'breakfast' ? 'breakfast' : 'lunch')
+    menu = LunchMenu.for_management(venue, kind)
     if menu.new_record? && kind == 'breakfast'
       menu.starts_at = '08:00'; menu.ends_at = '11:30'; menu.combo_price = 5
     end
