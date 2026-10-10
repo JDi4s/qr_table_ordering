@@ -30,6 +30,8 @@ class MenuMembershipTest < ActionDispatch::IntegrationTest
     assert_not soup.normal_menu_visible?
     get staff_menu_path
     assert_select '.menu-product-info strong', text: soup.name, count: 0
+    get staff_menu_path(menu_view: 'all')
+    assert_select '.menu-product-info strong', text: soup.name, count: 0
     get staff_menu_path(menu_section: 'scheduled')
     assert_select '.menu-product-info strong', text: soup.name
     patch menu_membership_staff_menu_item_path(soup), params: { target: 'carta', menu_section: 'scheduled' }
