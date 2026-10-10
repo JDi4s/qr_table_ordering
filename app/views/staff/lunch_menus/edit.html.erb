@@ -16,11 +16,9 @@
       <% end %></div>
       <button type="button" class="secondary scheduled-add-group" data-action="scheduled-menu-editor#addGroup" data-add-group>+ Criar grupo</button>
     </section>
-    <section class="panel scheduled-sales"><h2>Como vais vender?</h2><div class="scheduled-sale-modes">
-      <label class="scheduled-sale-mode"><%= f.check_box :individual_enabled, data: { section_toggle: 'individual', action: 'change->scheduled-menu-editor#sync' } %><span><strong>Vender à unidade</strong><small>Cada produto tem o seu preço.</small></span></label>
-      <label class="scheduled-sale-mode"><%= f.check_box :combo_enabled, data: { section_toggle: 'combo', action: 'change->scheduled-menu-editor#sync' } %><span><strong>Vender menu completo</strong><small>Um preço para o conjunto escolhido.</small></span></label>
-    </div>
-      <div data-sale-section="individual" class="scheduled-unit-products"><h3>Produtos à unidade</h3><p class="scheduled-help">Seleciona os produtos e define o preço neste horário. Esta lista é independente do menu completo.</p><%= render 'options', field: 'individual_items', selected: @lunch_menu.individual_offers, money_key: 'price', money_label: 'Preço (€)', default_price: true %></div>
+    <%= f.hidden_field :individual_enabled, value: '0' %>
+    <%= f.hidden_field :combo_enabled, value: '1' %>
+    <section class="panel scheduled-sales"><h2>Produtos e preço do menu</h2>
       <div data-sale-section="combo" class="scheduled-combo-products">
         <label class="scheduled-base-price">Preço do menu completo (€)<%= f.number_field :combo_price, min: 0, max: '99999.99', step: '0.01', required: true %></label>
         <p class="scheduled-help">O cliente escolhe um produto de cada grupo marcado com Sim. Podes acrescentar um suplemento.</p>

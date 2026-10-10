@@ -37,9 +37,9 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     assert_selector '.customer-product-card', text: product.name
   end
 
-  test 'manager configures avulso lunch from existing products on mobile' do
+  test 'manager configures a complete lunch menu without unit sales on mobile' do
     venue, _, product = build_venue
-    product.update!(scheduled_menu_visible: true)
+    product.update!(scheduled_menu_visible: true, product_kind: 'soup')
     manager = venue_user(venue)
     page.current_window.resize_to(390, 844)
     visit login_path
@@ -53,13 +53,23 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     click_link 'Configurar'
     assert_text 'Menu de almoço'
     check 'Ativar menu de almoço'
-    check "#{'individual_items'.parameterize}-#{product.id}"
-    find("input[name='individual_items[#{product.id}][price]']").set('8.50')
+    assert_no_text 'Vender à unidade'
+    assert_no_selector '[data-sale-section="individual"]'
+    choose 'exclude_plate', allow_label_click: true
+    choose 'exclude_coffee', allow_label_click: true
+    choose 'exclude_dessert', allow_label_click: true
+    find('[data-group-panel="soup"] summary').click
+    check "#{'combo_options[soup]'.parameterize}-#{product.id}"
+    fill_in 'Preço do menu completo (€)', with: '8.50' 
     page.execute_script('window.scrollTo(0, 0)')
     page.save_screenshot(Rails.root.join('tmp/screenshots/lunch-management-mobile.png'))
     click_button 'Guardar menu de almoço'
     assert_text 'Menu de almoço guardado'
-    assert_equal '8.50', venue.reload.lunch_menu.individual_offers.first['price']
+    assert_not venue.reload.lunch_menu.individual_enabled?
+    assert venue.lunch_menu.combo_enabled?
+    assert_equal BigDecimal('8.50'), venue.lunch_menu.combo_price
+    assert_equal product.id, venue.lunch_menu.combo_groups['soup'].first['menu_item_id']
     assert_equal BigDecimal('10'), product.reload.price
   end
 end
+

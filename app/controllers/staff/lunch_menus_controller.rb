@@ -8,6 +8,8 @@ class Staff::LunchMenusController < Staff::BaseController
   def update
     values = params.require(:lunch_menu).permit(:title, :active, :starts_at, :ends_at, :individual_enabled, :combo_enabled, :combo_price, weekdays: [])
     values[:weekdays] = Array(values[:weekdays]).reject(&:blank?).map { |day| Integer(day, exception: false) }
+    values[:individual_enabled] = false
+    values[:combo_enabled] = true
     @lunch_menu.assign_attributes(values)
     if params[:groups].present?
       @lunch_menu.groups_configured = true
@@ -17,7 +19,7 @@ class Staff::LunchMenusController < Staff::BaseController
         { 'key' => group['key'].to_s, 'name' => group['name'].to_s.strip, 'types' => group['types'].to_s.split(','), 'optional' => group.key?('enabled') ? false : group['optional'] == '1' }
       end
     end
-    @lunch_menu.individual_offers = selected_options(params[:individual_items], 'price')
+    # Keep stored prices for historical compatibility; this editor sells complete menus only.
     @lunch_menu.combo_groups = @lunch_menu.groups.map { |group| group['key'] }.to_h do |key|
       [key, selected_options(params.dig(:combo_options, key), 'supplement')]
     end
@@ -70,3 +72,4 @@ class Staff::LunchMenusController < Staff::BaseController
     end
   end
 end
+

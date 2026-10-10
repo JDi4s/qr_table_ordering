@@ -61,9 +61,12 @@ class LunchMenuIntegrationTest < ActionDispatch::IntegrationTest
     sign_in(@manager)
     get edit_staff_lunch_menu_path
     assert_response :success
-    patch staff_lunch_menu_path, params: { lunch_menu: { active: '1', weekdays: ['4'], starts_at: '12:00', ends_at: '15:00', individual_enabled: '1', combo_enabled: '0', combo_price: '12' }, individual_items: { @product.id => { selected: '1', price: '9.50' } } }
+    @product.update!(product_kind: 'plate')
+    patch staff_lunch_menu_path, params: { lunch_menu: { active: '1', weekdays: ['4'], starts_at: '12:00', ends_at: '15:00', individual_enabled: '1', combo_enabled: '0', combo_price: '12' }, groups: { '0' => { key: 'plate', name: 'Prato', types: 'plate', enabled: '1' } }, combo_options: { plate: { @product.id => { selected: '1', supplement: '0' } } } }
     assert_response :redirect
-    assert_equal '9.50', @menu.reload.individual_offers.first['price']
+    assert_not @menu.reload.individual_enabled?
+    assert @menu.combo_enabled?
+    assert_equal @product.id, @menu.combo_groups['plate'].first['menu_item_id']
     assert_equal BigDecimal('10'), @product.reload.price
   end
 
@@ -96,3 +99,4 @@ class LunchMenuIntegrationTest < ActionDispatch::IntegrationTest
     assert_select '.staff-order-items', text: /Menu completo/
   end
 end
+

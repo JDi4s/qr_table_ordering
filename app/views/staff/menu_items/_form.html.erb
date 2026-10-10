@@ -5,7 +5,7 @@
     <%= f.label :name, 'Nome' %><%= f.text_field :name, required: true, autofocus: true, placeholder: 'Ex.: Pastel de nata' %>
     <% if params[:menu_section] == 'scheduled' %>
       <% selected_menu = LunchMenu.for_management(current_establishment, selected_menu_kind) %>
-      <label>Grupo do menu<%= select_tag :scheduled_group, options_for_select(selected_menu.groups.map { |g| [g['name'], g['key']] }, params[:scheduled_group]), include_blank: 'Só vender à unidade' %></label>
+      <label>Grupo do menu<%= select_tag :scheduled_group, options_for_select(selected_menu.groups.map { |g| [g['name'], g['key']] }, params[:scheduled_group]), prompt: 'Escolher grupo', required: true %></label>
       <small><%= selected_menu.display_title %> · Escolhe um grupo compatível com o tipo do produto.</small>
     <% end %>
     <div class="product-editor-price-row">
