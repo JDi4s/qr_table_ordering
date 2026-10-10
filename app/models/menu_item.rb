@@ -18,6 +18,7 @@ class MenuItem < ApplicationRecord
 
   def menu_labels
     labels = normal_menu_visible? ? ['Carta'] : []
+    labels << 'Diárias / Brunch' if scheduled_menu_visible?
     establishment.scheduled_menus.each do |menu|
       ids = menu.individual_offers.map { |o| o['menu_item_id'].to_i } + menu.combo_groups.values.flatten.map { |o| o['menu_item_id'].to_i }
       labels << menu.display_title if ids.include?(id)

@@ -38,7 +38,7 @@ class Staff::LunchMenusController < Staff::BaseController
     if @lunch_menu.new_record? && @kind == 'breakfast'
       @lunch_menu.starts_at = '08:00'; @lunch_menu.ends_at = '11:00'; @lunch_menu.combo_price = 5
     end
-    @products = current_establishment.menu_items.not_archived.includes(:category).order(:name)
+    @products = current_establishment.menu_items.not_archived.where(scheduled_menu_visible: true).includes(:category).order(:name)
     build_editor_groups
   end
 

@@ -39,6 +39,7 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
 
   test 'manager configures avulso lunch from existing products on mobile' do
     venue, _, product = build_venue
+    product.update!(scheduled_menu_visible: true)
     manager = venue_user(venue)
     page.current_window.resize_to(390, 844)
     visit login_path
@@ -47,8 +48,8 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     click_on 'Entrar'
     assert_current_path staff_orders_path
     visit staff_menu_path
-    click_button 'Diárias / Brunch'
-    assert_selector '[data-menu-section-panel=carta]', visible: :hidden
+    click_link 'Diárias / Brunch'
+    assert_text 'Produtos de Diárias / Brunch'
     within('.scheduled-menu-card', text: 'Menu de almoço') { click_link 'Configurar' }
     assert_text 'Menu de almoço'
     check 'Ativar menu de almoço'

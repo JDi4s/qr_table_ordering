@@ -34,16 +34,16 @@ end %>
         <summary>Mais ações da categoria</summary>
         <div class="menu-record-actions-list">
           <% unless category.archived? %>
-            <%= button_to (category.available? ? 'Desativar' : 'Ativar'), toggle_availability_staff_category_path(category, menu_status: status), method: :patch, class: 'secondary compact-action' %>
+            <%= button_to (category.available? ? 'Desativar' : 'Ativar'), toggle_availability_staff_category_path(category, menu_status: status, menu_section: params[:menu_section]), method: :patch, class: 'secondary compact-action' %>
           <% end %>
           <% if manager_access? %>
             <% if category.archived? %>
-              <%= button_to 'Restaurar', restore_staff_category_path(category, menu_status: status), method: :patch, class: 'secondary compact-action' %>
+              <%= button_to 'Restaurar', restore_staff_category_path(category, menu_status: status, menu_section: params[:menu_section]), method: :patch, class: 'secondary compact-action' %>
             <% else %>
-              <%= button_to 'Arquivar', staff_category_path(category, menu_status: status), method: :delete, class: 'secondary compact-action' %>
+              <%= button_to 'Arquivar', staff_category_path(category, menu_status: status, menu_section: params[:menu_section]), method: :delete, class: 'secondary compact-action' %>
             <% end %>
             <% unless category.uncategorized? %>
-              <%= button_to purge_staff_category_path(category, menu_status: status), method: :delete, class: 'trash-button', title: "Eliminar categoria #{category.name}", aria: { label: "Eliminar categoria #{category.name}" }, form: { class: 'trash-button-form' } do %>
+              <%= button_to purge_staff_category_path(category, menu_status: status, menu_section: params[:menu_section]), method: :delete, class: 'trash-button', title: "Eliminar categoria #{category.name}", aria: { label: "Eliminar categoria #{category.name}" }, form: { class: 'trash-button-form' } do %>
                 <span aria-hidden="true">🗑︎</span>
               <% end %>
             <% end %>

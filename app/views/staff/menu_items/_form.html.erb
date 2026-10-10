@@ -8,8 +8,7 @@
       <div><%= f.label :price, 'Preço (€)' %><%= f.number_field :price, min: 0, step: '0.01', required: true, placeholder: '0,00' %></div>
     </div>
     <div class="product-editor-price-row"><div><%= f.label :product_kind, 'Tipo de produto' %><%= f.select :product_kind, MenuItem::PRODUCT_KINDS.except('unclassified').map { |key, label| [label,key] }, { prompt: 'Escolher tipo' }, required: true, data: { action: 'change->product-routing#kind' } %></div><% if current_establishment.service_division_enabled? %><div><%= f.label :production_area_id, 'Preparado em' %><%= f.select :production_area_id, options_from_collection_for_select(@production_areas, :id, :name, @menu_item.production_area_id), { prompt: 'Escolher área' }, required: true %></div><% end %></div>
-    <label class="form-check"><%= f.check_box :normal_menu_visible %> Mostrar na carta</label>
-    <small>Desmarca para vender apenas num menu por horário. Depois escolhe o produto no pequeno-almoço ou no almoço.</small>
+    <small>Este produto pertence a <%= params[:menu_section] == 'scheduled' ? 'Diárias / Brunch' : 'Carta' %>. Podes adicioná-lo à outra área nos três pontinhos.</small>
     <label class="form-check"><%= f.check_box :available %> Disponível para pedir</label>
   </section>
   <div class="product-editor-optional-heading"><strong>Completar produto</strong><span>Opcional</span></div>

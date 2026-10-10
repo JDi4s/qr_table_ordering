@@ -28,6 +28,18 @@ class Staff::MenuController < Staff::BaseController
       'archived' => @menu_categories.count(&:archived?) + @menu_categories.sum { |category| category.menu_items.count(&:archived?) },
       'uncategorized' => @uncategorized_category&.menu_items&.size.to_i
     }
+    @menu_counts['active'] = matching_category_ids('active').size
+    @menu_counts['unavailable'] = @menu_categories.sum do |category|
+      state = @menu_category_states[category.id]
+      next 0 if state[:archived]
+      items = category.menu_items.select { |item| menu_product_matches?(item) && !item.archived? }
+      (state[:unavailable] && items.any? ? 1 : 0) + items.count { |item| state[:unavailable] || !item.available? }
+    end
+    @menu_counts['archived'] = @menu_categories.sum do |category|
+      items = category.menu_items.select { |item| menu_product_matches?(item) }
+      (category.archived? && items.any? ? 1 : 0) + items.count(&:archived?)
+    end
+    @menu_counts['uncategorized'] = @uncategorized_category&.menu_items&.count { |item| menu_product_matches?(item) }.to_i
     @menu_status = 'active' if @menu_status == 'uncategorized' && @menu_counts['uncategorized'].zero?
     @menu_visible_category_ids = matching_category_ids(@menu_status)
   end
@@ -55,7 +67,7 @@ class Staff::MenuController < Staff::BaseController
       else
         false
       end
-      own_match &&= category.menu_items.any? { |item| menu_product_matches?(item) } if params[:menu_view].present? && params[:menu_view] != 'all'
+      own_match &&= category.menu_items.any? { |item| menu_product_matches?(item) }
       matches = own_match || child_matches
       ids << category.id if matches
       matches

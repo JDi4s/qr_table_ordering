@@ -1,5 +1,5 @@
 <div class="lunch-management scheduled-menu-simple" data-controller="scheduled-menu-editor">
-  <%= link_to '← Menu', staff_menu_path, class: 'scheduled-back-link' %>
+  <%= link_to '← Diárias / Brunch', staff_menu_path(menu_section: 'scheduled'), class: 'scheduled-back-link' %>
   <h1><%= @lunch_menu.title.presence || (@kind == 'lunch' ? 'Menu de almoço' : 'Pequeno-almoço') %></h1>
   <p class="scheduled-menu-intro">Escolhe o que vais vender. Depois seleciona os produtos e os preços.</p>
   <% if @products.any? { |p| p.product_kind == 'unclassified' } %><div class="flash alert"><p>Há produtos sem tipo. <%= link_to 'Classificar produtos', edit_staff_product_classification_path %> antes de os adicionar a este menu.</p></div><% end %>
