@@ -11,8 +11,7 @@ class MenuClaritySystemTest < ApplicationSystemTestCase
     assert_current_path staff_orders_path
     visit edit_staff_lunch_menu_path
     check 'Ativar menu de almoço'
-    uncheck 'Vender à unidade'
-    check 'Vender menu completo'
+    assert_no_text 'Vender à unidade'
     choose 'exclude_plate', allow_label_click: true
     choose 'exclude_coffee', allow_label_click: true
     choose 'exclude_dessert', allow_label_click: true
@@ -44,8 +43,7 @@ class MenuClaritySystemTest < ApplicationSystemTestCase
     assert_current_path staff_orders_path
     visit edit_staff_lunch_menu_path
     %w[soup plate coffee dessert].each { |key| choose "exclude_#{key}", allow_label_click: true }
-    uncheck 'Vender à unidade'
-    check 'Vender menu completo'
+    assert_no_text 'Vender à unidade'
     click_button '+ Criar grupo'
     within '[data-group-editor=extra_0]' do
       fill_in 'Nome do grupo', with: 'Sopas da casa'
@@ -63,3 +61,4 @@ class MenuClaritySystemTest < ApplicationSystemTestCase
     assert_field 'Nome do grupo', with: 'Sopas da casa'
   end
 end
+

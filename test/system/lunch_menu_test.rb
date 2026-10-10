@@ -55,9 +55,9 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     check 'Ativar menu de almoço'
     assert_no_text 'Vender à unidade'
     assert_no_selector '[data-sale-section="individual"]'
-    choose 'exclude_plate'
-    choose 'exclude_coffee'
-    choose 'exclude_dessert'
+    choose 'exclude_plate', allow_label_click: true
+    choose 'exclude_coffee', allow_label_click: true
+    choose 'exclude_dessert', allow_label_click: true
     find('[data-group-panel="soup"] summary').click
     check "#{'combo_options[soup]'.parameterize}-#{product.id}"
     fill_in 'Preço do menu completo (€)', with: '8.50' 
@@ -72,3 +72,4 @@ class LunchMenuSystemTest < ApplicationSystemTestCase
     assert_equal BigDecimal('10'), product.reload.price
   end
 end
+
